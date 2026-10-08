@@ -115,11 +115,14 @@ class DatasetTests(unittest.TestCase):
         c.node_features_history=[np.array([[i]]) for i in range(10)]
         c.edge_features_history=[np.array([[i]]) for i in range(10)]
         c.edge_labels_history=[np.array([i]) for i in range(10)]
+        c.edge_scores_history=[np.array([i/10]) for i in range(10)]
         samples=c.get_windowed_samples(3,2)
         self.assertEqual(len(samples),6)
         self.assertEqual(samples[0]['feature_end'],2)
         self.assertEqual(samples[0]['labels'][0],4)
         self.assertEqual(samples[-1]['labels'][0],9)
+        # Persistence inputs come from the last observed tick (feature_end).
+        self.assertEqual(samples[0]['last_labels'][0],2); self.assertAlmostEqual(samples[0]['last_scores'][0],.2)
 
 class TelemetryTests(unittest.TestCase):
     def snapshot(self):
@@ -172,7 +175,8 @@ class CheckpointTests(unittest.TestCase):
         self.assertEqual(CHECKPOINT_SCHEMA_VERSION,3)
         for legacy in [{'schema_version':2},{}]:
             with self.assertRaises(ValueError): check_checkpoint_schema(legacy)
-        check_checkpoint_schema({'schema_version':3})
+        from config import MODEL
+        check_checkpoint_schema({'schema_version':3,'label_mode':MODEL['label_mode']})
 
 class ControllerTests(unittest.TestCase):
     def setup_case(self):

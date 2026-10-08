@@ -101,9 +101,9 @@ async def start_simulation():
     # Try loading trained model
     try:
         from model.gnn_model import CongestionPredictor, load_compatible_state_dict, check_checkpoint_schema
-        from config import MODEL_DIR
+        from config import CHECKPOINT_OUT
 
-        checkpoint_path = os.path.join(MODEL_DIR, "best_model.pt")
+        checkpoint_path = CHECKPOINT_OUT
         if os.path.exists(checkpoint_path):
             edge_pairs = [(collector.switch_to_idx[u], collector.switch_to_idx[v])
                           for u, v in collector.switch_edges]
@@ -118,8 +118,9 @@ async def start_simulation():
             model.eval()
             sim_state["model"] = model
 
-            # Proactive rerouter (needs model)
-            sim_state["rerouter"] = GuardedRerouter(G, collector.edge_to_idx)
+            # Guarded rerouter alerts at the validation-tuned threshold stored in the checkpoint.
+            sim_state["threshold"] = checkpoint["alert_threshold"]
+            sim_state["rerouter"] = GuardedRerouter(G, collector.edge_to_idx, threshold=sim_state["threshold"])
 
             print("  [OK] Loaded trained GNN model for live predictions")
         else:
@@ -204,7 +205,8 @@ async def simulation_loop():
                     sim_state["flows"], predictions, engine, engine.tick)
                 sim_state["total_reroutes"] += len(events)
             # Bound live telemetry history; offline collectors keep full scenarios.
-            for name in ["node_features_history", "edge_features_history", "edge_labels_history", "snapshots"]:
+            for name in ["node_features_history", "edge_features_history", "edge_labels_history",
+                         "edge_scores_history", "snapshots"]:
                 history = getattr(collector, name)
                 del history[:-MODEL["window_size"]]
             msg = _build_update_message(snapshot, predictions, events)

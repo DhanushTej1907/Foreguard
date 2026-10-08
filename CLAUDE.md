@@ -10,19 +10,31 @@ expected and harmless.
 - `simulation/` topology, traffic_generator, network_engine (causal batch sim, full-duplex: one
   FIFO per direction, `link_states` keyed by directed `(u, v)`), telemetry (features/labels; per
   physical link = max over both directions, still 32 links)
-- `config.py`: `CHECKPOINT_SCHEMA_VERSION` (currently 3; checked by `model.gnn_model.check_checkpoint_schema`),
-  `MODEL["label_mode"]` = `"offered"` (default) | `"served_or_queued"`
+- `config.py`: `CHECKPOINT_SCHEMA_VERSION` (currently 3; checked by `model.gnn_model.check_checkpoint_schema`,
+  which also rejects a checkpoint whose `label_mode` differs from config),
+  `MODEL["label_mode"]` = `"served_or_queued"` (default since Phase 2) | `"offered"`.
+  Schema 3 covers Phase 1 + Phase 2; it was not bumped in Phase 2 because no schema-3 artifact existed yet.
+- Labels: `label = congestion_score > 0.85`; served_or_queued score
+  `s = clip(max(packets_out/cap, 0.85*queue/(0.1*buffer)))`. Samples carry `last_labels` / `last_scores`
+  (binary / continuous persistence). Edge features: offered util, queue/buffer, drops/cap, served util — all in [0, 1].
+- Output defaults (`config.py`): `checkpoints/best_model_v3.pt`, `research/benchmark_results_v4.json`,
+  `data/datasets_v3.pkl`, `plots/v3/`. `check_output_path` refuses the legacy files listed in `LEGACY_PATHS`.
+  Datasets store `schema_version` + `label_mode` and are rejected on mismatch.
 - `engine.metrics()` exports `host_link_drops + fabric_link_drops + unroutable_drops == total_drops` (`drop_split_ok`)
-- `model/` gnn_model (GCN-LSTM, 17,985 params), train, dataset, splits (by scenario_id), evaluate
+- `model/` gnn_model (GCN-LSTM, 17,985 params), baselines (LSTM-only, per-link logistic regression),
+  metrics (overall + onset metrics, val-tuned threshold, scenario bootstrap), train (best epoch by val AP,
+  `alert_threshold` tuned on val and stored in the checkpoint), dataset, splits (by scenario_id; holdout by family), evaluate
 - `routing/` rerouter.py (reactive + unguarded proactive), guarded.py (GuardedRerouter), comparator.py
-- `research_benchmark.py` → `research/benchmark_results.json`; `summarize_results.py` → `research/EXPERIMENT_RESULTS.md`
+- `research_benchmark.py` (`--forecast-only`, `--holdout-family <family>|all`, `--checkpoint-out`, `--results-out`,
+  `--data-out`) → `research/benchmark_results_v4.json`. `summarize_results.py` / `plot_extra_graphs.py` still read the
+  legacy `benchmark_results.json`.
 - `dashboard/` FastAPI + WebSocket server, static D3/Chart.js frontend
 - `tests/` unittest suite: `python -m unittest discover -s tests -v`
 
 ## Known findings — schema 2 (pre-Phase-1 shared-FIFO simulator)
 These were measured on the old simulator and recorded JSON; after Phase 1 (full-duplex) they must
-be re-verified. See `reports/PHASE1_REPORT.md` for the post-Phase-1 numbers (no retrained GNN yet;
-`checkpoints/best_model.pt` is schema 2 and is rejected).
+be re-verified. See `reports/PHASE1_REPORT.md` and `reports/PHASE2_REPORT.md` for schema-3 numbers
+(`checkpoints/best_model.pt` is schema 2 and is rejected).
 - Simulator is deterministic: ECMP drops reproduce the recorded JSON exactly (v2 simulator only).
 - **Guard-only ablation:** GuardedRerouter fed last-tick persistence labels gives 6.03% drop
   reduction vs ECMP, fed current utilization 6.10%; with GNN predictions 5.94%. The guard, not the

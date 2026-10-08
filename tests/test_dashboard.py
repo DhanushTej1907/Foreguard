@@ -2,7 +2,8 @@ import unittest
 import time
 import torch
 from pathlib import Path
-from config import MODEL_DIR, CHECKPOINT_SCHEMA_VERSION
+from config import CHECKPOINT_OUT
+from model.gnn_model import check_checkpoint_schema
 from fastapi.testclient import TestClient
 from dashboard.server import app, sim_state
 
@@ -15,12 +16,17 @@ class DashboardTests(unittest.TestCase):
             self.assertEqual(client.post('/api/config',json={'threshold':2}).status_code,422)
             self.assertEqual(client.post('/api/config',json={'speed':1,'threshold':.8}).status_code,200)
             self.assertEqual(client.post('/api/start').status_code,200)
-            # Only a checkpoint with the current schema may load; legacy ones fall back to ECMP.
-            path=Path(MODEL_DIR)/'best_model.pt'
-            current=path.exists() and torch.load(path,map_location='cpu',weights_only=True).get('schema_version')==CHECKPOINT_SCHEMA_VERSION
+            # Only a current-schema, current-label-mode checkpoint at CHECKPOINT_OUT may load;
+            # otherwise the dashboard falls back to ECMP.
+            path=Path(CHECKPOINT_OUT); current=False
+            if path.exists():
+                ckpt=torch.load(path,map_location='cpu',weights_only=True)
+                try: check_checkpoint_schema(ckpt); current=True
+                except ValueError: pass
             status=client.get('/api/status').json()
             self.assertEqual(status['model_loaded'],current)
-            if not current: self.assertEqual(status['controller'],'static ECMP')
+            if current: self.assertEqual(sim_state['threshold'],ckpt['alert_threshold'])
+            else: self.assertEqual(status['controller'],'static ECMP')
             time.sleep(.3)
             before=client.get('/api/status').json()['tick']
             self.assertGreater(before,0) # runs without any viewers

@@ -1,7 +1,7 @@
 """
 INT-style idealized telemetry
 =============================
-Per-link and per-switch counters (queue depth, utilization, drops, latency) are
+Per-link and per-switch counters (queue depth, utilization, drops) are
 read directly from the simulator's link state every tick. Nothing is carried in
 packet headers, sampled, delayed or lost, so this is an idealized upper bound on
 what P4-based In-band Network Telemetry would report.
@@ -19,16 +19,29 @@ from simulation.network_engine import NetworkEngine, merge_directions
 LABEL_MODES = ("offered", "served_or_queued")
 
 
-def congestion_label(data, capacity, buffer_size, mode=None):
-    """1.0 if a (merged) link snapshot counts as congested under `mode`."""
+def congestion_score(data, capacity, buffer_size, mode=None):
+    """Continuous congestion score in [0, 1] for a (merged) link snapshot.
+
+    offered:          s = clip(packets_in / capacity)
+    served_or_queued: s = clip(max(packets_out / capacity, T * queue / (f * buffer)))
+    with T = congestion_threshold and f = queue_label_fraction, so s > T reproduces the
+    rule "served > T or queue > f * buffer" (the label is defined as s > T).
+    """
     mode = MODEL["label_mode"] if mode is None else mode
     threshold = MODEL["congestion_threshold"]
     if mode == "offered":
-        return float(data["utilization"] > threshold)
-    if mode == "served_or_queued":
-        return float(data["packets_out"] / capacity > threshold
-                     or data["queue_depth"] > MODEL["queue_label_fraction"] * buffer_size)
-    raise ValueError(f"unknown label_mode {mode!r}; expected one of {LABEL_MODES}")
+        score = data["utilization"]
+    elif mode == "served_or_queued":
+        score = max(data["packets_out"] / capacity,
+                    threshold * data["queue_depth"] / (MODEL["queue_label_fraction"] * buffer_size))
+    else:
+        raise ValueError(f"unknown label_mode {mode!r}; expected one of {LABEL_MODES}")
+    return float(min(1.0, max(0.0, score)))
+
+
+def congestion_label(data, capacity, buffer_size, mode=None):
+    """1.0 if a (merged) link snapshot counts as congested under `mode`."""
+    return float(congestion_score(data, capacity, buffer_size, mode) > MODEL["congestion_threshold"])
 
 
 class INTReport:
@@ -83,6 +96,7 @@ class TelemetryCollector:
         self.node_features_history = []   # List of [num_switches, node_feat_dim]
         self.edge_features_history = []   # List of [num_edges, edge_feat_dim]
         self.edge_labels_history = []     # List of [num_edges] binary labels
+        self.edge_scores_history = []     # List of [num_edges] continuous scores (label = score > T)
         self.snapshots = []               # Raw snapshot dicts
 
     def collect_tick(self, snapshot: dict):
@@ -95,11 +109,13 @@ class TelemetryCollector:
           [2] total_drops           (normalized)
           [3] buffer_usage          (fraction 0-1)
 
-        Edge features (per switch-to-switch link):
-          [0] link_utilization      (0-1)
+        Edge features (per switch-to-switch link), all in [0, 1]:
+          [0] offered utilization   (packets_in / capacity, clipped)
           [1] queue_depth           (normalized by buffer size)
-          [2] packet_drop_rate      (drops / capacity)
-          [3] latency               (normalized, μs / 100)
+          [2] packet_drop_rate      (drops / capacity, clipped)
+          [3] served utilization    (packets_out / capacity)
+        Queue delay is not a separate feature: in this simulator it is
+        queue / capacity * tick, so normalized it equals feature [1].
         """
         self.snapshots.append(snapshot)
 
@@ -122,6 +138,7 @@ class TelemetryCollector:
         # ── Edge Features ─────────────────────────────────────────
         edge_feats = np.zeros((num_edges, MODEL["edge_feature_dim"]), dtype=np.float32)
         edge_labels = np.zeros(num_edges, dtype=np.float32)
+        edge_scores = np.zeros(num_edges, dtype=np.float32)
 
         # Max over both directions; a link is congested if either direction is.
         for key, data in merge_directions(snapshot["links"]).items():
@@ -130,12 +147,15 @@ class TelemetryCollector:
                 edge_feats[idx, 0] = min(1.0, data["utilization"])
                 edge_feats[idx, 1] = data["queue_depth"] / max(1, buffer_size)
                 edge_feats[idx, 2] = min(1.0, data["packets_dropped"] / max(1, capacity))
-                edge_feats[idx, 3] = data["latency_us"] / 100.0  # Normalize
-                edge_labels[idx] = congestion_label(data, capacity, buffer_size)
+                edge_feats[idx, 3] = min(1.0, data["packets_out"] / max(1, capacity))
+                score = congestion_score(data, capacity, buffer_size)
+                edge_scores[idx] = score
+                edge_labels[idx] = float(score > MODEL["congestion_threshold"])
 
         self.node_features_history.append(node_feats)
         self.edge_features_history.append(edge_feats)
         self.edge_labels_history.append(edge_labels)
+        self.edge_scores_history.append(edge_scores)
 
     def get_pyg_edge_index(self) -> np.ndarray:
         """
@@ -162,6 +182,8 @@ class TelemetryCollector:
           - node_features: [window_size, num_switches, node_feat_dim]
           - edge_features: [window_size, num_edges, edge_feat_dim]
           - labels: [num_edges] — congestion at time t + horizon
+          - last_labels / last_scores: [num_edges] — label and continuous score at the
+            last observed tick (persistence baselines; onset = last_labels == 0)
 
         Returns
         -------
@@ -192,6 +214,8 @@ class TelemetryCollector:
                 "node_features": node_feats,
                 "edge_features": edge_feats,
                 "labels": labels,
+                "last_labels": self.edge_labels_history[t - 1],
+                "last_scores": self.edge_scores_history[t - 1],
                 "tick": t,
                 "feature_start": t - window_size,
                 "feature_end": t - 1,
@@ -224,6 +248,7 @@ class TelemetryCollector:
         self.node_features_history.clear()
         self.edge_features_history.clear()
         self.edge_labels_history.clear()
+        self.edge_scores_history.clear()
         self.snapshots.clear()
 
 
