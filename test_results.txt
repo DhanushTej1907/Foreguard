@@ -1,0 +1,1 @@
+  [OK] Loaded trained GNN model for live predictions

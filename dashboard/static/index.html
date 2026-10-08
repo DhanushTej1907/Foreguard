@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuralFabric — GNN Congestion Pre-emption Engine</title>
+    <meta name="description" content="Real-time GNN-based proactive congestion prediction and intelligent rerouting for data center fabrics using in-band network telemetry. Visualize Fat-Tree topology, predict congestion before it happens.">
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div style="padding:10px;text-align:center;background:#e2e8f0;color:#1a202c;font:14px sans-serif;border-bottom:1px solid #cbd5e0;">Research simulator · 1 ms ticks · shared-link queues · no PFC/RDMA model · predictions are experimental</div>
+    <!-- Ambient Background Effects -->
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="grid-lines"></div>
+    </div>
+
+    <!-- Header -->
+    <header id="main-header">
+        <div class="header-left">
+            <div class="logo-container">
+                <svg class="logo-svg" viewBox="0 0 40 40" width="36" height="36">
+                    <defs>
+                        <linearGradient id="logoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00d2ff"/>
+                            <stop offset="50%" style="stop-color:#7b68ee"/>
+                            <stop offset="100%" style="stop-color:#e94560"/>
+                        </linearGradient>
+                        <filter id="logoGlow">
+                            <feGaussianBlur stdDeviation="2" result="blur"/>
+                            <feMerge>
+                                <feMergeNode in="blur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    <circle cx="20" cy="20" r="17" fill="none" stroke="url(#logoGrad1)" stroke-width="1.5" opacity="0.6"/>
+                    <!-- Neural network icon -->
+                    <circle cx="20" cy="8" r="3.5" fill="#00d2ff" filter="url(#logoGlow)"/>
+                    <circle cx="10" cy="20" r="3" fill="#7b68ee" filter="url(#logoGlow)"/>
+                    <circle cx="30" cy="20" r="3" fill="#7b68ee" filter="url(#logoGlow)"/>
+                    <circle cx="12" cy="32" r="2.5" fill="#e94560" filter="url(#logoGlow)"/>
+                    <circle cx="20" cy="32" r="2.5" fill="#e94560" filter="url(#logoGlow)"/>
+                    <circle cx="28" cy="32" r="2.5" fill="#e94560" filter="url(#logoGlow)"/>
+                    <line x1="20" y1="8" x2="10" y2="20" stroke="#5a6acf" stroke-width="1" opacity="0.6"/>
+                    <line x1="20" y1="8" x2="30" y2="20" stroke="#5a6acf" stroke-width="1" opacity="0.6"/>
+                    <line x1="10" y1="20" x2="12" y2="32" stroke="#5a6acf" stroke-width="1" opacity="0.6"/>
+                    <line x1="10" y1="20" x2="20" y2="32" stroke="#5a6acf" stroke-width="1" opacity="0.6"/>
+                    <line x1="30" y1="20" x2="20" y2="32" stroke="#5a6acf" stroke-width="1" opacity="0.6"/>
+                    <line x1="30" y1="20" x2="28" y2="32" stroke="#5a6acf" stroke-width="1" opacity="0.6"/>
+                </svg>
+                <div class="logo-pulse"></div>
+            </div>
+            <div class="header-text">
+                <h1>NeuralFabric</h1>
+                <span class="subtitle">GNN Congestion Pre-emption Engine &bull; In-Band Telemetry &bull; Fat-Tree k=4</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="health-indicator" id="health-indicator">
+                <svg class="health-ring" viewBox="0 0 44 44">
+                    <circle class="health-ring-bg" cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4"/>
+                    <circle class="health-ring-fill" id="health-ring-fill" cx="22" cy="22" r="18" fill="none" stroke="#48bb78" stroke-width="4" stroke-dasharray="113.1" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 22 22)"/>
+                </svg>
+                <span class="health-score" id="health-score">100</span>
+            </div>
+            <div class="header-stats">
+                <div class="status-badge" id="status-badge">
+                    <span class="status-dot"></span>
+                    <span id="status-text">Offline</span>
+                </div>
+                <div class="tick-counter" id="tick-counter">
+                    <span class="tick-label">TICK</span>
+                    <span class="tick-value" id="tick-value">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        <!-- Top Bar: Quick Stats -->
+        <section class="quick-stats" id="quick-stats">
+            <div class="stat-card" id="stat-flows">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="4" y1="22" x2="4" y2="15" stroke="currentColor" stroke-width="2"/></svg>
+                </div>
+                <div class="stat-data">
+                    <span class="stat-value" id="val-flows">0</span>
+                    <span class="stat-label">Active Flows</span>
+                </div>
+                <div class="stat-trend" id="trend-flows">
+                    <canvas id="spark-flows" width="60" height="24"></canvas>
+                </div>
+            </div>
+            <div class="stat-card" id="stat-packets">
+                <div class="stat-icon packets-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20"><rect x="2" y="7" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </div>
+                <div class="stat-data">
+                    <span class="stat-value" id="val-packets">0</span>
+                    <span class="stat-label">Packets Forwarded</span>
+                </div>
+                <div class="stat-trend">
+                    <canvas id="spark-packets" width="60" height="24"></canvas>
+                </div>
+            </div>
+            <div class="stat-card stat-alert" id="stat-drops">
+                <div class="stat-icon drops-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
+                </div>
+                <div class="stat-data">
+                    <span class="stat-value" id="val-drops">0</span>
+                    <span class="stat-label">Packet Drops</span>
+                </div>
+                <div class="stat-trend">
+                    <canvas id="spark-drops" width="60" height="24"></canvas>
+                </div>
+            </div>
+            <div class="stat-card" id="stat-droprate">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="stat-data">
+                    <span class="stat-value" id="val-droprate">0%</span>
+                    <span class="stat-label">Drop Rate</span>
+                </div>
+                <div class="stat-trend">
+                    <canvas id="spark-droprate" width="60" height="24"></canvas>
+                </div>
+            </div>
+            <div class="stat-card" id="stat-reroutes">
+                <div class="stat-icon reroute-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20"><polyline points="16 3 21 3 21 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="4" y1="20" x2="21" y2="3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><polyline points="21 16 21 21 16 21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="15" y1="15" x2="21" y2="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="stat-data">
+                    <span class="stat-value" id="val-reroutes">0</span>
+                    <span class="stat-label">GNN Reroutes</span>
+                </div>
+                <div class="stat-trend">
+                    <canvas id="spark-reroutes" width="60" height="24"></canvas>
+                </div>
+            </div>
+            <div class="stat-card" id="stat-predictions">
+                <div class="stat-icon prediction-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 2a7 7 0 017 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 017-7z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </div>
+                <div class="stat-data">
+                    <span class="stat-value" id="val-predictions">0</span>
+                    <span class="stat-label">Congestion Alerts</span>
+                </div>
+                <div class="stat-trend">
+                    <canvas id="spark-predictions" width="60" height="24"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Left Column: Topology + Charts -->
+            <div class="left-column">
+                <!-- Topology Panel -->
+                <section class="panel topology-panel" id="topology-panel">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <h2>Network Topology</h2>
+                            <span class="panel-badge">Fat-Tree k=4 &bull; 20 Switches &bull; 16 Hosts</span>
+                        </div>
+                        <div class="panel-controls">
+                            <div class="legend-strip">
+                                <span class="legend-item"><span class="dot core"></span>Core</span>
+                                <span class="legend-item"><span class="dot agg"></span>Aggregation</span>
+                                <span class="legend-item"><span class="dot edge-sw"></span>Edge (ToR)</span>
+                                <span class="legend-item"><span class="dot host"></span>Host</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="topology-container">
+                        <svg id="topology-svg"></svg>
+                        <div class="topology-overlay" id="topology-overlay">
+                            <div class="overlay-text">
+                                <svg viewBox="0 0 24 24" width="48" height="48"><circle cx="12" cy="12" r="10" fill="none" stroke="rgba(0,210,255,0.3)" stroke-width="1.5"/><polygon points="10,8 16,12 10,16" fill="rgba(0,210,255,0.5)"/></svg>
+                                <span>Start simulation to visualize live network</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="utilization-bar">
+                        <div class="util-label">Link Load</div>
+                        <div class="util-gradient">
+                            <div class="gradient-track"></div>
+                            <div class="gradient-labels">
+                                <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
+                            </div>
+                        </div>
+                        <div class="util-label congestion-label">
+                            <span class="pulse-dot danger"></span>
+                            GNN Predicted Congestion
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Charts Row -->
+                <div class="charts-row">
+                    <section class="panel chart-panel" id="chart-panel-util">
+                        <div class="panel-header compact">
+                            <h2>Link Utilization Timeline</h2>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-utilization"></canvas>
+                        </div>
+                    </section>
+                    <section class="panel chart-panel" id="chart-panel-traffic">
+                        <div class="panel-header compact">
+                            <h2>Traffic & Drop Analysis</h2>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-drops"></canvas>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Right Column: Controls + Sidebar -->
+            <aside class="right-sidebar">
+                <!-- Control Panel -->
+                <section class="panel control-panel" id="control-panel">
+                    <div class="panel-header">
+                        <h2>Simulation Controls</h2>
+                    </div>
+                    <div class="control-body">
+                        <div class="control-buttons">
+                            <button id="btn-start" class="btn btn-primary" onclick="startSimulation()">
+                                <svg viewBox="0 0 24 24" width="16" height="16"><polygon points="5,3 19,12 5,21" fill="currentColor"/></svg>
+                                Start Engine
+                            </button>
+                            <button id="btn-stop" class="btn btn-danger" onclick="stopSimulation()" disabled>
+                                <svg viewBox="0 0 24 24" width="16" height="16"><rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor"/></svg>
+                                Stop
+                            </button>
+                        </div>
+                        <button id="btn-spike" class="btn btn-warning btn-full" onclick="injectSpike()" disabled>
+                            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/></svg>
+                            Inject Traffic Spike (Incast Attack)
+                        </button>
+                        <div class="control-sliders">
+                            <div class="slider-group">
+                                <div class="slider-header">
+                                    <label for="threshold-slider">GNN Alert Threshold</label>
+                                    <span class="slider-value" id="threshold-value">0.70</span>
+                                </div>
+                                <input type="range" id="threshold-slider" min="0.3" max="0.95" step="0.05" value="0.7">
+                                <div class="slider-ticks">
+                                    <span>Conservative</span><span>Aggressive</span>
+                                </div>
+                            </div>
+                            <div class="slider-group">
+                                <div class="slider-header">
+                                    <label for="speed-slider">Simulation Speed</label>
+                                    <span class="slider-value" id="speed-value">1.0x</span>
+                                </div>
+                                <input type="range" id="speed-slider" min="0.25" max="5" step="0.25" value="1">
+                                <div class="slider-ticks">
+                                    <span>Slow</span><span>Fast</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Congestion Prediction Panel -->
+                <section class="panel prediction-panel" id="prediction-panel">
+                    <div class="panel-header">
+                        <h2>GNN Predictions</h2>
+                        <span class="panel-badge live-badge" id="gnn-status">Waiting for data</span>
+                    </div>
+                    <div class="prediction-body">
+                        <div class="prediction-heatmap" id="prediction-heatmap">
+                            <div class="heatmap-placeholder">
+                                <span>Congestion probability heatmap will appear once GNN model starts predicting</span>
+                            </div>
+                        </div>
+                        <div class="prediction-stats">
+                            <div class="pred-stat">
+                                <span class="pred-label">Avg Prediction</span>
+                                <span class="pred-value" id="pred-avg">—</span>
+                            </div>
+                            <div class="pred-stat">
+                                <span class="pred-label">Max Risk Link</span>
+                                <span class="pred-value danger" id="pred-max">—</span>
+                            </div>
+                            <div class="pred-stat">
+                                <span class="pred-label">At-Risk Links</span>
+                                <span class="pred-value warning" id="pred-risk-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Event Log -->
+                <section class="panel log-panel" id="log-panel">
+                    <div class="panel-header">
+                        <h2>Event Timeline</h2>
+                        <div class="log-controls">
+                            <button class="btn-icon" onclick="clearLog()" title="Clear log">
+                                <svg viewBox="0 0 24 24" width="14" height="14"><polyline points="3,6 5,6 21,6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19,6V20a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="event-log" class="event-log">
+                        <div class="log-entry info">
+                            <span class="log-time"></span>
+                            <span class="log-icon">●</span>
+                            <span class="log-msg">System initialized. Click "Start Engine" to begin simulation.</span>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer id="main-footer">
+        <div class="footer-left">
+            <span class="footer-brand">NeuralFabric</span>
+            <span class="footer-sep">|</span>
+            <span>GNN-Based Proactive Congestion Pre-emption in Data Center Fabrics</span>
+        </div>
+        <div class="footer-right">
+            <span>GCN-LSTM Model</span>
+            <span class="footer-sep">|</span>
+            <span>PyTorch + PyTorch Geometric</span>
+            <span class="footer-sep">|</span>
+            <span>Computer Networks Project</span>
+        </div>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
