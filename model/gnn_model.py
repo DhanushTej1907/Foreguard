@@ -25,7 +25,15 @@ try:
 except ImportError:
     HAS_PYG = False
 
-from config import MODEL
+from config import MODEL, CHECKPOINT_SCHEMA_VERSION
+
+
+def check_checkpoint_schema(checkpoint: dict):
+    """Reject checkpoints trained on an older simulator/feature/label schema."""
+    found = checkpoint.get("schema_version")
+    if found != CHECKPOINT_SCHEMA_VERSION:
+        raise ValueError(f"Legacy checkpoint (schema {found}, need {CHECKPOINT_SCHEMA_VERSION}): "
+                         "regenerate data and retrain")
 
 
 class ManualGCNConv(nn.Module):

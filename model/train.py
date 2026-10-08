@@ -18,7 +18,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score
 
-from config import TRAINING, MODEL_DIR, ensure_dirs
+from config import TRAINING, MODEL, MODEL_DIR, CHECKPOINT_SCHEMA_VERSION, ensure_dirs
 from model.dataset import collate_fn
 from model.gnn_model import load_compatible_state_dict
 
@@ -194,7 +194,8 @@ def train_model(model, train_ds, val_ds, device="cpu", epochs=None,
             best_f1 = val_f1
             patience_counter = 0
             torch.save({
-                "schema_version": 2,
+                "schema_version": CHECKPOINT_SCHEMA_VERSION,
+                "label_mode": MODEL["label_mode"],
                 "epoch": epoch,
                 "model_state_dict": model.state_dict(),
                 "optimizer_state_dict": optimizer.state_dict(),

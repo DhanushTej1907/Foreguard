@@ -1,22 +1,34 @@
 """
-In-Band Network Telemetry (INT) Emulator
-=========================================
-Simulates INT by collecting per-hop metadata as packets traverse switches.
+INT-style idealized telemetry
+=============================
+Per-link and per-switch counters (queue depth, utilization, drops, latency) are
+read directly from the simulator's link state every tick. Nothing is carried in
+packet headers, sampled, delayed or lost, so this is an idealized upper bound on
+what P4-based In-band Network Telemetry would report.
 
-In real INT (P4-based):
-  - Source switch inserts INT header into packets
-  - Each transit switch appends its own metadata (queue depth, timestamp, etc.)
-  - Sink switch extracts all metadata and sends telemetry reports
-
-This emulator captures the same per-hop data from the simulation engine
-and organizes it into time-series graph snapshots for the GNN.
+Links are full-duplex in the simulator; features and labels for each physical
+link take the max over its two directions, so the GNN still sees 32 links.
 """
 
 import numpy as np
 import networkx as nx
 from collections import defaultdict
 from config import MODEL, SIMULATION
-from simulation.network_engine import NetworkEngine
+from simulation.network_engine import NetworkEngine, merge_directions
+
+LABEL_MODES = ("offered", "served_or_queued")
+
+
+def congestion_label(data, capacity, buffer_size, mode=None):
+    """1.0 if a (merged) link snapshot counts as congested under `mode`."""
+    mode = MODEL["label_mode"] if mode is None else mode
+    threshold = MODEL["congestion_threshold"]
+    if mode == "offered":
+        return float(data["utilization"] > threshold)
+    if mode == "served_or_queued":
+        return float(data["packets_out"] / capacity > threshold
+                     or data["queue_depth"] > MODEL["queue_label_fraction"] * buffer_size)
+    raise ValueError(f"unknown label_mode {mode!r}; expected one of {LABEL_MODES}")
 
 
 class INTReport:
@@ -111,18 +123,15 @@ class TelemetryCollector:
         edge_feats = np.zeros((num_edges, MODEL["edge_feature_dim"]), dtype=np.float32)
         edge_labels = np.zeros(num_edges, dtype=np.float32)
 
-        for (u, v), data in snapshot["links"].items():
-            key = (min(u, v), max(u, v))
+        # Max over both directions; a link is congested if either direction is.
+        for key, data in merge_directions(snapshot["links"]).items():
             if key in self.edge_to_idx:
                 idx = self.edge_to_idx[key]
                 edge_feats[idx, 0] = min(1.0, data["utilization"])
                 edge_feats[idx, 1] = data["queue_depth"] / max(1, buffer_size)
                 edge_feats[idx, 2] = min(1.0, data["packets_dropped"] / max(1, capacity))
                 edge_feats[idx, 3] = data["latency_us"] / 100.0  # Normalize
-
-                # Label: congested if utilization exceeds threshold
-                if data["utilization"] > MODEL["congestion_threshold"]:
-                    edge_labels[idx] = 1.0
+                edge_labels[idx] = congestion_label(data, capacity, buffer_size)
 
         self.node_features_history.append(node_feats)
         self.edge_features_history.append(edge_feats)

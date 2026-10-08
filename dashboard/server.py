@@ -30,7 +30,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from config import DASHBOARD, MODEL, TOPOLOGY, REROUTING, ensure_dirs
 from simulation.topology import build_fat_tree, get_switch_index_map
 from simulation.traffic_generator import TrafficGenerator
-from simulation.network_engine import NetworkEngine
+from simulation.network_engine import NetworkEngine, merge_directions
 from simulation.telemetry import TelemetryCollector
 from routing.rerouter import ProactiveRerouter, ReactiveRerouter
 
@@ -100,7 +100,7 @@ async def start_simulation():
     sim_state["rerouter"] = None
     # Try loading trained model
     try:
-        from model.gnn_model import CongestionPredictor, load_compatible_state_dict
+        from model.gnn_model import CongestionPredictor, load_compatible_state_dict, check_checkpoint_schema
         from config import MODEL_DIR
 
         checkpoint_path = os.path.join(MODEL_DIR, "best_model.pt")
@@ -113,8 +113,7 @@ async def start_simulation():
                 edge_pairs=edge_pairs,
             )
             checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
-            if checkpoint.get("schema_version") != 2:
-                raise ValueError("Legacy checkpoint: regenerate data and retrain")
+            check_checkpoint_schema(checkpoint)
             load_compatible_state_dict(model, checkpoint["model_state_dict"])
             model.eval()
             sim_state["model"] = model
@@ -183,7 +182,7 @@ async def status():
     return {"running": sim_state["running"], "tick": sim_state["tick"],
             "model_loaded": sim_state["model"] is not None,
             "controller": "guarded GNN" if sim_state["model"] is not None else "static ECMP",
-            "scope": "synthetic shared-link simulator; no PFC or RDMA"}
+            "scope": "synthetic full-duplex simulator; no PFC or RDMA"}
 
 
 async def simulation_loop():
@@ -297,9 +296,10 @@ def _get_predictions(collector, model) -> np.ndarray:
 
 def _build_update_message(snapshot, predictions=None, reroute_events=None) -> dict:
     """Build WebSocket update message."""
-    # Link data
+    # Link data: one entry per physical link (max over both directions);
+    # the frontend maps u--v and v--u to the same line.
     links = {}
-    for (u, v), data in snapshot["links"].items():
+    for (u, v), data in merge_directions(snapshot["links"]).items():
         link_id = f"{u}--{v}"
         links[link_id] = {
             "utilization": round(data["utilization"], 4),

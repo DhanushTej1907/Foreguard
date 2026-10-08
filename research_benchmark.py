@@ -83,8 +83,9 @@ def main():
             probabilities.extend(model(b['node_features'],b['edge_features'],b['edge_index']).numpy())
             labels.extend(b['labels'].numpy())
             persistence.extend((b['edge_features'][:,-1,:,0].numpy()>MODEL['congestion_threshold']).astype(float))
+    # schema_version here is the results-JSON schema, not config.CHECKPOINT_SCHEMA_VERSION.
     output=dict(schema_version=3, settings=vars(args), python=platform.python_version(), torch=torch.__version__,
-                scope='synthetic shared-link batch simulator; no PFC/RDMA; no real-time deployment claim',
+                scope='synthetic full-duplex batch simulator; no PFC/RDMA; no real-time deployment claim',
                 reproducibility={'global_seed':42,'model_parameters':17985,'model_training_seed':42,'routing_seed_start':3000},
                 scenarios=metadata, splits={name: sorted({s['scenario_id'] for s in ds.samples}) for name,ds in [('train',train),('val',val),('test',test)]},
                 history=history, prediction={'gnn':scores(labels,probabilities),'persistence':scores(labels,persistence)},runs=[])

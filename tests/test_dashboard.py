@@ -2,7 +2,7 @@ import unittest
 import time
 import torch
 from pathlib import Path
-from config import MODEL_DIR
+from config import MODEL_DIR, CHECKPOINT_SCHEMA_VERSION
 from fastapi.testclient import TestClient
 from dashboard.server import app, sim_state
 
@@ -15,8 +15,12 @@ class DashboardTests(unittest.TestCase):
             self.assertEqual(client.post('/api/config',json={'threshold':2}).status_code,422)
             self.assertEqual(client.post('/api/config',json={'speed':1,'threshold':.8}).status_code,200)
             self.assertEqual(client.post('/api/start').status_code,200)
-            if (Path(MODEL_DIR)/'best_model.pt').exists():
-                self.assertTrue(client.get('/api/status').json()['model_loaded'])
+            # Only a checkpoint with the current schema may load; legacy ones fall back to ECMP.
+            path=Path(MODEL_DIR)/'best_model.pt'
+            current=path.exists() and torch.load(path,map_location='cpu',weights_only=True).get('schema_version')==CHECKPOINT_SCHEMA_VERSION
+            status=client.get('/api/status').json()
+            self.assertEqual(status['model_loaded'],current)
+            if not current: self.assertEqual(status['controller'],'static ECMP')
             time.sleep(.3)
             before=client.get('/api/status').json()['tick']
             self.assertGreater(before,0) # runs without any viewers

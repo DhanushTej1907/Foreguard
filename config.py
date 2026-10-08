@@ -24,7 +24,6 @@ TOPOLOGY = {
 SIMULATION = {
     "tick_duration_ms": 1.0,         # Time step in milliseconds
     "total_ticks": 500,              # Total simulation ticks for data generation
-    "warmup_ticks": 20,              # Warmup ticks before recording telemetry
     "num_scenarios": 10,             # Number of traffic scenarios to generate
 }
 
@@ -32,7 +31,6 @@ SIMULATION = {
 TRAFFIC = {
     "baseline_utilization": 0.4,     # Average baseline link utilization
     "hotspot_intensity": 0.95,       # Peak utilization during hotspot events
-    "hotspot_probability": 0.15,     # Probability of hotspot event per tick
     "elephant_flow_rate": 0.8,       # Elephant flow rate (fraction of link capacity)
     "mice_flow_rate": 0.15,          # Mice flow rate (fraction of link capacity)
     "elephant_fraction": 0.2,        # Fraction of flows that are elephants
@@ -51,7 +49,16 @@ MODEL = {
     "window_size": 10,               # Temporal window (number of past timesteps)
     "prediction_horizon": 5,         # Predict congestion Δt ticks ahead
     "congestion_threshold": 0.85,    # Utilization above this = congested
+    # "offered":          packets_in / capacity > congestion_threshold
+    # "served_or_queued": packets_out / capacity > congestion_threshold
+    #                     OR queue > queue_label_fraction * buffer
+    # Either direction of a physical link meeting the rule labels the link congested.
+    "label_mode": "offered",
+    "queue_label_fraction": 0.1,
 }
+
+# Bump whenever simulator, features or labels change; older checkpoints are rejected.
+CHECKPOINT_SCHEMA_VERSION = 3
 
 # ─── Training ─────────────────────────────────────────────────────
 TRAINING = {
@@ -63,9 +70,6 @@ TRAINING = {
     "lr_factor": 0.5,                # LR reduction factor
     "early_stop_patience": 20,       # Early stopping patience
     "pos_weight": 3.0,               # Positive class weight (congestion is rarer)
-    "train_split": 0.7,              # Train fraction
-    "val_split": 0.15,               # Validation fraction
-    "test_split": 0.15,              # Test fraction
 }
 
 # ─── Rerouting ────────────────────────────────────────────────────

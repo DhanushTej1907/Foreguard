@@ -151,7 +151,7 @@ def evaluate(model=None, test_ds=None, history=None):
 
     import torch
     from model.dataset import load_datasets
-    from model.gnn_model import CongestionPredictor, load_compatible_state_dict
+    from model.gnn_model import CongestionPredictor, load_compatible_state_dict, check_checkpoint_schema
     from model.evaluate import generate_all_plots
     from simulation.topology import build_fat_tree
     from simulation.telemetry import TelemetryCollector
@@ -176,8 +176,7 @@ def evaluate(model=None, test_ds=None, history=None):
         checkpoint_path = os.path.join(MODEL_DIR, "best_model.pt")
         if os.path.exists(checkpoint_path):
             checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
-            if checkpoint.get("schema_version") != 2:
-                raise ValueError("Legacy checkpoint: regenerate data and retrain")
+            check_checkpoint_schema(checkpoint)
             load_compatible_state_dict(model, checkpoint["model_state_dict"])
             print(f"  Loaded checkpoint (epoch {checkpoint['epoch']}, "
                   f"val_f1={checkpoint['val_f1']:.4f})")
