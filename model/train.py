@@ -5,7 +5,8 @@ Trains the GCN-LSTM congestion predictor with:
   - Weighted Binary Cross-Entropy loss (handles class imbalance)
   - Adam optimizer with ReduceLROnPlateau scheduler
   - Best epoch, LR schedule and early stopping on validation average precision
-  - Checkpoint saving of best model, then a validation-tuned alert threshold (max F1)
+  - Checkpoint saving of best model, then temperature scaling and an alert threshold
+    (max F1), both fitted on validation and stored in the checkpoint
 """
 
 import os
@@ -23,6 +24,7 @@ from config import TRAINING, MODEL, CHECKPOINT_OUT, CHECKPOINT_SCHEMA_VERSION, c
 from model.dataset import collate_fn
 from model.gnn_model import load_compatible_state_dict
 from model.metrics import tune_threshold
+from model.calibration import fit_temperature, apply_temperature
 
 
 def predict_probabilities(model, ds, device="cpu", batch_size=64):
@@ -247,22 +249,31 @@ def train_model(model, train_ds, val_ds, device="cpu", epochs=None,
                 print(f"\n  Early stopping at epoch {epoch} (best val AP: {best_ap:.4f})")
             break
 
-    # Load best checkpoint, then tune the alert threshold on validation (max F1).
+    # Load best checkpoint, fit temperature scaling on validation, then tune the alert
+    # threshold (max F1) on the calibrated validation probabilities.
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
     load_compatible_state_dict(model, checkpoint["model_state_dict"])
-    threshold = tune_threshold(val_ds.stacked("labels"), predict_probabilities(model, val_ds, device))
-    checkpoint["alert_threshold"] = threshold
+    y_val = val_ds.stacked("labels")
+    raw_val = predict_probabilities(model, val_ds, device)
+    temperature = fit_temperature(raw_val, y_val)
+    cal_val = apply_temperature(raw_val, temperature)
+    threshold = tune_threshold(y_val, cal_val)
+    calibration = dict(temperature=temperature, alert_threshold=threshold,
+                       val_brier_raw=float(np.mean((raw_val - y_val) ** 2)),
+                       val_brier_calibrated=float(np.mean((cal_val - y_val) ** 2)))
+    checkpoint.update(calibration)
     torch.save(checkpoint, checkpoint_path)
 
     history.update(best_epoch=int(checkpoint["epoch"]), best_val_ap=float(checkpoint["val_ap"]),
-                   alert_threshold=threshold, train_seconds=time.perf_counter() - start_time,
-                   checkpoint_path=checkpoint_path)
+                   epochs_run=len(history["val_ap"]), train_seconds=time.perf_counter() - start_time,
+                   checkpoint_path=checkpoint_path, **calibration)
     with open(history_path, 'w') as f:
         json.dump(history, f, indent=2)
 
     if verbose:
         print(f"\n  Best model: epoch {checkpoint['epoch']}, "
-              f"val_ap={checkpoint['val_ap']:.4f}, alert_threshold={threshold:.4f}")
+              f"val_ap={checkpoint['val_ap']:.4f}, temperature={temperature:.3f}, "
+              f"alert_threshold={threshold:.4f}")
         print(f"  Saved to: {checkpoint_path}")
 
     return history

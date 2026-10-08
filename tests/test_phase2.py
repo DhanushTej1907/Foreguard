@@ -182,14 +182,23 @@ class TrainingAndBenchmarkTests(unittest.TestCase):
         g, c, samples = scenario_samples(4, 50)
         train, val, test = build_datasets(samples, c.get_pyg_edge_index())
         with tempfile.TemporaryDirectory() as tmp:
-            result, _, thresholds = rb.run_forecast(train, val, test, c, 1, os.path.join(tmp, 'g.pt'), 20)
+            result, models, thresholds = rb.run_forecast(train, val, test, c, 1, os.path.join(tmp, 'g.pt'), 20,
+                                                         train_seeds=2)
+            self.assertTrue(os.path.exists(os.path.join(tmp, 'g_seed1_lstm_only.pt')))
         self.assertEqual(set(result['metrics']), set(rb.PREDICTORS))
         self.assertEqual(set(result['training_seconds']), {'gnn', 'lstm_only', 'logreg'})
+        self.assertEqual(len(result['training_seconds']['gnn']), 2)
         self.assertEqual(thresholds['persistence_binary'], .5)
-        for m in result['metrics'].values():
-            self.assertEqual(set(m), {'threshold', 'brier_is_probability', 'overall', 'onset'})
-        self.assertFalse(result['metrics']['persistence_continuous']['brier_is_probability'])
-        self.assertIn('ci95', result['bootstrap_gnn_minus_persistence_continuous']['onset'])
+        self.assertEqual(len(models['lstm_only']), 2); self.assertEqual(len(thresholds['gnn']), 2)
+        for name, m in result['metrics'].items():
+            self.assertEqual(len(m['per_seed']), 2 if name in rb.LEARNED else 1)
+            self.assertEqual(set(m['per_seed'][0]) - {'brier_uncalibrated'},
+                             {'threshold', 'brier_is_probability', 'overall', 'onset'})
+            self.assertIn('mean', m['summary']['overall']['positive_rate'])
+        self.assertIn('brier_uncalibrated', result['metrics']['gnn']['per_seed'][0])
+        self.assertFalse(result['metrics']['persistence_continuous']['summary']['brier_is_probability'])
+        for key in ['gnn_minus_persistence_continuous', 'gnn_minus_lstm_only']:
+            self.assertIn('ci95', result['bootstrap'][key]['onset'])
         json.dumps(result, allow_nan=False, default=lambda o: o.item())
 
     def test_summarize_routing(self):

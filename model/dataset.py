@@ -57,18 +57,23 @@ class CongestionDataset(Dataset):
 
 def build_datasets(all_samples: list, edge_index: np.ndarray,
                    train_frac: float = 0.7, val_frac: float = 0.15,
-                   holdout_family: str = None):
+                   holdout_family: str = None, split: str = "random"):
     """
     Split samples into train/val/test datasets.
 
     Splits whole scenarios so overlapping windows never cross partitions. With
-    `holdout_family`, the test set is every scenario of that traffic family.
+    `holdout_family`, the test set is every scenario of that traffic family; with
+    split="stratified", every family appears in every partition.
     """
-    from model.splits import split_scenarios, holdout_split
-    if holdout_family is None:
+    from model.splits import split_scenarios, holdout_split, stratified_split
+    if holdout_family is not None:
+        train, val, test = holdout_split(all_samples, holdout_family)
+    elif split == "stratified":
+        train, val, test = stratified_split(all_samples)
+    elif split == "random":
         train, val, test = split_scenarios(all_samples, train_frac, val_frac)
     else:
-        train, val, test = holdout_split(all_samples, holdout_family)
+        raise ValueError(f"unknown split {split!r}")
     train_ds = CongestionDataset(train, edge_index)
     val_ds = CongestionDataset(val, edge_index)
     test_ds = CongestionDataset(test, edge_index)

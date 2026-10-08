@@ -62,11 +62,14 @@ def forecast_metrics(y, scores, threshold, last_labels, is_probability=True):
 def bootstrap_ap_difference(y, a, b, last_labels, groups, draws=2000, seed=42):
     """Scenario-level bootstrap of AP(a) - AP(b), overall and onset-only.
 
-    y, a, b, last_labels: [n_windows, n_links]; groups: [n_windows] scenario ids.
+    y, last_labels: [n_windows, n_links]; groups: [n_windows] scenario ids.
+    a, b: a score array of the same shape, or a list of them (e.g. one per training
+    seed), in which case the AP is averaged over the list in every draw.
     Each draw resamples scenarios with replacement; draws whose subset has no positive
     are skipped and counted out of valid_draws.
     """
-    y, a, b, last = (np.asarray(x, dtype=float) for x in (y, a, b, last_labels))
+    y, last = np.asarray(y, dtype=float), np.asarray(last_labels, dtype=float)
+    a, b = ([np.asarray(s, dtype=float) for s in (x if isinstance(x, (list, tuple)) else [x])] for x in (a, b))
     groups = np.asarray(groups)
     ids = np.unique(groups)
     rows = {i: np.nonzero(groups == i)[0] for i in ids}
@@ -79,8 +82,8 @@ def bootstrap_ap_difference(y, a, b, last_labels, groups, draws=2000, seed=42):
             ys = y[sel_rows][m]
             if ys.sum() == 0:
                 return None
-            return (average_precision_score(ys, a[sel_rows][m])
-                    - average_precision_score(ys, b[sel_rows][m]))
+            ap = lambda scores: np.mean([average_precision_score(ys, s[sel_rows][m]) for s in scores])
+            return ap(a) - ap(b)
         point = diff(np.arange(len(groups)))
         diffs = [d for d in (diff(np.concatenate([rows[i] for i in p])) for p in picks) if d is not None]
         out[name] = dict(point=None if point is None else float(point),

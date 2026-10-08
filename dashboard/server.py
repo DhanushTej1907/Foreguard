@@ -115,8 +115,9 @@ async def start_simulation():
             checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
             check_checkpoint_schema(checkpoint)
             load_compatible_state_dict(model, checkpoint["model_state_dict"])
-            model.eval()
-            sim_state["model"] = model
+            from model.calibration import TemperatureScaled
+            # alert_threshold was tuned on temperature-scaled validation probabilities.
+            sim_state["model"] = TemperatureScaled(model, checkpoint["temperature"]).eval()
 
             # Guarded rerouter alerts at the validation-tuned threshold stored in the checkpoint.
             sim_state["threshold"] = checkpoint["alert_threshold"]

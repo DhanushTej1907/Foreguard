@@ -85,13 +85,13 @@ CHECKPOINT_SCHEMA_VERSION = 3
 
 # ─── Training ─────────────────────────────────────────────────────
 TRAINING = {
-    "epochs": 100,                   # Maximum training epochs
+    "epochs": 50,                    # Maximum training epochs
     "batch_size": 32,                # Batch size
     "learning_rate": 1e-3,           # Initial learning rate
     "weight_decay": 1e-4,            # L2 regularization
-    "lr_patience": 10,               # Patience for LR scheduler
+    "lr_patience": 5,                # Patience for LR scheduler (< early stop, so the LR can drop)
     "lr_factor": 0.5,                # LR reduction factor
-    "early_stop_patience": 20,       # Early stopping patience
+    "early_stop_patience": 10,       # Early stopping patience (epochs without val AP gain)
     "pos_weight": 3.0,               # Positive class weight (congestion is rarer)
 }
 

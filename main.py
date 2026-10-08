@@ -165,6 +165,7 @@ def evaluate(model=None, test_ds=None, history=None, checkpoint_out=CHECKPOINT_O
 
     check_output_path(results_out)
     threshold = (history or {}).get("alert_threshold")
+    temperature = (history or {}).get("temperature", 1.0)
     # Load model if not provided
     if model is None:
         print("\n[*] Loading trained model...")
@@ -184,6 +185,7 @@ def evaluate(model=None, test_ds=None, history=None, checkpoint_out=CHECKPOINT_O
             check_checkpoint_schema(checkpoint)
             load_compatible_state_dict(model, checkpoint["model_state_dict"])
             threshold = checkpoint["alert_threshold"]
+            temperature = checkpoint["temperature"]
             print(f"  Loaded checkpoint (epoch {checkpoint['epoch']}, "
                   f"val_ap={checkpoint['val_ap']:.4f}, alert_threshold={threshold:.4f})")
         else:
@@ -194,7 +196,9 @@ def evaluate(model=None, test_ds=None, history=None, checkpoint_out=CHECKPOINT_O
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model.to(device)
+    # Calibrated probabilities: alert_threshold was tuned on temperature-scaled validation outputs.
+    from model.calibration import TemperatureScaled
+    model = TemperatureScaled(model, temperature).to(device).eval()
     # Run comparison
     print("\n[*] Running routing strategy comparison...")
     G = build_fat_tree()
@@ -214,6 +218,7 @@ def evaluate(model=None, test_ds=None, history=None, checkpoint_out=CHECKPOINT_O
 
     from model.metrics import forecast_metrics
     results = dict(checkpoint=checkpoint_out, label_mode=MODEL["label_mode"], alert_threshold=threshold,
+                   temperature=temperature,
                    forecast=forecast_metrics(labels, probs, threshold, last_labels),
                    comparison=comparison_results)
     os.makedirs(os.path.dirname(os.path.abspath(results_out)), exist_ok=True)

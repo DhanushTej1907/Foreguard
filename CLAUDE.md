@@ -22,11 +22,16 @@ expected and harmless.
   Datasets store `schema_version` + `label_mode` and are rejected on mismatch.
 - `engine.metrics()` exports `host_link_drops + fabric_link_drops + unroutable_drops == total_drops` (`drop_split_ok`)
 - `model/` gnn_model (GCN-LSTM, 17,985 params), baselines (LSTM-only, per-link logistic regression),
-  metrics (overall + onset metrics, val-tuned threshold, scenario bootstrap), train (best epoch by val AP,
-  `alert_threshold` tuned on val and stored in the checkpoint), dataset, splits (by scenario_id; holdout by family), evaluate
+  metrics (overall + onset metrics, val-tuned threshold, scenario bootstrap), train (max 50 epochs, best epoch
+  and early stopping (patience 10) on val AP; then temperature scaling and `alert_threshold` fitted on val and
+  stored in the checkpoint), calibration (`TemperatureScaled` wrapper — use it whenever comparing
+  probabilities to `alert_threshold`), dataset, splits (stratified 3/1/1 per family is the benchmark
+  default; random; holdout by family), evaluate
 - `routing/` rerouter.py (reactive + unguarded proactive), guarded.py (GuardedRerouter), comparator.py
-- `research_benchmark.py` (`--forecast-only`, `--holdout-family <family>|all`, `--checkpoint-out`, `--results-out`,
-  `--data-out`) → `research/benchmark_results_v4.json`. `summarize_results.py` / `plot_extra_graphs.py` still read the
+- `research_benchmark.py` (`--train-seeds`, `--seeds` traffic seeds, `--split`, `--forecast-only`,
+  `--holdout-family <family>|all`, `--checkpoint-out`, `--results-out`, `--data-out`) →
+  `research/benchmark_results_v4.json`. Model routing strategies (gnn, guarded_gnn, guarded_lstm) run per
+  training seed; summaries/paired bootstraps use seed-averaged drops. `summarize_results.py` / `plot_extra_graphs.py` still read the
   legacy `benchmark_results.json`.
 - `dashboard/` FastAPI + WebSocket server, static D3/Chart.js frontend
 - `tests/` unittest suite: `python -m unittest discover -s tests -v`
