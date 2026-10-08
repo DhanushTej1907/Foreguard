@@ -36,6 +36,17 @@ expected and harmless.
 - `dashboard/` FastAPI + WebSocket server, static D3/Chart.js frontend
 - `tests/` unittest suite: `python -m unittest discover -s tests -v`
 
+## Known findings — schema 3 (Phase 3 full run, `research/benchmark_results_v4.json`)
+See `reports/PHASE3_REPORT.md`. Stratified 18/6/6 split, 3 training seeds, 10 traffic seeds/family.
+- Forecast AP: GNN 0.947 ± 0.003 ≈ LSTM-only 0.946 > LogReg 0.938 > continuous persistence 0.880.
+  GNN − LSTM-only AP CI includes 0 (overall and onset): the GCN adds nothing measurable.
+- Onset AP is 0.16–0.19 for every predictor (onset rate 3.5%).
+- Routing: guarded_score (model-free) −5.72% total drops vs ECMP; guarded_gnn −5.27%; no
+  guarded_gnn vs guard-only/guarded_lstm paired CI excludes 0. The guard, not the GNN, gives the gain.
+- Rerouting shifts drops from fabric to host links (fabric −20–26%, total −4–6%).
+- Inference (2 threads): GNN p50 2.0 / p99 4.1 ms, below the 5 ms horizon; inference only.
+- Temperature scaling barely changes Brier (T 0.79–0.98).
+
 ## Known findings — schema 2 (pre-Phase-1 shared-FIFO simulator)
 These were measured on the old simulator and recorded JSON; after Phase 1 (full-duplex) they must
 be re-verified. See `reports/PHASE1_REPORT.md` and `reports/PHASE2_REPORT.md` for schema-3 numbers
