@@ -8,7 +8,7 @@ Date: 2026-10-09. Checkpoint schema 3, `label_mode = served_or_queued`; results-
 1. **Forecasting:**
    - **The learned models beat persistence in ranking quality.** GNN overall AP is
      0.947 ± 0.003, against 0.880 for continuous persistence: Δ +0.067, 95% scenario-bootstrap
-     CI [+0.040, +0.132].
+     CI [+0.040, +0.131].
    - **The GCN adds nothing.** GNN − LSTM-only is +0.001 [−0.003, +0.014] overall and
      −0.007 [−0.022, +0.024] on onsets. LSTM-only has a slightly higher F1 (0.900 vs 0.893) and
      a better Brier score (0.041 vs 0.049).
@@ -113,7 +113,7 @@ that threshold it trades overall precision (0.838) for onset recall.
 
 | Comparison | Overall Δ AP [95% CI] | Onset Δ AP [95% CI] |
 |---|---|---|
-| GNN − continuous persistence | **+0.067 [+0.040, +0.132]** | **+0.021 [+0.001, +0.040]** |
+| GNN − continuous persistence | **+0.067 [+0.040, +0.131]** | **+0.021 [+0.001, +0.040]** |
 | GNN − LSTM-only | +0.001 [−0.003, +0.014] | −0.007 [−0.022, +0.024] |
 
 With 6 test scenarios, these intervals describe scenario-to-scenario variation. They are not a
@@ -196,6 +196,11 @@ The ± values are std across the 3 training seeds' mean drops. W/T/L counts the 
 - **In elephant_mice and mixed, the more aggressive strategies win.** Reactive and the unguarded
   GNN beat all guarded variants there. The guard's per-tick change budget (`max_changes = 4`)
   appears to limit it on these workloads. That limit is the guard's, not the forecaster's.
+  - *Phase 4 correction:* the sensitivity sweep (`research/guard_sweep_v4.json`, guarded_score,
+    new traffic seeds 4000–4009) does not support the `max_changes` explanation. Raising it from 4 to
+    8 or 16 moves elephant_mice from −7.68% to −7.68% and mixed from −1.57% to −1.59% total drops
+    vs ECMP; no family moves by more than 0.51 points, and 8 and 16 give identical results. The limit
+    is elsewhere in the guard (e.g. headroom, minimum improvement, cooldown), not its change budget.
 - **llm_training is unaffected by any strategy**, and stride is solved completely by every
   guarded strategy.
 
@@ -231,12 +236,18 @@ Per-tick model inference, pooled over all model routing runs.
 ## Artifacts
 
 - **Committed:** `research/benchmark_results_v4.json` and this report. The code is in `246810e`.
-- **Not committed** (regenerable from fixed seeds):
+- **Committed in `5273b9c` and still tracked:**
   - `checkpoints/best_model_v3.pt` (GNN, seed 42; the dashboard default);
   - `best_model_v3_lstm_only.pt`;
   - `best_model_v3_seed{1,2}.pt`, `best_model_v3_seed{1,2}_lstm_only.pt`;
-  - the `*.history.json` files;
-  - `data/datasets_v3.pkl`.
+  - the `*.history.json` files.
+- **Committed in `5273b9c`, untracked in Phase 4 (`1cf90a0`)**, so they exist only in git history
+  and as local files (all regenerable from fixed seeds):
+  - `checkpoints/pilot_v3*.pt`;
+  - `data/datasets_v3.pkl`, `data/pilot_datasets_v3.pkl`.
+
+*(Corrected in Phase 4: an earlier version of this section said the `best_model_v3*.pt` checkpoints
+were not committed.)*
 - Tests: 44 / 44 pass, including the dashboard test, which now loads `best_model_v3.pt` and its
   calibrated threshold.
 

@@ -1,0 +1,31 @@
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Checkpoints are regenerable from fixed seeds. The schema-3 benchmark checkpoints
+# (best_model_v3*.pt) stay tracked: the dashboard and tests load them. The legacy
+# checkpoints/best_model.pt is already tracked and is unaffected by these rules.
+checkpoints/*.pt
+!checkpoints/best_model_v3*.pt
+
+# Datasets are regenerable (tens of MB each). The legacy data/datasets.pkl stays tracked.
+data/*.pkl
+
+# Scratch and editor files
+scratch/
+*.tmp
+*.log
+.ipynb_checkpoints/
+.vscode/
+.idea/
+
+# LaTeX build files
+*.aux
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.bbl
+*.blg
