@@ -163,6 +163,7 @@ class ReactiveRerouter:
 
     def __init__(self, graph: nx.Graph):
         self.G = graph
+        self.all_switches = set(graph.graph["all_switches"])
         self.reroute_log = []
         self.last_reroute_tick = {}
 
@@ -173,12 +174,12 @@ class ReactiveRerouter:
         threshold = REROUTING["reactive_threshold"]
         cooldown = REROUTING["reroute_cooldown_ticks"]
 
-        # Find currently congested edges
+        # Find currently congested directed switch-to-switch links. Host links
+        # have no alternative path, so they are never a reason to reroute.
         congested_edges = set()
         for (u, v), state in engine.link_states.items():
-            if state.utilization > threshold:
+            if u in self.all_switches and v in self.all_switches and state.utilization > threshold:
                 congested_edges.add((u, v))
-                congested_edges.add((v, u))
 
         if not congested_edges:
             return []
@@ -229,16 +230,11 @@ class ReactiveRerouter:
         return events
 
     def _find_uncongested_path(self, src, dst, congested_edges):
-        """Find path avoiding currently congested edges."""
-        G_weighted = self.G.copy()
-        for u, v in G_weighted.edges():
-            weight = 1.0
-            if (u, v) in congested_edges or (v, u) in congested_edges:
-                weight = 100.0
-            G_weighted[u][v]["weight"] = weight
-
+        """Find path avoiding currently congested edges (direction-aware)."""
+        # NetworkX calls weight(u, v, d) in the direction of traversal.
+        weight = lambda u, v, d: 100.0 if (u, v) in congested_edges else 1.0
         try:
-            return nx.shortest_path(G_weighted, src, dst, weight="weight")
+            return nx.shortest_path(self.G, src, dst, weight=weight)
         except nx.NetworkXNoPath:
             return []
 

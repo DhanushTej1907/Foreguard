@@ -25,7 +25,18 @@ try:
 except ImportError:
     HAS_PYG = False
 
-from config import MODEL
+from config import MODEL, CHECKPOINT_SCHEMA_VERSION
+
+
+def check_checkpoint_schema(checkpoint: dict):
+    """Reject checkpoints trained on an older simulator/feature/label schema or another label mode."""
+    found = checkpoint.get("schema_version")
+    if found != CHECKPOINT_SCHEMA_VERSION:
+        raise ValueError(f"Legacy checkpoint (schema {found}, need {CHECKPOINT_SCHEMA_VERSION}): "
+                         "regenerate data and retrain")
+    if checkpoint.get("label_mode") != MODEL["label_mode"]:
+        raise ValueError(f"Checkpoint label_mode {checkpoint.get('label_mode')!r} != configured "
+                         f"{MODEL['label_mode']!r}: retrain")
 
 
 class ManualGCNConv(nn.Module):

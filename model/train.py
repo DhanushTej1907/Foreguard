@@ -4,8 +4,9 @@ Training Loop
 Trains the GCN-LSTM congestion predictor with:
   - Weighted Binary Cross-Entropy loss (handles class imbalance)
   - Adam optimizer with ReduceLROnPlateau scheduler
-  - Early stopping on validation F1-score
-  - Checkpoint saving of best model
+  - Best epoch, LR schedule and early stopping on validation average precision
+  - Checkpoint saving of best model, then temperature scaling and an alert threshold
+    (max F1), both fitted on validation and stored in the checkpoint
 """
 
 import os
@@ -16,30 +17,50 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score
+from sklearn.metrics import (f1_score, precision_score, recall_score, accuracy_score,
+                             average_precision_score)
 
-from config import TRAINING, MODEL_DIR, ensure_dirs
+from config import TRAINING, MODEL, CHECKPOINT_OUT, CHECKPOINT_SCHEMA_VERSION, check_output_path, ensure_dirs
 from model.dataset import collate_fn
 from model.gnn_model import load_compatible_state_dict
+from model.metrics import tune_threshold
+from model.calibration import fit_temperature, apply_temperature
+
+
+def predict_probabilities(model, ds, device="cpu", batch_size=64):
+    """Model probabilities for every sample of `ds`, shape [N, E]."""
+    model.eval()
+    out = []
+    with torch.no_grad():
+        for b in DataLoader(ds, batch_size=batch_size, shuffle=False, collate_fn=collate_fn):
+            out.append(model(b["node_features"].to(device), b["edge_features"].to(device),
+                             b["edge_index"].to(device)).cpu().numpy())
+    return np.concatenate(out)
 
 
 def train_model(model, train_ds, val_ds, device="cpu", epochs=None,
-                verbose=True):
+                verbose=True, checkpoint_path=None):
     """
     Train the congestion prediction model.
 
     Parameters
     ----------
-    model : CongestionPredictor
+    model : CongestionPredictor (or any model with the same forward signature)
     train_ds : CongestionDataset
     val_ds : CongestionDataset
     device : str
     epochs : int
+    checkpoint_path : str, default config.CHECKPOINT_OUT; legacy filenames are refused
 
     Returns
     -------
-    dict : training history
+    dict : training history, plus best_epoch, best_val_ap, alert_threshold,
+           train_seconds and checkpoint_path
     """
+    checkpoint_path = check_output_path(checkpoint_path or CHECKPOINT_OUT)
+    history_path = os.path.splitext(checkpoint_path)[0] + ".history.json"
+    check_output_path(history_path)
+    start_time = time.perf_counter()
     if epochs is not None and epochs < 1:
         raise ValueError("epochs must be positive")
     if not len(train_ds) or not len(val_ds):
@@ -90,17 +111,17 @@ def train_model(model, train_ds, val_ds, device="cpu", epochs=None,
     )
 
     # Training state
-    best_f1 = -1.0
+    best_ap = -1.0
     patience_counter = 0
     history = {
         "train_loss": [], "val_loss": [],
         "train_f1": [], "val_f1": [],
         "train_acc": [], "val_acc": [],
-        "val_precision": [], "val_recall": [],
+        "val_precision": [], "val_recall": [], "val_ap": [],
         "lr": [],
     }
 
-    checkpoint_path = os.path.join(MODEL_DIR, "best_model.pt")
+    os.makedirs(os.path.dirname(os.path.abspath(checkpoint_path)), exist_ok=True)
 
     if verbose:
         print(f"\n{'='*60}")
@@ -145,6 +166,7 @@ def train_model(model, train_ds, val_ds, device="cpu", epochs=None,
         model.eval()
         val_losses = []
         val_preds = []
+        val_probs = []
         val_labels = []
 
         with torch.no_grad():
@@ -162,6 +184,7 @@ def train_model(model, train_ds, val_ds, device="cpu", epochs=None,
                 loss = F.binary_cross_entropy(pred, labels, weight=weight)
 
                 val_losses.append(loss.item())
+                val_probs.extend(pred.cpu().numpy().flatten())
                 val_preds.extend((pred > 0.5).cpu().numpy().flatten())
                 val_labels.extend(labels.cpu().numpy().flatten())
 
@@ -174,6 +197,7 @@ def train_model(model, train_ds, val_ds, device="cpu", epochs=None,
         val_acc = accuracy_score(val_labels, val_preds)
         val_prec = precision_score(val_labels, val_preds, zero_division=0)
         val_rec = recall_score(val_labels, val_preds, zero_division=0)
+        val_ap = average_precision_score(val_labels, val_probs) if np.sum(val_labels) else 0.0
 
         current_lr = optimizer.param_groups[0]["lr"]
 
@@ -185,19 +209,23 @@ def train_model(model, train_ds, val_ds, device="cpu", epochs=None,
         history["val_acc"].append(val_acc)
         history["val_precision"].append(val_prec)
         history["val_recall"].append(val_rec)
+        history["val_ap"].append(float(val_ap))
         history["lr"].append(current_lr)
 
-        scheduler.step(val_f1)
+        scheduler.step(val_ap)
 
-        # ── Checkpoint ────────────────────────────────────────────
-        if val_f1 > best_f1:
-            best_f1 = val_f1
+        # ── Checkpoint (best validation AP) ───────────────────────
+        if val_ap > best_ap:
+            best_ap = val_ap
             patience_counter = 0
             torch.save({
-                "schema_version": 2,
+                "schema_version": CHECKPOINT_SCHEMA_VERSION,
+                "label_mode": MODEL["label_mode"],
+                "model_class": type(getattr(model, "_orig_mod", model)).__name__,
                 "epoch": epoch,
                 "model_state_dict": model.state_dict(),
                 "optimizer_state_dict": optimizer.state_dict(),
+                "val_ap": float(val_ap),
                 "val_f1": float(val_f1),
                 "val_loss": float(val_loss),
             }, checkpoint_path)
@@ -209,7 +237,7 @@ def train_model(model, train_ds, val_ds, device="cpu", epochs=None,
         if verbose and (epoch % 5 == 0 or epoch <= 3 or epoch == epochs):
             print(f"  Epoch {epoch:3d}/{epochs} | "
                   f"Loss: {train_loss:.4f}/{val_loss:.4f} | "
-                  f"F1: {train_f1:.3f}/{val_f1:.3f} | "
+                  f"F1: {train_f1:.3f}/{val_f1:.3f} | AP: {val_ap:.3f} | "
                   f"Acc: {train_acc:.3f}/{val_acc:.3f} | "
                   f"P/R: {val_prec:.3f}/{val_rec:.3f} | "
                   f"LR: {current_lr:.6f} | "
@@ -218,18 +246,34 @@ def train_model(model, train_ds, val_ds, device="cpu", epochs=None,
         # ── Early Stopping ────────────────────────────────────────
         if patience_counter >= TRAINING["early_stop_patience"]:
             if verbose:
-                print(f"\n  Early stopping at epoch {epoch} (best F1: {best_f1:.4f})")
+                print(f"\n  Early stopping at epoch {epoch} (best val AP: {best_ap:.4f})")
             break
 
-    with open(os.path.join(MODEL_DIR, 'training_history.json'), 'w') as f:
-        json.dump(history, f, indent=2)
-    # Load best checkpoint
+    # Load best checkpoint, fit temperature scaling on validation, then tune the alert
+    # threshold (max F1) on the calibrated validation probabilities.
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
     load_compatible_state_dict(model, checkpoint["model_state_dict"])
+    y_val = val_ds.stacked("labels")
+    raw_val = predict_probabilities(model, val_ds, device)
+    temperature = fit_temperature(raw_val, y_val)
+    cal_val = apply_temperature(raw_val, temperature)
+    threshold = tune_threshold(y_val, cal_val)
+    calibration = dict(temperature=temperature, alert_threshold=threshold,
+                       val_brier_raw=float(np.mean((raw_val - y_val) ** 2)),
+                       val_brier_calibrated=float(np.mean((cal_val - y_val) ** 2)))
+    checkpoint.update(calibration)
+    torch.save(checkpoint, checkpoint_path)
+
+    history.update(best_epoch=int(checkpoint["epoch"]), best_val_ap=float(checkpoint["val_ap"]),
+                   epochs_run=len(history["val_ap"]), train_seconds=time.perf_counter() - start_time,
+                   checkpoint_path=checkpoint_path, **calibration)
+    with open(history_path, 'w') as f:
+        json.dump(history, f, indent=2)
 
     if verbose:
         print(f"\n  Best model: epoch {checkpoint['epoch']}, "
-              f"val_f1={checkpoint['val_f1']:.4f}")
+              f"val_ap={checkpoint['val_ap']:.4f}, temperature={temperature:.3f}, "
+              f"alert_threshold={threshold:.4f}")
         print(f"  Saved to: {checkpoint_path}")
 
     return history

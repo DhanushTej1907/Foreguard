@@ -10,7 +10,7 @@ import pickle
 import numpy as np
 import torch
 from torch.utils.data import Dataset
-from config import MODEL, DATA_DIR, ensure_dirs
+from config import MODEL, DATA_OUT, CHECKPOINT_SCHEMA_VERSION, check_output_path, ensure_dirs
 
 
 class CongestionDataset(Dataset):
@@ -46,18 +46,34 @@ class CongestionDataset(Dataset):
             "edge_features": torch.tensor(s["edge_features"], dtype=torch.float32),
             "edge_index": self.edge_index,
             "labels": torch.tensor(s["labels"], dtype=torch.float32),
+            "last_labels": torch.tensor(s["last_labels"], dtype=torch.float32),
+            "last_scores": torch.tensor(s["last_scores"], dtype=torch.float32),
         }
+
+    def stacked(self, key):
+        """All samples' `key` arrays stacked into one numpy array."""
+        return np.stack([s[key] for s in self.samples])
 
 
 def build_datasets(all_samples: list, edge_index: np.ndarray,
-                   train_frac: float = 0.7, val_frac: float = 0.15):
+                   train_frac: float = 0.7, val_frac: float = 0.15,
+                   holdout_family: str = None, split: str = "random"):
     """
     Split samples into train/val/test datasets.
 
-    Splits whole scenarios so overlapping windows never cross partitions.
+    Splits whole scenarios so overlapping windows never cross partitions. With
+    `holdout_family`, the test set is every scenario of that traffic family; with
+    split="stratified", every family appears in every partition.
     """
-    from model.splits import split_scenarios
-    train, val, test = split_scenarios(all_samples, train_frac, val_frac)
+    from model.splits import split_scenarios, holdout_split, stratified_split
+    if holdout_family is not None:
+        train, val, test = holdout_split(all_samples, holdout_family)
+    elif split == "stratified":
+        train, val, test = stratified_split(all_samples)
+    elif split == "random":
+        train, val, test = split_scenarios(all_samples, train_frac, val_frac)
+    else:
+        raise ValueError(f"unknown split {split!r}")
     train_ds = CongestionDataset(train, edge_index)
     val_ds = CongestionDataset(val, edge_index)
     test_ds = CongestionDataset(test, edge_index)
@@ -67,20 +83,30 @@ def build_datasets(all_samples: list, edge_index: np.ndarray,
     return train_ds, val_ds, test_ds
 
 
-def save_datasets(train_ds, val_ds, test_ds, filename="datasets.pkl"):
-    """Save datasets to disk."""
+def save_datasets(train_ds, val_ds, test_ds, path=None):
+    """Save datasets with the schema and label mode they were generated under."""
     ensure_dirs()
-    path = os.path.join(DATA_DIR, filename)
+    path = check_output_path(path or DATA_OUT)
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     with open(path, "wb") as f:
-        pickle.dump({"train": train_ds, "val": val_ds, "test": test_ds}, f)
+        pickle.dump({"schema_version": CHECKPOINT_SCHEMA_VERSION, "label_mode": MODEL["label_mode"],
+                     "train": train_ds, "val": val_ds, "test": test_ds}, f)
     print(f"  Saved datasets to {path}")
 
 
-def load_datasets(filename="datasets.pkl"):
-    """Load datasets from disk."""
-    path = os.path.join(DATA_DIR, filename)
-    with open(path, "rb") as f:
+def check_dataset_schema(data: dict):
+    """Reject datasets generated under another schema or label mode."""
+    found = (data.get("schema_version"), data.get("label_mode"))
+    expected = (CHECKPOINT_SCHEMA_VERSION, MODEL["label_mode"])
+    if found != expected:
+        raise ValueError(f"Dataset has schema/label_mode {found}, need {expected}: regenerate data")
+
+
+def load_datasets(path=None):
+    """Load datasets from disk, rejecting mismatched schema or label mode."""
+    with open(path or DATA_OUT, "rb") as f:
         data = pickle.load(f)
+    check_dataset_schema(data)
     return data["train"], data["val"], data["test"]
 
 
@@ -99,4 +125,6 @@ def collate_fn(batch):
         "edge_features": edge_features,     # [B, W, E, F_edge]
         "edge_index": edge_index,           # [2, num_directed_edges]
         "labels": labels,                   # [B, E]
+        "last_labels": torch.stack([b["last_labels"] for b in batch]),  # [B, E]
+        "last_scores": torch.stack([b["last_scores"] for b in batch]),  # [B, E]
     }

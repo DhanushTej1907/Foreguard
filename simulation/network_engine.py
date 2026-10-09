@@ -1,6 +1,6 @@
 """Causal, packet-batch, discrete-time teaching simulator.
 
-One FIFO shared by both directions per physical link (not full-duplex RoCE).
+Full-duplex: one FIFO per direction per physical link, keyed by directed (u, v).
 Packets traverse at most one link per tick. No PFC, ECN, retransmission or NIC.
 """
 from collections import deque, Counter
@@ -8,6 +8,19 @@ import hashlib
 import networkx as nx
 import numpy as np
 from config import TOPOLOGY, SIMULATION
+
+
+def merge_directions(links):
+    """Collapse a directed snapshot['links'] dict to one entry per physical link,
+    taking the field-wise max over both directions."""
+    merged = {}
+    for (u, v), data in links.items():
+        key = tuple(sorted((u, v)))
+        if key in merged:
+            merged[key] = {name: max(value, merged[key][name]) for name, value in data.items()}
+        else:
+            merged[key] = dict(data)
+    return merged
 
 
 class LinkState:
@@ -64,14 +77,20 @@ class NetworkEngine:
         self.G = graph
         self.all_switches = set(graph.graph['all_switches'])
         self.hosts = graph.graph['hosts']
-        self.link_states = {self._edge_key(u, v): LinkState(d['capacity'], d['buffer_size'], d['propagation_delay_us'])
-                            for u, v, d in graph.edges(data=True)}
+        # Two independent states per physical link, one per direction.
+        self.link_states = {key: LinkState(d['capacity'], d['buffer_size'], d['propagation_delay_us'])
+                            for u, v, d in graph.edges(data=True) for key in ((u, v), (v, u))}
+        self._host_link = {key: not all(n in self.all_switches for n in key) for key in self.link_states}
         self.active_flows = []
         self._path_cache = {}
         self.reset()
 
     @staticmethod
     def _edge_key(u, v):
+        return (u, v)
+
+    @staticmethod
+    def _physical_key(u, v):
         return tuple(sorted((u, v)))
 
     def get_shortest_path(self, src, dst):
@@ -128,12 +147,18 @@ class NetworkEngine:
             path = tuple(f.current_path)
             if len(path) < 2:
                 self.total_drops += count
+                self.unroutable_drops += count
             elif count:
                 arrivals.append((count, (path, 0, now, f.flow_id)))
         for count, payload in arrivals:
             path, hop, born, flow_id = payload
-            state = self.link_states[self._edge_key(path[hop], path[hop + 1])]
-            self.total_drops += state.enqueue(count, payload)
+            key = self._edge_key(path[hop], path[hop + 1])
+            dropped = self.link_states[key].enqueue(count, payload)
+            self.total_drops += dropped
+            if self._host_link[key]:
+                self.host_link_drops += dropped
+            else:
+                self.fabric_link_drops += dropped
         for state in self.link_states.values():
             for count, payload in state.process_tick():
                 path, hop, born, flow_id = payload
@@ -157,6 +182,7 @@ class NetworkEngine:
                  for key, s in self.link_states.items()}
         switches = {}
         for sw in self.all_switches:
+            # Egress (output-queued) ports of this switch.
             states = [self.get_link_state(sw, n) for n in self.G.neighbors(sw)]
             total_queue = sum(s.queue for s in states)
             switches[sw] = dict(avg_queue=total_queue / len(states),
@@ -178,6 +204,7 @@ class NetworkEngine:
 
     def reset(self):
         self.tick = self.total_packets = self.total_drops = self.total_delivered = 0
+        self.host_link_drops = self.fabric_link_drops = self.unroutable_drops = 0
         self.pending = []
         self._fractional = Counter()
         self.delivery_latency_ticks = Counter()
@@ -206,6 +233,9 @@ class NetworkEngine:
             max_latency=max(self.link_latency_history, default=0.),
             avg_utilization=float(np.mean(self.link_util_history)) if self.link_util_history else 0.,
             total_drops=self.total_drops, total_offered=self.total_packets,
+            host_link_drops=self.host_link_drops, fabric_link_drops=self.fabric_link_drops,
+            unroutable_drops=self.unroutable_drops,
+            drop_split_ok=self.host_link_drops + self.fabric_link_drops + self.unroutable_drops == self.total_drops,
             total_delivered=count, outstanding_packets=self.outstanding_packets,
             avg_throughput=count / max(1, self.tick),
             delivered_mean_latency_us=avg_ticks * SIMULATION['tick_duration_ms'] * 1000 if count else None,

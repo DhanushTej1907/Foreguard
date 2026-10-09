@@ -1,4 +1,8 @@
-"""Experimental capacity-reserving controller; no RDMA ordering guarantee."""
+"""Experimental capacity-reserving controller; no RDMA ordering guarantee.
+
+Demand, queue and headroom are checked per direction (full-duplex link states);
+risk uses the per-physical-link prediction, mapped for both directions in edge_to_idx.
+"""
 from collections import Counter
 from itertools import islice
 import numpy as np

@@ -23,7 +23,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-from config import PLOTS_DIR, ensure_dirs
+from config import PLOTS_OUT_DIR, ensure_dirs
 from model.dataset import collate_fn
 
 
@@ -59,9 +59,10 @@ COLORS = {
 }
 
 
-def evaluate_model(model, test_ds, device="cpu"):
+def evaluate_model(model, test_ds, device="cpu", threshold=0.5):
     """
-    Evaluate model on test set and return predictions + metrics.
+    Evaluate model on test set; predictions use `score > threshold`.
+    Returns labels, predictions, probabilities and last observed labels (flattened).
     """
     model.eval()
     model = model.to(device)
@@ -71,6 +72,7 @@ def evaluate_model(model, test_ds, device="cpu"):
     all_preds = []
     all_labels = []
     all_probs = []
+    all_last = []
 
     with torch.no_grad():
         for batch in loader:
@@ -82,12 +84,14 @@ def evaluate_model(model, test_ds, device="cpu"):
             probs = model(node_feat, edge_feat, edge_index)
 
             all_probs.extend(probs.cpu().numpy().flatten())
-            all_preds.extend((probs > 0.5).cpu().numpy().flatten())
+            all_preds.extend((probs > threshold).cpu().numpy().flatten())
             all_labels.extend(labels.cpu().numpy().flatten())
+            all_last.extend(batch["last_labels"].numpy().flatten())
 
     all_probs = np.array(all_probs)
     all_preds = np.array(all_preds)
     all_labels = np.array(all_labels)
+    all_last = np.array(all_last)
 
     # Print classification report
     print("\n" + "="*50)
@@ -97,7 +101,7 @@ def evaluate_model(model, test_ds, device="cpu"):
                                  target_names=["Normal", "Congested"],
                                  zero_division=0))
 
-    return all_labels, all_preds, all_probs
+    return all_labels, all_preds, all_probs, all_last
 
 
 def plot_confusion_matrix(labels, preds, save_path=None):
@@ -363,13 +367,18 @@ def plot_comparison(comparison_results, save_path=None):
 
 
 def generate_all_plots(model, test_ds, history, comparison_results=None,
-                       device="cpu"):
-    """Generate all evaluation plots and save to PLOTS_DIR."""
+                       device="cpu", threshold=0.5, save_dir=None):
+    """Generate all evaluation plots into save_dir (default plots/v3).
+
+    Returns (labels, probs, last_labels) so callers can compute forecast metrics.
+    """
     ensure_dirs()
+    PLOTS_DIR = save_dir or PLOTS_OUT_DIR
+    os.makedirs(PLOTS_DIR, exist_ok=True)
 
     print("\n[*] Generating evaluation plots...")
 
-    labels, preds, probs = evaluate_model(model, test_ds, device)
+    labels, preds, probs, last_labels = evaluate_model(model, test_ds, device, threshold)
 
     # 1. Confusion Matrix
     plot_confusion_matrix(
@@ -409,3 +418,4 @@ def generate_all_plots(model, test_ds, history, comparison_results=None,
         print("  [OK] Strategy comparison")
 
     print(f"\n  All plots saved to: {PLOTS_DIR}")
+    return labels, probs, last_labels
