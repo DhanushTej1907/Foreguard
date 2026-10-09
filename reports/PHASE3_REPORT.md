@@ -8,7 +8,7 @@ Date: 2026-10-09. Checkpoint schema 3, `label_mode = served_or_queued`; results-
 1. **Forecasting:**
    - **The learned models beat persistence in ranking quality.** GNN overall AP is
      0.947 ± 0.003, against 0.880 for continuous persistence: Δ +0.067, 95% scenario-bootstrap
-     CI [+0.040, +0.132].
+     CI [+0.040, +0.131].
    - **The GCN adds nothing.** GNN − LSTM-only is +0.001 [−0.003, +0.014] overall and
      −0.007 [−0.022, +0.024] on onsets. LSTM-only has a slightly higher F1 (0.900 vs 0.893) and
      a better Brier score (0.041 vs 0.049).
@@ -113,7 +113,7 @@ that threshold it trades overall precision (0.838) for onset recall.
 
 | Comparison | Overall Δ AP [95% CI] | Onset Δ AP [95% CI] |
 |---|---|---|
-| GNN − continuous persistence | **+0.067 [+0.040, +0.132]** | **+0.021 [+0.001, +0.040]** |
+| GNN − continuous persistence | **+0.067 [+0.040, +0.131]** | **+0.021 [+0.001, +0.040]** |
 | GNN − LSTM-only | +0.001 [−0.003, +0.014] | −0.007 [−0.022, +0.024] |
 
 With 6 test scenarios, these intervals describe scenario-to-scenario variation. They are not a
