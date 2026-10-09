@@ -235,8 +235,15 @@ def fig_tradeoff(j, sweep=None):
         ax.plot(xs, ys, ls=":", marker="D", ms=4, mfc="white", color=VERMILLION,
                 label=f"Sensitivity analysis: guarded score,\nmax_changes {mcs[0]}–{mcs[-1]}, "
                       f"seeds {seeds[0]}–{seeds[-1]}")
+        # One label per distinct point ("8, 16" when budgets give identical results), alternating
+        # right/left from the top so neighbouring labels do not collide.
+        labels = {}
         for mc, x, y in zip(mcs, xs, ys):
-            ax.annotate(str(mc), (x, y), textcoords="offset points", xytext=(0, 4.5), ha="center")
+            labels.setdefault((x, y), []).append(str(mc))
+        for i, ((x, y), names) in enumerate(sorted(labels.items(), key=lambda item: -item[0][1])):
+            side = 1 if i % 2 == 0 else -1
+            ax.annotate(", ".join(names), (x, y), textcoords="offset points", xytext=(5 * side, 0),
+                        ha="left" if side > 0 else "right", va="center", color=VERMILLION)
     ax.set_xscale("log")
     x_lo, x_hi = min(plotted) / 1.6, max(plotted) * 1.6
     ax.set_xlim(x_lo, x_hi)
@@ -249,7 +256,9 @@ def fig_tradeoff(j, sweep=None):
     ax.set_ylim(min(ax.get_ylim()[0], -6.5), 1.2)
     ax.text(x_lo * 1.12, .25, "ECMP (0 reroutes)", va="bottom")
     ax.grid(lw=.3, color="#DDDDDD")
-    fig.legend(loc="outside lower center", ncol=2)
+    handles, labels = ax.get_legend_handles_labels()
+    order = sorted(range(len(labels)), key=lambda i: labels[i].startswith("Sensitivity"))  # sweep last
+    fig.legend([handles[i] for i in order], [labels[i] for i in order], loc="outside lower center", ncol=2)
     return fig
 
 
@@ -602,12 +611,31 @@ def key_numbers_md(j, sweep=None):
         pts = sweep["summary"]["max_changes"]
         seeds = sweep["settings"]["traffic_seeds"]
         lines += ["", f"## Sensitivity analysis: guarded score, max_changes (`research/guard_sweep_v4.json`, "
-                      f"new traffic seeds {seeds[0]}–{seeds[-1]})"]
+                      f"new traffic seeds {seeds[0]}–{seeds[-1]}, paired against ECMP on the same traffic)"]
         for p in pts:
-            lines.append(f"- max_changes {p['max_changes']}: total {p['total_change_vs_ecmp_percent']:+.2f}%, "
-                         f"fabric {p['fabric_change_vs_ecmp_percent']:+.2f}%, {p['mean_reroutes_per_run']:.1f} "
-                         f"reroutes/run, W/T/L {p['wins']}/{p['ties']}/{p['losses']} vs ECMP "
+            lo, hi = p["paired_vs_ecmp"]["total_drops"]["ci95"]
+            lines.append(f"- max_changes {p['max_changes']}: total {p['total_change_vs_ecmp_percent']:+.2f}% "
+                         f"(paired 95% CI {lo:+,.0f} to {hi:+,.0f} drops per run), fabric "
+                         f"{p['fabric_change_vs_ecmp_percent']:+.2f}%, {p['mean_reroutes_per_run']:.1f} reroutes/run, "
+                         f"W/T/L {p['wins']}/{p['ties']}/{p['losses']} vs ECMP "
                          f"(`summary.max_changes[max_changes={p['max_changes']}]`).")
+        default = next((p for p in pts if p["max_changes"] == 4), None)
+        if default is not None:
+            holds = default["paired_vs_ecmp"]["total_drops"]["ci95"][1] < 0
+            lines.append(f"- On this new traffic the benchmark's guard setting (max_changes 4) cuts total drops by "
+                         f"{-default['total_change_vs_ecmp_percent']:.2f}%, vs "
+                         f"{at(j, red('guarded_score', 'total')):.2f}% on the benchmark seeds: "
+                         + ("the gain holds on unseen traffic (CI excludes 0) but its size depends on the traffic "
+                            "sample." if holds else "on unseen traffic the paired CI includes 0."))
+            above = [p for p in pts if p["max_changes"] > 4]
+            if above:
+                shift = max(abs(p["per_family"][f]["total_change_vs_ecmp_percent"]
+                                - default["per_family"][f]["total_change_vs_ecmp_percent"])
+                            for p in above for f in default["per_family"]
+                            if default["per_family"][f]["total_change_vs_ecmp_percent"] is not None)
+                lines.append(f"- Raising max_changes above 4 changes any family's total-drop change by at most "
+                             f"{shift:.2f} percentage points (`summary.max_changes[*].per_family`)"
+                             + (": the per-tick change budget is not what limits the guard." if shift < 1 else "."))
     lines += [
         "",
         "## What the paper can and cannot claim",

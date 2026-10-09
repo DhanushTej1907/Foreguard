@@ -196,6 +196,11 @@ The ± values are std across the 3 training seeds' mean drops. W/T/L counts the 
 - **In elephant_mice and mixed, the more aggressive strategies win.** Reactive and the unguarded
   GNN beat all guarded variants there. The guard's per-tick change budget (`max_changes = 4`)
   appears to limit it on these workloads. That limit is the guard's, not the forecaster's.
+  - *Phase 4 correction:* the sensitivity sweep (`research/guard_sweep_v4.json`, guarded_score,
+    new traffic seeds 4000–4009) does not support the `max_changes` explanation. Raising it from 4 to
+    8 or 16 moves elephant_mice from −7.68% to −7.68% and mixed from −1.57% to −1.59% total drops
+    vs ECMP; no family moves by more than 0.51 points, and 8 and 16 give identical results. The limit
+    is elsewhere in the guard (e.g. headroom, minimum improvement, cooldown), not its change budget.
 - **llm_training is unaffected by any strategy**, and stride is solved completely by every
   guarded strategy.
 

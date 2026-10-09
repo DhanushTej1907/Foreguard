@@ -79,6 +79,26 @@ class PaperAssetTests(unittest.TestCase):
         for path in cited:
             assets.at(j, path)
         self.assertIn('the GNN does not beat the guard-only baselines', md)
+        self.assertNotIn('Sensitivity analysis', md)  # built without a sweep
+
+    def test_sweep_curve_and_section_added_when_a_sweep_exists(self):
+        points = [dict(max_changes=mc, mean_reroutes_per_run=r, total_change_vs_ecmp_percent=t,
+                       fabric_change_vs_ecmp_percent=f, wins=50, ties=8, losses=2,
+                       paired_vs_ecmp=dict(total_drops=dict(ci95=[-9000.0, -3000.0])),
+                       per_family=dict(uniform=dict(total_change_vs_ecmp_percent=t),
+                                       llm_training=dict(total_change_vs_ecmp_percent=None)))
+                  for mc, r, t, f in ((2, 15.0, -4.0, -15.0), (4, 30.0, -5.0, -20.0), (16, 90.0, -6.0, -26.0))]
+        sweep = dict(settings=dict(traffic_seeds=list(range(4000, 4010))), summary=dict(max_changes=points))
+        md = assets.key_numbers_md(self.j, sweep)
+        self.assertIn('## Sensitivity analysis', md)
+        self.assertIn('max_changes 16: total -6.00%', md)
+        self.assertIn('cuts total drops by 5.00%', md)  # the benchmark's setting on the new traffic
+        self.assertIn('at most 1.00 percentage points', md)  # 4 -> 16 in the one family with a value
+        fig = assets.fig_tradeoff(self.j, sweep)
+        labels = [t.get_text() for t in fig.legends[0].get_texts()]
+        self.assertTrue(any(label.startswith('Sensitivity analysis') for label in labels))
+        self.assertLess(fig.axes[0].get_xlim()[0], 15)  # the log axis widens to include the sweep
+        assets.plt.close(fig)
 
 
 if __name__ == '__main__':

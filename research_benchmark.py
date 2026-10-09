@@ -154,9 +154,10 @@ def predict(model, collector):
                      torch.tensor(collector.get_pyg_edge_index())).squeeze(0).numpy()
 
 
-def run_case(graph, flows, ticks, strategy, model, thresholds):
+def run_case(graph, flows, ticks, strategy, model, thresholds, guard_kwargs=None):
     """One routing run. thresholds holds the alert thresholds for this run's models
-    ('gnn', 'lstm_only') and the guard-only baselines. Returns (metrics, per-tick inference ms)."""
+    ('gnn', 'lstm_only') and the guard-only baselines. guard_kwargs (e.g. max_changes) go to
+    GuardedRerouter; None keeps its defaults. Returns (metrics, per-tick inference ms)."""
     engine = NetworkEngine(graph); flows = copy.deepcopy(flows)
     for f in flows: f.current_path = []; f.active = False
     engine.set_flows(flows); c = TelemetryCollector(graph, engine)
@@ -164,7 +165,7 @@ def run_case(graph, flows, ticks, strategy, model, thresholds):
                            guarded_persistence=thresholds['persistence_binary'],
                            guarded_score=thresholds['persistence_continuous'])
     controller = (ReactiveRerouter(graph) if strategy == 'reactive' else
-                  GuardedRerouter(graph, c.edge_to_idx, threshold=guard_threshold[strategy])
+                  GuardedRerouter(graph, c.edge_to_idx, threshold=guard_threshold[strategy], **(guard_kwargs or {}))
                   if strategy in guard_threshold else ProactiveRerouter(graph, c.edge_to_idx))
     inference = []
     for _ in range(ticks):
