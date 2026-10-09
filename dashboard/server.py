@@ -4,21 +4,21 @@ Dashboard Server
 FastAPI backend with WebSocket support for the real-time visualization dashboard.
 
 Endpoints:
-  GET /           → Serves the dashboard HTML
-  WS  /ws         → WebSocket for live simulation data
-  POST /api/start → Start simulation
-  POST /api/stop  → Stop simulation
-  POST /api/spike → Inject traffic spike
-  POST /api/config → Update GNN threshold
+  GET  /               → Serves the dashboard HTML
+  WS   /ws             → WebSocket for live simulation data
+  POST /api/start      → Start simulation
+  POST /api/stop       → Stop simulation
+  POST /api/spike      → Inject traffic spike
+  POST /api/config     → Update GNN alert threshold / speed
+  POST /api/controller → Switch routing controller (restores ECMP paths)
+  GET  /api/status     → Running state, controller, thresholds
 """
 
 import os
-import json
 import asyncio
 import time
 import numpy as np
 import torch
-from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from contextlib import asynccontextmanager, suppress
@@ -27,12 +27,11 @@ from routing.guarded import GuardedRerouter
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 
-from config import DASHBOARD, MODEL, TOPOLOGY, REROUTING, ensure_dirs
-from simulation.topology import build_fat_tree, get_switch_index_map
+from config import DASHBOARD, MODEL, REROUTING, ensure_dirs
+from simulation.topology import build_fat_tree
 from simulation.traffic_generator import TrafficGenerator
 from simulation.network_engine import NetworkEngine, merge_directions
-from simulation.telemetry import TelemetryCollector
-from routing.rerouter import ProactiveRerouter, ReactiveRerouter
+from simulation.telemetry import TelemetryCollector, congestion_score
 
 @asynccontextmanager
 async def lifespan(app):
@@ -48,6 +47,17 @@ app = FastAPI(lifespan=lifespan, title="NeuralFabric — GNN Congestion Pre-empt
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
+# Live-switchable routing controllers. Every switch restores ECMP paths, so each
+# controller starts from the same routing state.
+CONTROLLERS = {
+    "ecmp": "ECMP (no rerouting)",
+    "guarded_gnn": "Guarded GNN",
+    "guarded_score": "Guarded score (no model)",
+}
+# guarded_score feeds the guard the current served_or_queued congestion score and alerts at
+# the label threshold (the benchmark used continuous persistence's val-tuned 0.851).
+SCORE_THRESHOLD = MODEL["congestion_threshold"]
+
 # Global state
 sim_state = {
     "running": False,
@@ -59,11 +69,14 @@ sim_state = {
     "device": "cpu",
     "tick": 0,
     "speed": 1.0,
-    "threshold": REROUTING["congestion_alert_threshold"],
+    "threshold": REROUTING["congestion_alert_threshold"],  # live GNN alert threshold (slider)
+    "alert_threshold": None,                                 # calibrated threshold from the checkpoint
+    "controller": "ecmp",
     "rerouter": None,
-    "reactive_rerouter": None,
     "connected_clients": set(),
     "total_reroutes": 0,
+    "switch_reroutes": 0,
+    "switch_baseline": None,
 }
 
 
@@ -91,13 +104,10 @@ async def start_simulation():
 
     # Telemetry collector
     sim_state["collector"] = TelemetryCollector(G, sim_state["engine"])
-
-    # Initialize rerouters
     collector = sim_state["collector"]
-    sim_state["reactive_rerouter"] = ReactiveRerouter(G)
 
     sim_state["model"] = None
-    sim_state["rerouter"] = None
+    sim_state["alert_threshold"] = None
     # Try loading trained model
     try:
         from model.gnn_model import CongestionPredictor, load_compatible_state_dict, check_checkpoint_schema
@@ -119,9 +129,9 @@ async def start_simulation():
             # alert_threshold was tuned on temperature-scaled validation probabilities.
             sim_state["model"] = TemperatureScaled(model, checkpoint["temperature"]).eval()
 
-            # Guarded rerouter alerts at the validation-tuned threshold stored in the checkpoint.
-            sim_state["threshold"] = checkpoint["alert_threshold"]
-            sim_state["rerouter"] = GuardedRerouter(G, collector.edge_to_idx, threshold=sim_state["threshold"])
+            # The live threshold (slider) starts at the validation-tuned threshold in the checkpoint.
+            sim_state["alert_threshold"] = float(checkpoint["alert_threshold"])
+            sim_state["threshold"] = sim_state["alert_threshold"]
 
             print("  [OK] Loaded trained GNN model for live predictions")
         else:
@@ -131,9 +141,10 @@ async def start_simulation():
 
     sim_state["tick"] = 0
     sim_state["total_reroutes"] = 0
+    _switch_controller("guarded_gnn" if sim_state["model"] is not None else "ecmp")
     sim_state["running"] = True
 
-    return JSONResponse({"status": "started", "topology": _get_topology_data(G)})
+    return JSONResponse({"status": "started", "topology": _get_topology_data(G), **_controller_status()})
 
 
 @app.post("/api/stop")
@@ -179,12 +190,68 @@ async def update_config(data: ConfigUpdate):
     return {"status": "updated"}
 
 
+class ControllerUpdate(BaseModel):
+    controller: str
+
+
+@app.post("/api/controller")
+async def set_controller(data: ControllerUpdate):
+    """Switch the routing controller live; ECMP paths are restored and counters reset."""
+    if data.controller not in CONTROLLERS:
+        raise HTTPException(422, f"unknown controller {data.controller!r}; expected one of {list(CONTROLLERS)}")
+    if sim_state["engine"] is None:
+        raise HTTPException(409, "start the simulation first")
+    if data.controller == "guarded_gnn" and sim_state["model"] is None:
+        raise HTTPException(409, "guarded_gnn needs a loaded schema-3 checkpoint")
+    _switch_controller(data.controller)
+    return {"status": "switched", **_controller_status()}
+
+
 @app.get("/api/status")
 async def status():
+    model_loaded = sim_state["model"] is not None
     return {"running": sim_state["running"], "tick": sim_state["tick"],
-            "model_loaded": sim_state["model"] is not None,
-            "controller": "guarded GNN" if sim_state["model"] is not None else "static ECMP",
+            **_controller_status(),
+            "controllers": {name: {"label": label, "available": name != "guarded_gnn" or model_loaded}
+                            for name, label in CONTROLLERS.items()},
             "scope": "synthetic full-duplex simulator; no PFC or RDMA"}
+
+
+def _switch_controller(name):
+    """Activate a controller: restore every flow's ECMP path, start a fresh guard (no
+    cooldowns carried over) and reset the since-switch counters."""
+    engine, collector = sim_state["engine"], sim_state["collector"]
+    for f in sim_state["flows"]:
+        f.current_path = engine.get_ecmp_path(f)
+    if name == "ecmp":
+        sim_state["rerouter"] = None
+    else:
+        threshold = sim_state["threshold"] if name == "guarded_gnn" else SCORE_THRESHOLD
+        sim_state["rerouter"] = GuardedRerouter(sim_state["graph"], collector.edge_to_idx, threshold=threshold)
+    sim_state["controller"] = name
+    sim_state["switch_reroutes"] = 0
+    sim_state["switch_baseline"] = dict(tick=engine.tick, total_drops=engine.total_drops,
+                                        fabric_drops=engine.fabric_link_drops,
+                                        host_drops=engine.host_link_drops)
+
+
+def _controller_status() -> dict:
+    """Active controller, thresholds and cumulative counters since the last switch."""
+    engine, base = sim_state["engine"], sim_state["switch_baseline"]
+    since = None
+    if engine is not None and base is not None:
+        since = dict(ticks=engine.tick - base["tick"],
+                     total_drops=engine.total_drops - base["total_drops"],
+                     fabric_drops=engine.fabric_link_drops - base["fabric_drops"],
+                     host_drops=engine.host_link_drops - base["host_drops"],
+                     reroutes=sim_state["switch_reroutes"])
+    return {"controller": sim_state["controller"],
+            "controller_label": CONTROLLERS[sim_state["controller"]],
+            "since_switch": since,
+            "model_loaded": sim_state["model"] is not None,
+            "threshold": sim_state["threshold"],
+            "alert_threshold": sim_state["alert_threshold"],
+            "score_threshold": SCORE_THRESHOLD}
 
 
 async def simulation_loop():
@@ -198,19 +265,27 @@ async def simulation_loop():
             snapshot = engine.step()
             collector.collect_tick(snapshot)
             sim_state["tick"] = engine.tick
-            predictions, events = None, []
-            if sim_state["model"] is not None and len(collector.node_features_history) >= MODEL["window_size"]:
+            ready = len(collector.node_features_history) >= MODEL["window_size"]
+            # The forecast overlay is shown under every controller; only guarded_gnn routes on it.
+            predictions = None
+            if ready and sim_state["model"] is not None:
                 predictions = _get_predictions(collector, sim_state["model"])
-                sim_state["rerouter"].threshold = sim_state["threshold"]
-                events = sim_state["rerouter"].evaluate_and_reroute(
-                    sim_state["flows"], predictions, engine, engine.tick)
+            events, rerouter = [], sim_state["rerouter"]
+            if ready and rerouter is not None:
+                if sim_state["controller"] == "guarded_gnn":
+                    rerouter.threshold = sim_state["threshold"]
+                    signal = predictions
+                else:
+                    signal = collector.edge_scores_history[-1]
+                events = rerouter.evaluate_and_reroute(sim_state["flows"], signal, engine, engine.tick)
                 sim_state["total_reroutes"] += len(events)
+                sim_state["switch_reroutes"] += len(events)
             # Bound live telemetry history; offline collectors keep full scenarios.
             for name in ["node_features_history", "edge_features_history", "edge_labels_history",
                          "edge_scores_history", "snapshots"]:
                 history = getattr(collector, name)
                 del history[:-MODEL["window_size"]]
-            msg = _build_update_message(snapshot, predictions, events)
+            msg = _build_update_message(snapshot, collector, predictions, events)
             async def send(client):
                 try:
                     await asyncio.wait_for(client.send_json(msg), timeout=.5)
@@ -245,6 +320,13 @@ async def websocket_endpoint(websocket: WebSocket):
                     await update_config(config)
                 except (ValueError, TypeError):
                     await websocket.send_json({"type": "error", "message": "Threshold must be between 0 and 1"})
+            elif cmd.get("action") == "controller":
+                try:
+                    await set_controller(ControllerUpdate(controller=cmd.get("value")))
+                except ValueError:
+                    await websocket.send_json({"type": "error", "message": "Controller must be a string"})
+                except HTTPException as exc:
+                    await websocket.send_json({"type": "error", "message": exc.detail})
     except (WebSocketDisconnect, RuntimeError):
         pass
     finally:
@@ -297,25 +379,36 @@ def _get_predictions(collector, model) -> np.ndarray:
     return pred.squeeze(0).numpy()
 
 
-def _build_update_message(snapshot, predictions=None, reroute_events=None) -> dict:
+def _link_id(u, v) -> str:
+    """Physical link ID "u--v" with u < v, as merge_directions and collector.switch_edges order them."""
+    u, v = sorted((u, v))
+    return f"{u}--{v}"
+
+
+def _build_update_message(snapshot, collector, predictions=None, reroute_events=None) -> dict:
     """Build WebSocket update message."""
     # Link data: one entry per physical link (max over both directions);
     # the frontend maps u--v and v--u to the same line.
+    G = collector.G
     links = {}
     for (u, v), data in merge_directions(snapshot["links"]).items():
-        link_id = f"{u}--{v}"
-        links[link_id] = {
+        edge = G.edges[u, v]
+        # Current congestion is the training label (served_or_queued score > T), not utilization.
+        score = congestion_score(data, edge["capacity"], edge["buffer_size"])
+        links[_link_id(u, v)] = {
             "utilization": round(data["utilization"], 4),
             "queue_depth": data["queue_depth"],
             "drops": data["packets_dropped"],
             "latency": round(data["latency_us"], 2),
+            "score": round(score, 4),
+            "congested": score > MODEL["congestion_threshold"],
         }
 
-    # Predictions
+    # Calibrated P(congested at t + horizon) per fabric link, keyed in collector.switch_edges order.
     pred_data = {}
     if predictions is not None:
-        for i, prob in enumerate(predictions):
-            pred_data[str(i)] = round(float(prob), 4)
+        pred_data = {_link_id(u, v): round(float(prob), 4)
+                     for (u, v), prob in zip(collector.switch_edges, predictions, strict=True)}
 
     # Global metrics
     metrics = {
@@ -324,6 +417,7 @@ def _build_update_message(snapshot, predictions=None, reroute_events=None) -> di
         "total_packets": snapshot["total_packets"],
         "total_drops": snapshot["total_drops"],
         "drop_rate": round(snapshot["total_drops"] / max(1, snapshot["total_packets"]) * 100, 3),
+        "total_reroutes": sim_state["total_reroutes"],
     }
 
     # Reroute events
@@ -335,6 +429,8 @@ def _build_update_message(snapshot, predictions=None, reroute_events=None) -> di
                 "src": evt["src"],
                 "dst": evt["dst"],
                 "reason": evt.get("reason", "proactive"),
+                "controller": sim_state["controller"],
+                "new_path": list(evt["new_path"]),
             })
 
     return {
@@ -343,6 +439,7 @@ def _build_update_message(snapshot, predictions=None, reroute_events=None) -> di
         "predictions": pred_data,
         "metrics": metrics,
         "reroute_events": reroute_data,
+        **_controller_status(),
     }
 
 

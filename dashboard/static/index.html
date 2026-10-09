@@ -6,12 +6,12 @@
     <title>NeuralFabric — GNN Congestion Pre-emption Engine</title>
     <meta name="description" content="Real-time GNN-based proactive congestion prediction and intelligent rerouting for data center fabrics using in-band network telemetry. Visualize Fat-Tree topology, predict congestion before it happens.">
     <link rel="stylesheet" href="/static/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Vendored (see static/vendor/README.md) so the demo runs offline; fonts are system stacks. -->
+    <script src="/static/vendor/d3.v7.min.js"></script>
+    <script src="/static/vendor/chart.umd.min.js"></script>
 </head>
 <body>
-    <div style="padding:10px;text-align:center;background:#e2e8f0;color:#1a202c;font:14px sans-serif;border-bottom:1px solid #cbd5e0;">Research simulator · 1 ms ticks · shared-link queues · no PFC/RDMA model · predictions are experimental</div>
+    <div style="padding:10px;text-align:center;background:#e2e8f0;color:#1a202c;font:14px sans-serif;border-bottom:1px solid #cbd5e0;">Research simulator · 1 ms ticks · full-duplex links (one FIFO per direction) · no PFC/RDMA model · predictions are experimental</div>
     <!-- Ambient Background Effects -->
     <div class="ambient-bg">
         <div class="orb orb-1"></div>
@@ -140,7 +140,7 @@
                 </div>
                 <div class="stat-data">
                     <span class="stat-value" id="val-reroutes">0</span>
-                    <span class="stat-label">GNN Reroutes</span>
+                    <span class="stat-label">Reroutes</span>
                 </div>
                 <div class="stat-trend">
                     <canvas id="spark-reroutes" width="60" height="24"></canvas>
@@ -152,7 +152,7 @@
                 </div>
                 <div class="stat-data">
                     <span class="stat-value" id="val-predictions">0</span>
-                    <span class="stat-label">Congestion Alerts</span>
+                    <span class="stat-label">Predicted Alerts</span>
                 </div>
                 <div class="stat-trend">
                     <canvas id="spark-predictions" width="60" height="24"></canvas>
@@ -190,16 +190,26 @@
                         </div>
                     </div>
                     <div class="utilization-bar">
-                        <div class="util-label">Link Load</div>
+                        <div class="util-label">Offered Load</div>
                         <div class="util-gradient">
                             <div class="gradient-track"></div>
                             <div class="gradient-labels">
                                 <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
                             </div>
                         </div>
-                        <div class="util-label congestion-label">
-                            <span class="pulse-dot danger"></span>
-                            GNN Predicted Congestion
+                        <div class="link-legend" id="link-legend">
+                            <span class="legend-item">
+                                <svg class="legend-swatch" viewBox="0 0 28 12" width="28" height="12"><line class="swatch-congested" x1="2" y1="6" x2="26" y2="6"/></svg>
+                                <span><strong>Congested now</strong> <span class="legend-note">served &gt; 85% of capacity or queue &gt; 10% of buffer</span></span>
+                            </span>
+                            <span class="legend-item">
+                                <svg class="legend-swatch" viewBox="0 0 28 12" width="28" height="12"><line class="swatch-predicted" x1="2" y1="6" x2="26" y2="6"/></svg>
+                                <span><strong>Predicted (t+5)</strong> <span class="legend-note">calibrated GNN probability &gt; alert threshold</span></span>
+                            </span>
+                            <span class="legend-item">
+                                <svg class="legend-swatch" viewBox="0 0 28 12" width="28" height="12"><line class="swatch-reroute" x1="2" y1="6" x2="26" y2="6"/></svg>
+                                <span><strong>Rerouted path</strong> <span class="legend-note">new path, shown for 1 s</span></span>
+                            </span>
                         </div>
                     </div>
                 </section>
@@ -247,15 +257,39 @@
                             <svg viewBox="0 0 24 24" width="16" height="16"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/></svg>
                             Inject Traffic Spike (Incast Attack)
                         </button>
+                        <div class="controller-group">
+                            <div class="slider-header">
+                                <label for="controller-select">Routing Controller</label>
+                                <span class="controller-active" id="controller-active">Not started</span>
+                            </div>
+                            <select id="controller-select" class="controller-select" disabled>
+                                <option value="ecmp">ECMP (no rerouting)</option>
+                                <option value="guarded_gnn">Guarded GNN</option>
+                                <option value="guarded_score">Guarded score (no model)</option>
+                            </select>
+                            <div class="since-switch">
+                                <div class="since-title">Since last switch &middot; <span id="since-ticks">0</span> ticks</div>
+                                <div class="since-grid">
+                                    <div class="since-stat"><span class="since-value" id="since-drops">0</span><span class="since-label">Total drops</span></div>
+                                    <div class="since-stat"><span class="since-value" id="since-fabric">0</span><span class="since-label">Fabric drops</span></div>
+                                    <div class="since-stat"><span class="since-value" id="since-host">0</span><span class="since-label">Host drops</span></div>
+                                    <div class="since-stat"><span class="since-value" id="since-rate">0</span><span class="since-label">Drops / tick</span></div>
+                                    <div class="since-stat"><span class="since-value" id="since-reroutes">0</span><span class="since-label">Reroutes</span></div>
+                                </div>
+                                <p class="since-note">Switching restores every flow's ECMP path. This is one live random workload, not a controlled comparison. In the paired benchmark (60 runs), guarded score cut total drops 5.7% and guarded GNN 5.3% vs ECMP; their difference was not significant.</p>
+                            </div>
+                        </div>
                         <div class="control-sliders">
                             <div class="slider-group">
                                 <div class="slider-header">
                                     <label for="threshold-slider">GNN Alert Threshold</label>
-                                    <span class="slider-value" id="threshold-value">0.70</span>
+                                    <span class="slider-value" id="threshold-value">&mdash;</span>
                                 </div>
-                                <input type="range" id="threshold-slider" min="0.3" max="0.95" step="0.05" value="0.7">
+                                <input type="range" id="threshold-slider" min="0.3" max="0.95" step="any" value="0.7">
                                 <div class="slider-ticks">
-                                    <span>Conservative</span><span>Aggressive</span>
+                                    <span>Aggressive</span>
+                                    <button type="button" class="link-btn" id="threshold-reset" disabled title="Reset to the validation-tuned threshold stored in the checkpoint">calibrated: &mdash;</button>
+                                    <span>Conservative</span>
                                 </div>
                             </div>
                             <div class="slider-group">
@@ -275,10 +309,11 @@
                 <!-- Congestion Prediction Panel -->
                 <section class="panel prediction-panel" id="prediction-panel">
                     <div class="panel-header">
-                        <h2>GNN Predictions</h2>
+                        <h2>GNN Forecast</h2>
                         <span class="panel-badge live-badge" id="gnn-status">Waiting for data</span>
                     </div>
                     <div class="prediction-body">
+                        <p class="prediction-caption">Calibrated P(link congested 5 ticks ahead), one cell per fabric link. Dashed outline = above the alert threshold.</p>
                         <div class="prediction-heatmap" id="prediction-heatmap">
                             <div class="heatmap-placeholder">
                                 <span>Congestion probability heatmap will appear once GNN model starts predicting</span>
@@ -292,10 +327,12 @@
                             <div class="pred-stat">
                                 <span class="pred-label">Max Risk Link</span>
                                 <span class="pred-value danger" id="pred-max">—</span>
+                                <span class="pred-sub" id="pred-max-link"></span>
                             </div>
                             <div class="pred-stat">
                                 <span class="pred-label">At-Risk Links</span>
                                 <span class="pred-value warning" id="pred-risk-count">0</span>
+                                <span class="pred-sub" id="pred-risk-threshold"></span>
                             </div>
                         </div>
                     </div>

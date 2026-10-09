@@ -33,7 +33,15 @@ expected and harmless.
   `research/benchmark_results_v4.json`. Model routing strategies (gnn, guarded_gnn, guarded_lstm) run per
   training seed; summaries/paired bootstraps use seed-averaged drops. `summarize_results.py` / `plot_extra_graphs.py` still read the
   legacy `benchmark_results.json`.
-- `dashboard/` FastAPI + WebSocket server, static D3/Chart.js frontend
+- `dashboard/` FastAPI + WebSocket server, static D3/Chart.js frontend (libs vendored in
+  `static/vendor/`, system fonts: works offline). Update messages key `links` and `predictions` by
+  physical link ID `"u--v"` (u < v); `predictions` = calibrated probabilities for the 32 fabric links in
+  `collector.switch_edges` order; `links[id].congested` = current served_or_queued label. Messages also carry
+  `threshold` (live slider), `alert_threshold` (checkpoint), `controller`, `since_switch`. Controllers
+  `ecmp` | `guarded_gnn` | `guarded_score` switch live via `POST /api/controller` or WS
+  `{"action": "controller"}`; every switch restores ECMP paths and resets the since-switch counters.
+- Git: only `checkpoints/best_model_v3*.pt` and the legacy `best_model.pt` / `data/datasets.pkl` are tracked;
+  other `*.pt` / `*.pkl` are gitignored (regenerable from fixed seeds).
 - `tests/` unittest suite: `python -m unittest discover -s tests -v`
 
 ## Known findings — schema 3 (Phase 3 full run, `research/benchmark_results_v4.json`)
