@@ -39,10 +39,9 @@ const FONT_MAIN = rootStyle.getPropertyValue('--font-main').trim() || 'sans-seri
 const FONT_MONO = rootStyle.getPropertyValue('--font-mono').trim() || 'monospace';
 
 // Sparkline data
+const SPARK_KEYS = ['flows', 'packets', 'fabric', 'host', 'droprate', 'reroutes', 'predictions'];
 const SPARK_MAX = 30;
-const sparkData = {
-    flows: [], packets: [], drops: [], droprate: [], reroutes: [], predictions: []
-};
+const sparkData = Object.fromEntries(SPARK_KEYS.map(k => [k, []]));
 
 // Time-series data buffers
 const MAX_HISTORY = 120;
@@ -50,10 +49,15 @@ const metricsHistory = {
     ticks: [],
     avgUtilization: [],
     maxUtilization: [],
-    drops: [],
     flows: [],
-    dropsPerTick: [],
+    fabricDropsPerTick: [],
+    hostDropsPerTick: [],
 };
+
+// Fabric health: 100 − 10 × fabric-drop % of offered packets over the last HEALTH_WINDOW ticks.
+const HEALTH_WINDOW = 20;
+let healthWindow = [];   // per-tick {fabric, offered}
+let previous = null;     // cumulative metrics of the previous update
 
 // Latest link data for tooltips
 let latestLinkData = {};
@@ -69,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSparklines();
     setupSliders();
     setupControllerSelect();
+    setupWorkloadSelect();
     addLog('Dashboard ready. Click "Start Engine" to begin.', 'info');
 });
 
@@ -150,12 +155,8 @@ async function startSimulation() {
         const data = await resp.json();
 
         if (data.status === 'started' || data.status === 'already_running') {
-            isRunning = true;
-            document.getElementById('btn-start').disabled = true;
-            document.getElementById('btn-stop').disabled = false;
-            document.getElementById('btn-spike').disabled = false;
-            document.getElementById('controller-select').disabled = false;
-            document.getElementById('topology-overlay').classList.add('hidden');
+            setRunningUI(true);
+            if (data.status === 'started') resetSeries();
 
             if (data.topology) {
                 topologyData = data.topology;
@@ -165,8 +166,8 @@ async function startSimulation() {
                 // A new run resets the live threshold to the checkpoint's calibrated value.
                 syncControllerState(data, { forceThreshold: true });
                 addLog(data.model_loaded
-                    ? `Simulation engine started · ${data.controller_label} · calibrated alert threshold ${data.alert_threshold.toFixed(3)}`
-                    : 'Simulation engine started · no schema-3 checkpoint, so ECMP only and no forecast', 'success');
+                    ? `Simulation engine started · ${data.workload} · ${data.controller_label} · calibrated alert threshold ${data.alert_threshold.toFixed(3)}`
+                    : `Simulation engine started · ${data.workload} · no schema-3 checkpoint, so ECMP only and no forecast`, 'success');
             }
 
             connectWebSocket();
@@ -176,13 +177,21 @@ async function startSimulation() {
     }
 }
 
+function setRunningUI(running) {
+    isRunning = running;
+    document.getElementById('btn-start').disabled = running;
+    document.getElementById('btn-stop').disabled = !running;
+    document.getElementById('btn-spike').disabled = !running;
+    if (running) {
+        document.getElementById('controller-select').disabled = false;
+        document.getElementById('topology-overlay').classList.add('hidden');
+    }
+}
+
 async function stopSimulation() {
     try {
         await fetch('/api/stop', { method: 'POST' });
-        isRunning = false;
-        document.getElementById('btn-start').disabled = false;
-        document.getElementById('btn-stop').disabled = true;
-        document.getElementById('btn-spike').disabled = true;
+        setRunningUI(false);
         addLog('Simulation stopped', 'warning');
     } catch (e) {
         addLog(`Failed to stop: ${e.message}`, 'danger');
@@ -201,6 +210,48 @@ async function injectSpike() {
         setTimeout(() => { btn.style.transform = ''; }, 200);
     } catch (e) {
         addLog(`Spike injection failed: ${e.message}`, 'danger');
+    }
+}
+
+// ── Workload Selector ──────────────────────────────────────────
+let activeWorkload = 'stride';
+
+function setupWorkloadSelect() {
+    const select = document.getElementById('workload-select');
+    select.addEventListener('change', () => switchWorkload(select.value));
+}
+
+// Before the first start this only selects the workload; afterwards the server restarts the
+// simulation with it, keeping the controller and the live threshold.
+async function switchWorkload(name) {
+    const select = document.getElementById('workload-select');
+    try {
+        const resp = await fetch('/api/workload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ workload: name }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+            const detail = typeof data.detail === 'string' ? data.detail : resp.statusText;
+            addLog(`Workload switch refused: ${detail}`, 'danger');
+            select.value = activeWorkload;
+            return;
+        }
+        if (data.status === 'restarted') {
+            resetSeries();
+            setRunningUI(true);
+            syncControllerState(data);
+            connectWebSocket();
+            addLog(`Workload → ${name}: simulation restarted (controller ${data.controller_label} kept)`, 'info');
+        } else {
+            activeWorkload = name;
+            document.getElementById('workload-active').textContent = name;
+            addLog(`Workload set to ${name}; it runs when the engine starts`, 'info');
+        }
+    } catch (e) {
+        addLog(`Workload switch failed: ${e.message}`, 'danger');
+        select.value = activeWorkload;
     }
 }
 
@@ -246,6 +297,11 @@ function syncControllerState(msg, { forceThreshold = false } = {}) {
     if (document.activeElement !== select) select.value = msg.controller;
     document.getElementById('controller-active').textContent = msg.controller_label;
 
+    activeWorkload = msg.workload;
+    const workloadSelect = document.getElementById('workload-select');
+    if (document.activeElement !== workloadSelect) workloadSelect.value = msg.workload;
+    document.getElementById('workload-active').textContent = msg.workload;
+
     const reset = document.getElementById('threshold-reset');
     reset.disabled = alertThreshold == null;
     reset.textContent = alertThreshold == null ? 'calibrated: n/a' : `calibrated: ${alertThreshold.toFixed(3)}`;
@@ -269,10 +325,23 @@ function syncControllerState(msg, { forceThreshold = false } = {}) {
 }
 
 // ── Handle Real-Time Updates ───────────────────────────────────
-let lastDrops = 0;
+// Clears per-run history; called when the simulation restarts (e.g. a workload switch).
+function resetSeries() {
+    Object.values(metricsHistory).forEach(series => { series.length = 0; });
+    Object.values(sparkData).forEach(series => { series.length = 0; });
+    Object.values(sparkCanvases).forEach(ctx => ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height));
+    healthWindow = [];
+    previous = null;
+    latestPredictions = {};
+    clearRerouteHighlights();
+    updateCharts();
+}
 
 function handleUpdate(msg) {
     const { links, predictions, metrics } = msg;
+
+    // A tick counter going backwards means the server restarted the run (possibly from another viewer).
+    if (previous && metrics.tick < previous.tick) resetSeries();
 
     syncControllerState(msg);
 
@@ -282,7 +351,8 @@ function handleUpdate(msg) {
     // Update metric cards
     document.getElementById('val-flows').textContent = metrics.active_flows;
     document.getElementById('val-packets').textContent = formatNumber(metrics.total_packets);
-    document.getElementById('val-drops').textContent = formatNumber(metrics.total_drops);
+    document.getElementById('val-fabric-drops').textContent = formatNumber(metrics.fabric_drops);
+    document.getElementById('val-host-drops').textContent = formatNumber(metrics.host_drops);
     document.getElementById('val-droprate').textContent = `${metrics.drop_rate}%`;
     document.getElementById('val-reroutes').textContent = formatNumber(metrics.total_reroutes);
 
@@ -293,7 +363,8 @@ function handleUpdate(msg) {
     // Update sparklines
     pushSparkData('flows', metrics.active_flows);
     pushSparkData('packets', metrics.total_packets);
-    pushSparkData('drops', metrics.total_drops);
+    pushSparkData('fabric', metrics.fabric_drops);
+    pushSparkData('host', metrics.host_drops);
     pushSparkData('droprate', metrics.drop_rate);
     pushSparkData('reroutes', metrics.total_reroutes);
     pushSparkData('predictions', alertCount);
@@ -303,16 +374,19 @@ function handleUpdate(msg) {
     updateTopologyLinks(links);
     refreshPredictionViews();
 
-    // Update time-series data
-    const dropsThisTick = Math.max(0, metrics.total_drops - lastDrops);
-    lastDrops = metrics.total_drops;
-    updateTimeSeries(links, metrics, dropsThisTick);
+    // Per-tick deltas of the cumulative counters
+    const delta = key => previous ? Math.max(0, metrics[key] - previous[key]) : 0;
+    const fabricThisTick = delta('fabric_drops');
+    const hostThisTick = delta('host_drops');
+    const offeredThisTick = delta('total_packets');
+    previous = metrics;
+    updateTimeSeries(links, metrics, fabricThisTick, hostThisTick);
 
     // Update charts (throttled)
     if (metrics.tick % 3 === 0) updateCharts();
 
     // Update health score
-    updateHealthScore(links, metrics);
+    updateHealthScore(fabricThisTick, offeredThisTick);
 
     // Reroute events from server
     (msg.reroute_events || []).forEach(evt => {
@@ -336,24 +410,19 @@ function refreshPredictionViews() {
 }
 
 // ── Health Score ───────────────────────────────────────────────
-function updateHealthScore(links, metrics) {
-    if (!links) return;
+// Fabric health: 100 − 10 × fabric-link drop % of offered packets over the last HEALTH_WINDOW
+// ticks (10% fabric loss = 0). Host-link drops are left out: no path choice avoids them.
+function fabricHealth(window) {
+    const fabric = window.reduce((s, t) => s + t.fabric, 0);
+    const offered = window.reduce((s, t) => s + t.offered, 0);
+    const dropPct = offered > 0 ? 100 * fabric / offered : 0;
+    return Math.max(0, Math.min(100, Math.round(100 - 10 * dropPct)));
+}
 
-    let totalUtil = 0, maxUtil = 0, count = 0;
-    Object.values(links).forEach(d => {
-        totalUtil += d.utilization;
-        maxUtil = Math.max(maxUtil, d.utilization);
-        count++;
-    });
-
-    const avgUtil = count > 0 ? totalUtil / count : 0;
-
-    // Health: 100 = perfect, penalized by utilization and drops
-    let health = 100;
-    health -= avgUtil * 30;          // Avg util penalty
-    health -= maxUtil * 20;          // Peak util penalty
-    health -= Math.min(30, metrics.drop_rate * 5); // Drop rate penalty
-    health = Math.max(0, Math.min(100, Math.round(health)));
+function updateHealthScore(fabricThisTick, offeredThisTick) {
+    healthWindow.push({ fabric: fabricThisTick, offered: offeredThisTick });
+    if (healthWindow.length > HEALTH_WINDOW) healthWindow.shift();
+    const health = fabricHealth(healthWindow);
 
     const scoreEl = document.getElementById('health-score');
     const ringEl = document.getElementById('health-ring-fill');
@@ -454,7 +523,7 @@ function predictionColor(prob) {
 const sparkCanvases = {};
 
 function initSparklines() {
-    ['flows', 'packets', 'drops', 'droprate', 'reroutes', 'predictions'].forEach(key => {
+    SPARK_KEYS.forEach(key => {
         const canvas = document.getElementById(`spark-${key}`);
         if (canvas) {
             sparkCanvases[key] = canvas.getContext('2d');
@@ -471,7 +540,8 @@ function drawAllSparklines() {
     const colors = {
         flows: '#00d2ff',
         packets: '#667eea',
-        drops: '#e94560',
+        fabric: '#e94560',
+        host: '#718096',
         droprate: '#f6ad55',
         reroutes: '#7b68ee',
         predictions: '#805ad5',
@@ -878,7 +948,7 @@ function hideTooltip() {
 }
 
 // ── Time-Series Data ───────────────────────────────────────────
-function updateTimeSeries(links, metrics, dropsThisTick) {
+function updateTimeSeries(links, metrics, fabricThisTick, hostThisTick) {
     let totalUtil = 0, maxUtil = 0, count = 0;
 
     Object.values(links).forEach(data => {
@@ -892,15 +962,14 @@ function updateTimeSeries(links, metrics, dropsThisTick) {
     metricsHistory.ticks.push(metrics.tick);
     metricsHistory.avgUtilization.push(avgUtil);
     metricsHistory.maxUtilization.push(maxUtil);
-    metricsHistory.drops.push(metrics.total_drops);
     metricsHistory.flows.push(metrics.active_flows);
-    metricsHistory.dropsPerTick.push(dropsThisTick);
+    metricsHistory.fabricDropsPerTick.push(fabricThisTick);
+    metricsHistory.hostDropsPerTick.push(hostThisTick);
 
-    if (metricsHistory.ticks.length > MAX_HISTORY) {
-        Object.keys(metricsHistory).forEach(key => {
-            metricsHistory[key] = metricsHistory[key].slice(-MAX_HISTORY);
-        });
-    }
+    // Trim in place: the charts hold references to these arrays.
+    Object.values(metricsHistory).forEach(series => {
+        if (series.length > MAX_HISTORY) series.splice(0, series.length - MAX_HISTORY);
+    });
 }
 
 // ── Charts ─────────────────────────────────────────────────────
@@ -992,9 +1061,10 @@ function initCharts() {
                 scales: {
                     ...commonOptions.scales,
                     y: {
+                        // Offered load can exceed 100%; auto-scale above a 100% floor.
                         ...commonOptions.scales.y,
                         min: 0,
-                        max: 1.2,
+                        suggestedMax: 1,
                         ticks: {
                             ...commonOptions.scales.y.ticks,
                             callback: v => `${(v * 100).toFixed(0)}%`,
@@ -1014,11 +1084,20 @@ function initCharts() {
                 labels: [],
                 datasets: [
                     {
-                        label: 'Drops / Tick',
+                        label: 'Fabric drops / tick',
                         data: [],
                         borderColor: '#e94560',
                         backgroundColor: 'rgba(233, 69, 96, 0.06)',
                         fill: true,
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: 'Host-link drops / tick',
+                        data: [],
+                        borderColor: '#718096',
+                        backgroundColor: 'rgba(113, 128, 150, 0.04)',
+                        borderDash: [4, 3],
+                        fill: false,
                         yAxisID: 'y',
                     },
                     {
@@ -1064,8 +1143,9 @@ function updateCharts() {
     utilizationChart.update('none');
 
     dropsChart.data.labels = metricsHistory.ticks;
-    dropsChart.data.datasets[0].data = metricsHistory.dropsPerTick;
-    dropsChart.data.datasets[1].data = metricsHistory.flows;
+    dropsChart.data.datasets[0].data = metricsHistory.fabricDropsPerTick;
+    dropsChart.data.datasets[1].data = metricsHistory.hostDropsPerTick;
+    dropsChart.data.datasets[2].data = metricsHistory.flows;
     dropsChart.update('none');
 }
 

@@ -40,6 +40,9 @@ expected and harmless.
   `threshold` (live slider), `alert_threshold` (checkpoint), `controller`, `since_switch`. Controllers
   `ecmp` | `guarded_gnn` | `guarded_score` switch live via `POST /api/controller` or WS
   `{"action": "controller"}`; every switch restores ECMP paths and resets the since-switch counters.
+  Workload (benchmark family, default `stride`) via `POST /api/workload`: restarts the run, keeps controller
+  and threshold. Live traffic = back-to-back 150-tick benchmark episodes that keep the generator's flow
+  IDs (ECMP hashes `(src, dst, flow_id)`; renumbering changes collisions). Health score = fabric drops only.
 - Git: only `checkpoints/best_model_v3*.pt` and the legacy `best_model.pt` / `data/datasets.pkl` are tracked;
   other `*.pt` / `*.pkl` are gitignored (regenerable from fixed seeds).
 - `tests/` unittest suite: `python -m unittest discover -s tests -v`

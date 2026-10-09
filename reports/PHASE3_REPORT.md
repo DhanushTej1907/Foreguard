@@ -231,12 +231,18 @@ Per-tick model inference, pooled over all model routing runs.
 ## Artifacts
 
 - **Committed:** `research/benchmark_results_v4.json` and this report. The code is in `246810e`.
-- **Not committed** (regenerable from fixed seeds):
+- **Committed in `5273b9c` and still tracked:**
   - `checkpoints/best_model_v3.pt` (GNN, seed 42; the dashboard default);
   - `best_model_v3_lstm_only.pt`;
   - `best_model_v3_seed{1,2}.pt`, `best_model_v3_seed{1,2}_lstm_only.pt`;
-  - the `*.history.json` files;
-  - `data/datasets_v3.pkl`.
+  - the `*.history.json` files.
+- **Committed in `5273b9c`, untracked in Phase 4 (`1cf90a0`)**, so they exist only in git history
+  and as local files (all regenerable from fixed seeds):
+  - `checkpoints/pilot_v3*.pt`;
+  - `data/datasets_v3.pkl`, `data/pilot_datasets_v3.pkl`.
+
+*(Corrected in Phase 4: an earlier version of this section said the `best_model_v3*.pt` checkpoints
+were not committed.)*
 - Tests: 44 / 44 pass, including the dashboard test, which now loads `best_model_v3.pt` and its
   calibrated threshold.
 

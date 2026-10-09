@@ -314,8 +314,8 @@ body {
 /* ── Quick Stats Bar ────────────────────────────────────────── */
 .quick-stats {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 10px;
     padding: 16px 28px 0;
     position: relative;
     z-index: 1;
@@ -388,6 +388,17 @@ body {
     color: var(--accent-amber);
 }
 
+.stat-icon.host-icon {
+    background: rgba(113, 128, 150, 0.1);
+    color: var(--text-muted);
+}
+
+/* Seven cards: drop the decorative icons before the labels get squeezed. */
+@media (max-width: 1800px) {
+    .stat-icon { display: none; }
+    .stat-card { padding: 12px 14px; }
+}
+
 .stat-data {
     display: flex;
     flex-direction: column;
@@ -412,9 +423,7 @@ body {
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.25;
 }
 
 .stat-trend {

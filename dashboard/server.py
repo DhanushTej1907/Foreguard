@@ -4,18 +4,20 @@ Dashboard Server
 FastAPI backend with WebSocket support for the real-time visualization dashboard.
 
 Endpoints:
-  GET  /               → Serves the dashboard HTML
-  WS   /ws             → WebSocket for live simulation data
-  POST /api/start      → Start simulation
-  POST /api/stop       → Stop simulation
-  POST /api/spike      → Inject traffic spike
-  POST /api/config     → Update GNN alert threshold / speed
-  POST /api/controller → Switch routing controller (restores ECMP paths)
-  GET  /api/status     → Running state, controller, thresholds
+  GET  /               â†’ Serves the dashboard HTML
+  WS   /ws             â†’ WebSocket for live simulation data
+  POST /api/start      â†’ Start simulation
+  POST /api/stop       â†’ Stop simulation
+  POST /api/spike      â†’ Inject traffic spike
+  POST /api/config     â†’ Update GNN alert threshold / speed
+  POST /api/controller â†’ Switch routing controller (restores ECMP paths)
+  POST /api/workload   â†’ Restart the simulation with another traffic family
+  GET  /api/status     â†’ Running state, workload, controller, thresholds
 """
 
 import os
 import asyncio
+import random
 import time
 import numpy as np
 import torch
@@ -32,6 +34,7 @@ from simulation.topology import build_fat_tree
 from simulation.traffic_generator import TrafficGenerator
 from simulation.network_engine import NetworkEngine, merge_directions
 from simulation.telemetry import TelemetryCollector, congestion_score
+from research_benchmark import PATTERNS as WORKLOADS
 
 @asynccontextmanager
 async def lifespan(app):
@@ -41,7 +44,7 @@ async def lifespan(app):
     with suppress(asyncio.CancelledError):
         await task
 
-app = FastAPI(lifespan=lifespan, title="NeuralFabric — GNN Congestion Pre-emption Engine")
+app = FastAPI(lifespan=lifespan, title="NeuralFabric â€” GNN Congestion Pre-emption Engine")
 
 # Serve static files
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
@@ -57,10 +60,19 @@ CONTROLLERS = {
 # guarded_score feeds the guard the current served_or_queued congestion score and alerts at
 # the label threshold (the benchmark used continuous persistence's val-tuned 0.851).
 SCORE_THRESHOLD = MODEL["congestion_threshold"]
+# Live traffic families are the benchmark's; stride shows the guard's effect most clearly
+# (ECMP drops on fabric links, every guarded strategy removes them).
+DEFAULT_WORKLOAD = "stride"
+# Live traffic is played as back-to-back episodes of the benchmark's run length, so each family
+# has the load it had in the paper. (Flow start times scale with scenario length: one long
+# 2000-tick scenario ramped up so slowly that stride had no drops for its first 300+ ticks.)
+EPISODE_TICKS = 150
+SPIKE_ID_BASE = 1_000_000  # spike flow IDs; episode flows keep the generator's small IDs
 
 # Global state
 sim_state = {
     "running": False,
+    "workload": DEFAULT_WORKLOAD,
     "graph": None,
     "engine": None,
     "collector": None,
@@ -87,20 +99,31 @@ async def root():
 
 @app.post("/api/start")
 async def start_simulation():
-    """Initialize and start the simulation."""
+    """Initialize and start the simulation with the selected workload."""
     if sim_state["running"]:
         return JSONResponse({"status": "already_running"})
+    _start(sim_state["workload"], keep_settings=False)
+    return JSONResponse({"status": "started", "topology": _get_topology_data(sim_state["graph"]), **_run_status()})
+
+
+def _start(workload, keep_settings):
+    """Build and run a fresh simulation of `workload`. A fresh start resets the controller to
+    guarded_gnn (ECMP without a model) and the threshold to the checkpoint's calibrated value;
+    keep_settings keeps the selected controller (if still available) and the live threshold."""
+    controller, threshold = sim_state["controller"], sim_state["threshold"]
 
     # Build topology
     G = build_fat_tree()
     sim_state["graph"] = G
     sim_state["engine"] = NetworkEngine(G)
 
-    # Generate traffic
-    gen = TrafficGenerator(G, seed=int(time.time()) % 10000)
-    flows = gen.generate_scenario(total_ticks=2000, pattern="mixed")
-    sim_state["flows"] = flows
-    sim_state["engine"].set_flows(flows)
+    # Generate traffic: the first benchmark-length episode; the loop appends the next ones.
+    sim_state["workload"] = workload
+    sim_state["flows"] = []
+    sim_state["rerouter"] = None
+    sim_state["next_spike_id"] = SPIKE_ID_BASE
+    sim_state["traffic_rng"] = random.Random(time.time_ns())
+    _next_episode(0)
 
     # Telemetry collector
     sim_state["collector"] = TelemetryCollector(G, sim_state["engine"])
@@ -139,12 +162,16 @@ async def start_simulation():
     except Exception as e:
         print(f"  [WARN] Could not load model: {e}")
 
+    if keep_settings:
+        sim_state["threshold"] = threshold
+        if controller == "guarded_gnn" and sim_state["model"] is None:
+            controller = "ecmp"
+    else:
+        controller = "guarded_gnn" if sim_state["model"] is not None else "ecmp"
     sim_state["tick"] = 0
     sim_state["total_reroutes"] = 0
-    _switch_controller("guarded_gnn" if sim_state["model"] is not None else "ecmp")
+    _switch_controller(controller)
     sim_state["running"] = True
-
-    return JSONResponse({"status": "started", "topology": _get_topology_data(G), **_controller_status()})
 
 
 @app.post("/api/stop")
@@ -159,23 +186,47 @@ async def inject_spike():
     if not sim_state["running"]:
         return JSONResponse({"status": "not_running"})
 
-    G = sim_state["graph"]
-    gen = TrafficGenerator(G, seed=int(time.time()) % 10000)
+    gen = TrafficGenerator(sim_state["graph"], seed=sim_state["traffic_rng"].randrange(2**31))
     spike_flows = gen.generate_scenario(total_ticks=100, pattern="hotspot")
-
-    # Adjust start times relative to current tick
-    next_id = max((f.flow_id for f in sim_state["flows"]), default=0)
-    for offset, f in enumerate(spike_flows, 1):
-        f.flow_id = next_id + offset
-        f.start_tick += sim_state["tick"]
+    for f in spike_flows:
+        f.flow_id = sim_state["next_spike_id"]
+        sim_state["next_spike_id"] += 1
         if f.flow_type == "incast":
-            f.start_tick = sim_state["tick"] + 5
+            f.start_tick = 5
             f.duration = 40
-
-    sim_state["flows"].extend(spike_flows)
-    sim_state["engine"].set_flows(sim_state["flows"])
+    _add_flows(spike_flows, start_tick=sim_state["tick"])
 
     return JSONResponse({"status": "spike_injected", "new_flows": len(spike_flows)})
+
+
+def _add_flows(flows, start_tick):
+    """Shift `flows` to start at start_tick and add them to the running engine."""
+    for f in flows:
+        f.start_tick += start_tick
+    sim_state["flows"].extend(flows)
+    sim_state["engine"].set_flows(sim_state["flows"])
+
+
+def _next_episode(start_tick):
+    """Append one EPISODE_TICKS-long scenario of the current workload starting at start_tick,
+    and drop flows that have finished (their packets in flight stay in the engine's queues).
+
+    Episode flows keep the generator's IDs: ECMP hashes (src, dst, flow_id), so renumbering
+    would change which flows collide (stride's ECMP drops vanish with IDs 0..15 instead of 1..16).
+    IDs stay unique because the previous episode's flows have all ended by now; spike flows use
+    IDs from SPIKE_ID_BASE up."""
+    now = sim_state["engine"].tick
+    sim_state["flows"] = [f for f in sim_state["flows"] if f.start_tick + f.duration > now]
+    live = {f.flow_id for f in sim_state["flows"]}
+    if sim_state["rerouter"] is not None:  # no cooldown carried over to a reused ID
+        cooldowns = sim_state["rerouter"].last_reroute_tick
+        sim_state["rerouter"].last_reroute_tick = {i: t for i, t in cooldowns.items() if i in live}
+    sim_state["episode_seed"] = sim_state["traffic_rng"].randrange(2**31)
+    gen = TrafficGenerator(sim_state["graph"], seed=sim_state["episode_seed"])
+    flows = gen.generate_scenario(total_ticks=EPISODE_TICKS, pattern=sim_state["workload"])
+    _add_flows(flows, start_tick)
+    # The next episode starts once this one's flows have all ended.
+    sim_state["episode_end"] = max((f.start_tick + f.duration for f in flows), default=start_tick + EPISODE_TICKS)
 
 
 class ConfigUpdate(BaseModel):
@@ -204,14 +255,32 @@ async def set_controller(data: ControllerUpdate):
     if data.controller == "guarded_gnn" and sim_state["model"] is None:
         raise HTTPException(409, "guarded_gnn needs a loaded schema-3 checkpoint")
     _switch_controller(data.controller)
-    return {"status": "switched", **_controller_status()}
+    return {"status": "switched", **_run_status()}
+
+
+class WorkloadUpdate(BaseModel):
+    workload: str
+
+
+@app.post("/api/workload")
+async def set_workload(data: WorkloadUpdate):
+    """Select a traffic family. Once the simulation exists, switching restarts it with the new
+    workload, keeping the controller and the live threshold; before that it only selects."""
+    if data.workload not in WORKLOADS:
+        raise HTTPException(422, f"unknown workload {data.workload!r}; expected one of {WORKLOADS}")
+    if sim_state["engine"] is None:
+        sim_state["workload"] = data.workload
+        return {"status": "selected", **_run_status()}
+    _start(data.workload, keep_settings=True)
+    return {"status": "restarted", **_run_status()}
 
 
 @app.get("/api/status")
 async def status():
     model_loaded = sim_state["model"] is not None
     return {"running": sim_state["running"], "tick": sim_state["tick"],
-            **_controller_status(),
+            **_run_status(),
+            "workloads": WORKLOADS,
             "controllers": {name: {"label": label, "available": name != "guarded_gnn" or model_loaded}
                             for name, label in CONTROLLERS.items()},
             "scope": "synthetic full-duplex simulator; no PFC or RDMA"}
@@ -235,8 +304,8 @@ def _switch_controller(name):
                                         host_drops=engine.host_link_drops)
 
 
-def _controller_status() -> dict:
-    """Active controller, thresholds and cumulative counters since the last switch."""
+def _run_status() -> dict:
+    """Workload, active controller, thresholds and cumulative counters since the last switch."""
     engine, base = sim_state["engine"], sim_state["switch_baseline"]
     since = None
     if engine is not None and base is not None:
@@ -245,7 +314,8 @@ def _controller_status() -> dict:
                      fabric_drops=engine.fabric_link_drops - base["fabric_drops"],
                      host_drops=engine.host_link_drops - base["host_drops"],
                      reroutes=sim_state["switch_reroutes"])
-    return {"controller": sim_state["controller"],
+    return {"workload": sim_state["workload"],
+            "controller": sim_state["controller"],
             "controller_label": CONTROLLERS[sim_state["controller"]],
             "since_switch": since,
             "model_loaded": sim_state["model"] is not None,
@@ -265,6 +335,8 @@ async def simulation_loop():
             snapshot = engine.step()
             collector.collect_tick(snapshot)
             sim_state["tick"] = engine.tick
+            if engine.tick >= sim_state["episode_end"]:
+                _next_episode(engine.tick)
             ready = len(collector.node_features_history) >= MODEL["window_size"]
             # The forecast overlay is shown under every controller; only guarded_gnn routes on it.
             predictions = None
@@ -325,6 +397,13 @@ async def websocket_endpoint(websocket: WebSocket):
                     await set_controller(ControllerUpdate(controller=cmd.get("value")))
                 except ValueError:
                     await websocket.send_json({"type": "error", "message": "Controller must be a string"})
+                except HTTPException as exc:
+                    await websocket.send_json({"type": "error", "message": exc.detail})
+            elif cmd.get("action") == "workload":
+                try:
+                    await set_workload(WorkloadUpdate(workload=cmd.get("value")))
+                except ValueError:
+                    await websocket.send_json({"type": "error", "message": "Workload must be a string"})
                 except HTTPException as exc:
                     await websocket.send_json({"type": "error", "message": exc.detail})
     except (WebSocketDisconnect, RuntimeError):
@@ -410,12 +489,16 @@ def _build_update_message(snapshot, collector, predictions=None, reroute_events=
         pred_data = {_link_id(u, v): round(float(prob), 4)
                      for (u, v), prob in zip(collector.switch_edges, predictions, strict=True)}
 
-    # Global metrics
+    # Global metrics (cumulative). Fabric-link drops are what rerouting can affect; host-link
+    # drops happen on the receiver's edge->host link, which no path choice avoids.
+    engine = collector.engine
     metrics = {
         "tick": snapshot["tick"],
         "active_flows": snapshot["active_flows"],
         "total_packets": snapshot["total_packets"],
         "total_drops": snapshot["total_drops"],
+        "fabric_drops": engine.fabric_link_drops,
+        "host_drops": engine.host_link_drops,
         "drop_rate": round(snapshot["total_drops"] / max(1, snapshot["total_packets"]) * 100, 3),
         "total_reroutes": sim_state["total_reroutes"],
     }
@@ -439,7 +522,7 @@ def _build_update_message(snapshot, collector, predictions=None, reroute_events=
         "predictions": pred_data,
         "metrics": metrics,
         "reroute_events": reroute_data,
-        **_controller_status(),
+        **_run_status(),
     }
 
 
