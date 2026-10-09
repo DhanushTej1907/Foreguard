@@ -1,23 +1,26 @@
 /**
- * NeuralFabric — GNN Congestion Pre-emption Dashboard
- * =====================================================
- * Real-time D3.js topology + Chart.js metrics + WebSocket live updates.
+ * NeuralFabric dashboard: D3 topology, Chart.js metrics, WebSocket live updates.
  *
  * Link IDs are "u--v" with u < v (one per physical link), as sent by the server.
  * Topology link states:
- *   congested now  — served_or_queued label from the server (solid red)
- *   predicted      — calibrated GNN probability > live alert threshold (pulsing dashed outline)
- *   rerouted path  — a flow's new path, highlighted for REROUTE_HIGHLIGHT_MS
+ *   congested now  served_or_queued label from the server (solid red)
+ *   predicted      calibrated GNN probability > live alert threshold (pulsing dashed outline)
+ *   reroute        old path dashed red, new path cyan, trigger link dark halo + "!" badge
+ *                  (shown for TRANSIENT_MS; clicking the timeline entry pins it)
+ *
+ * Event timeline: the server sends transition events (congestion / cleared / predicted,
+ * coalesced per tick), reroutes, spikes and controller/workload switches, each with a unique
+ * id; a viewer that connects mid-run receives the run's backlog with the topology message.
  */
 
 // ── State ──────────────────────────────────────────────────────
 let ws = null;
 let topologyData = null;
 let linkElements = {};     // linkId -> base line
+let linkGeom = {};         // linkId -> {x1, y1, x2, y2}
 let predOutlines = {};     // linkId -> predicted-congestion outline (fabric links only)
-let rerouteLines = {};     // linkId -> reroute highlight line
-let rerouteTimers = {};
-let nodeElements = {};
+let transientLayer = null; // reroute highlights that fade after TRANSIENT_MS
+let selectionLayer = null; // highlight pinned by clicking a timeline entry
 let isRunning = false;
 
 let liveThreshold = null;   // GNN alert threshold (slider), synced from the server
@@ -25,13 +28,14 @@ let alertThreshold = null;  // calibrated threshold stored in the checkpoint
 let lastLocalThresholdAt = -Infinity;
 let modelLoaded = false;
 let activeController = null;
+let activeWorkload = 'stride';
 
-const REROUTE_HIGHLIGHT_MS = 1000;
-const CONTROLLER_NAMES = {
-    ecmp: 'ECMP',
-    guarded_gnn: 'Guarded GNN',
-    guarded_score: 'Guarded score',
-};
+const TRANSIENT_MS = 2000;   // how long a new reroute stays drawn on the topology
+const TRANSIENT_MAX = 3;     // at most this many fresh reroutes drawn at once (the guard can make several per tick)
+const RELATED_TICKS = 10;    // a congestion event lists reroutes triggered within this many ticks
+const TIMELINE_MAX = 300;    // entries kept in the timeline
+const STORE_MAX = 5000;      // events kept for click-to-highlight
+const CONTROLLER_NAMES = { ecmp: 'ECMP', guarded_gnn: 'Guarded GNN', guarded_score: 'Guarded score' };
 
 // Fonts come from the CSS system stacks (no web fonts, works offline).
 const rootStyle = getComputedStyle(document.documentElement);
@@ -63,6 +67,13 @@ let previous = null;     // cumulative metrics of the previous update
 let latestLinkData = {};
 let latestPredictions = {};
 
+// Timeline / highlight state
+const eventStore = new Map();  // event id -> event (with .run)
+let rerouteEvents = [];        // reroute events, for linking congestion -> reroutes
+let runCounter = 0;            // bumped on every restart: ticks restart at 0
+let selectedId = null;
+let unseenEvents = 0;
+
 // Charts
 let utilizationChart = null;
 let dropsChart = null;
@@ -71,11 +82,31 @@ let dropsChart = null;
 document.addEventListener('DOMContentLoaded', () => {
     initCharts();
     initSparklines();
-    setupSliders();
-    setupControllerSelect();
-    setupWorkloadSelect();
-    addLog('Dashboard ready. Click "Start Engine" to begin.', 'info');
+    setupControls();
+    setupTimeline();
+    trackControlBarHeight();
+    addEntry('info', 'Dashboard ready. Press Start to run the live network (default workload: stride).');
 });
+
+function setupControls() {
+    document.getElementById('btn-start').addEventListener('click', startSimulation);
+    document.getElementById('btn-stop').addEventListener('click', stopSimulation);
+    document.getElementById('btn-spike').addEventListener('click', injectSpike);
+    const workload = document.getElementById('workload-select');
+    workload.addEventListener('change', () => switchWorkload(workload.value));
+    const controller = document.getElementById('controller-select');
+    controller.addEventListener('change', () => switchController(controller.value));
+    setupSliders();
+}
+
+// The right column sticks below the control bar; keep its offset equal to the bar's height
+// (the bar wraps to two rows on narrow screens).
+function trackControlBarHeight() {
+    const bar = document.getElementById('control-bar');
+    const apply = () => document.documentElement.style.setProperty('--controlbar-h', `${bar.offsetHeight}px`);
+    apply();
+    if (window.ResizeObserver) new ResizeObserver(apply).observe(bar);
+}
 
 // ── Link and node names ────────────────────────────────────────
 function linkId(a, b) {
@@ -105,6 +136,17 @@ function linkLabel(id) {
     return linkEnds(id).map(shortName).join('–');
 }
 
+function pathLinks(path) {
+    const ids = [];
+    for (let i = 0; i + 1 < path.length; i++) ids.push(linkId(path[i], path[i + 1]));
+    return ids;
+}
+
+// Switch hops only (src and dst hosts are named separately), e.g. "E0.0 › A0.1 › C2 › A1.1 › E1.0".
+function switchPath(path) {
+    return path.filter(n => !n.startsWith('host_')).map(shortName).join(' › ');
+}
+
 function pct(p) {
     return `${(p * 100).toFixed(1)}%`;
 }
@@ -118,7 +160,7 @@ function connectWebSocket() {
     ws.onopen = () => {
         document.getElementById('status-badge').classList.add('connected');
         document.getElementById('status-text').textContent = 'Live';
-        addLog('Connected to simulation engine', 'success');
+        addEntry('info', 'Connected to the simulation engine.');
     };
 
     ws.onmessage = (event) => {
@@ -127,53 +169,46 @@ function connectWebSocket() {
             if (msg.type === 'topology') {
                 topologyData = msg.data;
                 renderTopology(msg.data);
-                addLog(`Topology loaded: ${msg.data.nodes.length} nodes, ${msg.data.links.length} links`, 'info');
+                (msg.recent_events || []).forEach(evt => handleServerEvent(evt, { live: false }));
             } else if (msg.type === 'update') {
                 handleUpdate(msg);
             } else if (msg.type === 'error') {
-                addLog(msg.message, 'danger');
+                addEntry('error', msg.message);
             }
         } catch (e) {
-            console.error('Message parse error:', e);
+            console.error('Message handling error:', e);
         }
     };
 
     ws.onclose = () => {
         document.getElementById('status-badge').classList.remove('connected');
         document.getElementById('status-text').textContent = 'Offline';
-        addLog('Connection lost', 'warning');
+        addEntry('error', 'Connection to the simulation engine lost; retrying while the simulation runs.');
         setTimeout(() => { if (isRunning) connectWebSocket(); }, 3000);
     };
-
-    ws.onerror = () => addLog('Connection error', 'danger');
 }
 
 // ── Simulation Controls ────────────────────────────────────────
 async function startSimulation() {
     try {
+        const runAtRequest = runCounter;
         const resp = await fetch('/api/start', { method: 'POST' });
         const data = await resp.json();
 
         if (data.status === 'started' || data.status === 'already_running') {
             setRunningUI(true);
-            if (data.status === 'started') resetSeries();
-
+            // Reset unless the new run's first updates already triggered it (handleUpdate).
+            if (data.status === 'started' && runCounter === runAtRequest) resetSeries();
             if (data.topology) {
                 topologyData = data.topology;
                 renderTopology(data.topology);
             }
-            if (data.status === 'started') {
-                // A new run resets the live threshold to the checkpoint's calibrated value.
-                syncControllerState(data, { forceThreshold: true });
-                addLog(data.model_loaded
-                    ? `Simulation engine started · ${data.workload} · ${data.controller_label} · calibrated alert threshold ${data.alert_threshold.toFixed(3)}`
-                    : `Simulation engine started · ${data.workload} · no schema-3 checkpoint, so ECMP only and no forecast`, 'success');
-            }
-
+            // A new run resets the live threshold to the checkpoint's calibrated value.
+            if (data.status === 'started') syncControllerState(data, { forceThreshold: true });
             connectWebSocket();
         }
     } catch (e) {
-        addLog(`Failed to start: ${e.message}`, 'danger');
+        addEntry('error', `Failed to start: ${e.message}`);
     }
 }
 
@@ -192,33 +227,18 @@ async function stopSimulation() {
     try {
         await fetch('/api/stop', { method: 'POST' });
         setRunningUI(false);
-        addLog('Simulation stopped', 'warning');
+        addEntry('info', 'Simulation stopped. Press Start for a fresh run.');
     } catch (e) {
-        addLog(`Failed to stop: ${e.message}`, 'danger');
+        addEntry('error', `Failed to stop: ${e.message}`);
     }
 }
 
 async function injectSpike() {
     try {
-        const resp = await fetch('/api/spike', { method: 'POST' });
-        const data = await resp.json();
-        addLog(`Traffic spike injected — ${data.new_flows} hotspot/incast flows`, 'danger');
-
-        // Visual feedback
-        const btn = document.getElementById('btn-spike');
-        btn.style.transform = 'scale(0.95)';
-        setTimeout(() => { btn.style.transform = ''; }, 200);
+        await fetch('/api/spike', { method: 'POST' });  // the server logs a "spike" event
     } catch (e) {
-        addLog(`Spike injection failed: ${e.message}`, 'danger');
+        addEntry('error', `Spike injection failed: ${e.message}`);
     }
-}
-
-// ── Workload Selector ──────────────────────────────────────────
-let activeWorkload = 'stride';
-
-function setupWorkloadSelect() {
-    const select = document.getElementById('workload-select');
-    select.addEventListener('change', () => switchWorkload(select.value));
 }
 
 // Before the first start this only selects the workload; afterwards the server restarts the
@@ -226,6 +246,7 @@ function setupWorkloadSelect() {
 async function switchWorkload(name) {
     const select = document.getElementById('workload-select');
     try {
+        const runAtRequest = runCounter;
         const resp = await fetch('/api/workload', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -233,32 +254,24 @@ async function switchWorkload(name) {
         });
         const data = await resp.json();
         if (!resp.ok) {
-            const detail = typeof data.detail === 'string' ? data.detail : resp.statusText;
-            addLog(`Workload switch refused: ${detail}`, 'danger');
+            addEntry('error', `Workload switch refused: ${typeof data.detail === 'string' ? data.detail : resp.statusText}`);
             select.value = activeWorkload;
             return;
         }
         if (data.status === 'restarted') {
-            resetSeries();
+            if (runCounter === runAtRequest) resetSeries();  // unless an update already did
             setRunningUI(true);
             syncControllerState(data);
             connectWebSocket();
-            addLog(`Workload → ${name}: simulation restarted (controller ${data.controller_label} kept)`, 'info');
         } else {
             activeWorkload = name;
             document.getElementById('workload-active').textContent = name;
-            addLog(`Workload set to ${name}; it runs when the engine starts`, 'info');
+            addEntry('info', `Workload set to ${name}; it runs when the engine starts.`);
         }
     } catch (e) {
-        addLog(`Workload switch failed: ${e.message}`, 'danger');
+        addEntry('error', `Workload switch failed: ${e.message}`);
         select.value = activeWorkload;
     }
-}
-
-// ── Controller Selector ────────────────────────────────────────
-function setupControllerSelect() {
-    const select = document.getElementById('controller-select');
-    select.addEventListener('change', () => switchController(select.value));
 }
 
 async function switchController(name) {
@@ -271,22 +284,19 @@ async function switchController(name) {
         });
         const data = await resp.json();
         if (!resp.ok) {
-            const detail = typeof data.detail === 'string' ? data.detail : resp.statusText;
-            addLog(`Controller switch refused: ${detail}`, 'danger');
+            addEntry('error', `Controller switch refused: ${typeof data.detail === 'string' ? data.detail : resp.statusText}`);
             if (activeController) select.value = activeController;
             return;
         }
-        clearRerouteHighlights();
+        clearTransient();
         syncControllerState(data);
-        addLog(`Controller → ${data.controller_label}. All flows restored to ECMP paths; counters reset.`, 'info');
     } catch (e) {
-        addLog(`Controller switch failed: ${e.message}`, 'danger');
+        addEntry('error', `Controller switch failed: ${e.message}`);
         if (activeController) select.value = activeController;
     }
 }
 
-// Applies the controller/threshold fields the server sends with every update
-// (and with the start and switch responses).
+// Applies the run fields the server sends with every update (and the start/switch responses).
 function syncControllerState(msg, { forceThreshold = false } = {}) {
     modelLoaded = msg.model_loaded;
     alertThreshold = msg.alert_threshold;
@@ -333,7 +343,9 @@ function resetSeries() {
     healthWindow = [];
     previous = null;
     latestPredictions = {};
-    clearRerouteHighlights();
+    runCounter++;
+    clearTransient();
+    clearSelection();
     updateCharts();
 }
 
@@ -345,10 +357,7 @@ function handleUpdate(msg) {
 
     syncControllerState(msg);
 
-    // Update tick counter
     document.getElementById('tick-value').textContent = metrics.tick;
-
-    // Update metric cards
     document.getElementById('val-flows').textContent = metrics.active_flows;
     document.getElementById('val-packets').textContent = formatNumber(metrics.total_packets);
     document.getElementById('val-fabric-drops').textContent = formatNumber(metrics.fabric_drops);
@@ -360,7 +369,6 @@ function handleUpdate(msg) {
     const alertCount = countAlerts(latestPredictions);
     document.getElementById('val-predictions').textContent = alertCount;
 
-    // Update sparklines
     pushSparkData('flows', metrics.active_flows);
     pushSparkData('packets', metrics.total_packets);
     pushSparkData('fabric', metrics.fabric_drops);
@@ -370,7 +378,6 @@ function handleUpdate(msg) {
     pushSparkData('predictions', alertCount);
     drawAllSparklines();
 
-    // Update topology link colors and the forecast views
     updateTopologyLinks(links);
     refreshPredictionViews();
 
@@ -381,20 +388,12 @@ function handleUpdate(msg) {
     const offeredThisTick = delta('total_packets');
     previous = metrics;
     updateTimeSeries(links, metrics, fabricThisTick, hostThisTick);
-
-    // Update charts (throttled)
     if (metrics.tick % 3 === 0) updateCharts();
-
-    // Update health score
     updateHealthScore(fabricThisTick, offeredThisTick);
 
-    // Reroute events from server
-    (msg.reroute_events || []).forEach(evt => {
-        highlightPath(evt.new_path);
-        const who = CONTROLLER_NAMES[evt.controller] || evt.controller;
-        const path = evt.new_path.map(shortName).join(' › ');
-        addLog(`${who} rerouted flow ${evt.flow_id} (${shortName(evt.src)} → ${shortName(evt.dst)}) via ${path}`, 'reroute');
-    });
+    // Timeline: this tick's transitions first, then its reroutes (newest ends up on top).
+    (msg.events || []).forEach(evt => handleServerEvent(evt));
+    (msg.reroute_events || []).forEach(evt => handleServerEvent({ ...evt, type: 'reroute' }));
 }
 
 function countAlerts(predictions) {
@@ -407,6 +406,270 @@ function refreshPredictionViews() {
     updatePredictionOutlines(latestPredictions);
     updatePredictionPanel(latestPredictions);
     document.getElementById('val-predictions').textContent = countAlerts(latestPredictions);
+}
+
+// ── Event Timeline ─────────────────────────────────────────────
+const TYPE_META = {
+    congestion: { label: 'Congestion', icon: '▲' },
+    congestion_cleared: { label: 'Cleared', icon: '▽' },
+    predicted: { label: 'Predicted', icon: '◆' },
+    reroute: { label: 'Reroute', icon: '↗' },
+    spike: { label: 'Spike', icon: '⚡︎' },
+    controller: { label: 'Controller', icon: '⇄' },
+    workload: { label: 'Workload', icon: '⟳' },
+    start: { label: 'Start', icon: '▶︎' },
+    info: { label: 'Info', icon: 'ℹ︎' },
+    error: { label: 'Error', icon: '✕' },
+};
+
+function setupTimeline() {
+    const list = document.getElementById('event-log');
+    const latest = document.getElementById('timeline-latest');
+    list.addEventListener('scroll', () => {
+        if (list.scrollTop <= 4) {  // back at the newest entry: resume following
+            unseenEvents = 0;
+            latest.hidden = true;
+        }
+    });
+    latest.addEventListener('click', () => {
+        list.scrollTo({ top: 0 });
+        unseenEvents = 0;
+        latest.hidden = true;
+    });
+    document.getElementById('timeline-clear').addEventListener('click', clearLog);
+}
+
+function describeEvent(evt) {
+    const who = CONTROLLER_NAMES[evt.controller] || evt.controller;
+    switch (evt.type) {
+        case 'congestion':
+            return `Congestion on ${evt.links.length === 1 ? '' : `${evt.links.length} links: `}` + evt.links.map(d =>
+                `${linkLabel(d.link)} (offered ${pct(d.utilization)}, served ${pct(d.served)}, ` +
+                `queue ${d.queue_depth} pkts = ${pct(d.queue_fraction)} of buffer)`).join('; ');
+        case 'congestion_cleared':
+            return `Congestion cleared on ${evt.links.map(linkLabel).join(', ')}`;
+        case 'predicted':
+            return `Predicted congestion within 5 ticks on ` + evt.links.map(d =>
+                `${linkLabel(d.link)} (p = ${d.probability.toFixed(2)})`).join(', ') +
+                ` (above the alert threshold ${evt.threshold.toFixed(3)})`;
+        case 'reroute': {
+            const trigger = evt.trigger_link
+                ? ` off ${linkLabel(evt.trigger_link)} (${evt.trigger_signal} ${evt.trigger_value.toFixed(2)})`
+                : '';
+            return `${who} moved flow ${evt.flow_id} (${shortName(evt.src)} → ${shortName(evt.dst)})${trigger}: ` +
+                `old ${switchPath(evt.old_path)} → new ${switchPath(evt.new_path)}`;
+        }
+        case 'spike':
+            return `Traffic spike: ${evt.flows} hotspot/incast flows injected`;
+        case 'controller':
+            return `Controller → ${evt.controller_label}. Every flow is back on its ECMP path; the since-switch counters restart.`;
+        case 'workload':
+            return `Workload → ${evt.workload}: simulation restarted (controller ${evt.controller_label} kept).`;
+        case 'start':
+            return `Simulation started: workload ${evt.workload}, controller ${evt.controller_label}.`;
+        default:
+            return evt.message || evt.type;
+    }
+}
+
+// Logs one server event (once per id) and, for a live reroute, flashes it on the topology.
+function handleServerEvent(evt, { live = true } = {}) {
+    if (evt.id != null && eventStore.has(evt.id)) return;
+    evt.run = runCounter;
+    if (evt.id != null) {
+        eventStore.set(evt.id, evt);
+        if (eventStore.size > STORE_MAX) eventStore.delete(eventStore.keys().next().value);
+    }
+    if (evt.type === 'reroute') {
+        rerouteEvents.push(evt);
+        if (rerouteEvents.length > STORE_MAX) rerouteEvents.shift();
+        if (live) flashReroute(evt);
+    }
+    addEntry(evt.type, describeEvent(evt), evt);
+}
+
+// Adds a timeline entry at the top. If the reader has scrolled away from the newest entry,
+// their view is kept in place and a "new events" button offers to jump back.
+function addEntry(type, message, evt = null) {
+    const list = document.getElementById('event-log');
+    const meta = TYPE_META[type] || TYPE_META.info;
+    const li = document.createElement('li');
+    li.className = `tl-entry tl-${type}`;
+    li.innerHTML = '<div class="tl-row"><span class="tl-badge"><span class="tl-icon" aria-hidden="true"></span>' +
+        '<span class="tl-type"></span></span><span class="tl-time"></span></div><div class="tl-msg"></div>';
+    li.querySelector('.tl-icon').textContent = meta.icon;
+    li.querySelector('.tl-type').textContent = meta.label;
+    const clock = new Date().toLocaleTimeString('en-GB', { hour12: false });
+    li.querySelector('.tl-time').textContent = evt && evt.tick != null ? `${clock} · tick ${evt.tick}` : clock;
+    li.querySelector('.tl-msg').textContent = message;
+
+    if (evt && evt.id != null && (type === 'reroute' || type === 'congestion')) {
+        li.dataset.eventId = evt.id;
+        li.classList.add('clickable');
+        li.tabIndex = 0;
+        li.setAttribute('role', 'button');
+        li.setAttribute('aria-pressed', 'false');
+        li.title = type === 'reroute' ? 'Show this flow\'s old path, new path and trigger link'
+                                      : 'Highlight these links and list the reroutes they triggered';
+        li.addEventListener('click', () => toggleSelection(evt.id));
+        li.addEventListener('keydown', e => {
+            if (e.target === li && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                toggleSelection(evt.id);
+            }
+        });
+    }
+
+    const following = list.scrollTop <= 4;
+    const before = list.scrollHeight;
+    list.insertBefore(li, list.firstChild);
+    if (!following) {
+        list.scrollTop += list.scrollHeight - before;  // keep the entries being read in place
+        unseenEvents++;
+        const latest = document.getElementById('timeline-latest');
+        latest.textContent = `↑ ${unseenEvents} new`;
+        latest.hidden = false;
+    }
+    while (list.children.length > TIMELINE_MAX) {
+        const last = list.lastElementChild;
+        if (last.dataset.eventId && Number(last.dataset.eventId) === selectedId) clearSelection();
+        last.remove();
+    }
+}
+
+function clearLog() {
+    clearSelection();
+    document.getElementById('event-log').innerHTML = '';
+    unseenEvents = 0;
+    document.getElementById('timeline-latest').hidden = true;
+}
+
+function entryFor(id) {
+    return document.querySelector(`#event-log [data-event-id="${id}"]`);
+}
+
+function toggleSelection(id) {
+    if (selectedId === id) clearSelection();
+    else selectEvent(id);
+}
+
+function selectEvent(id) {
+    clearSelection();
+    const evt = eventStore.get(id);
+    if (!evt) return;
+    selectedId = id;
+    clearTransient();  // the pinned highlight is shown on its own
+    const li = entryFor(id);
+    if (li) {
+        li.classList.add('selected');
+        li.setAttribute('aria-pressed', 'true');
+        if (evt.type === 'congestion') showRelatedReroutes(evt, li);
+    }
+    drawSelection();
+}
+
+function clearSelection() {
+    if (selectedId != null) {
+        const li = entryFor(selectedId);
+        if (li) {
+            li.classList.remove('selected');
+            li.setAttribute('aria-pressed', 'false');
+            const details = li.querySelector('.tl-details');
+            if (details) details.remove();
+        }
+    }
+    selectedId = null;
+    if (selectionLayer) selectionLayer.selectAll('*').remove();
+}
+
+// Reroutes whose trigger link is one of this event's links, within RELATED_TICKS ticks after it.
+function relatedReroutes(evt) {
+    const links = new Set(evt.links.map(d => d.link));
+    return rerouteEvents.filter(r => r.run === evt.run && links.has(r.trigger_link) &&
+        r.tick >= evt.tick && r.tick <= evt.tick + RELATED_TICKS);
+}
+
+function showRelatedReroutes(evt, li) {
+    const related = relatedReroutes(evt);
+    const details = document.createElement('div');
+    details.className = 'tl-details';
+    const stillOpen = (previous ? previous.tick : evt.tick) < evt.tick + RELATED_TICKS;
+    if (!related.length) {
+        details.textContent = `No reroute was triggered from ${evt.links.length === 1 ? 'this link' : 'these links'} ` +
+            `within ${RELATED_TICKS} ticks${stillOpen ? ' (so far)' : ''}` +
+            (activeController === 'ecmp' ? '; ECMP never reroutes.' : '.');
+    } else {
+        details.textContent = `Reroutes triggered from ${evt.links.length === 1 ? 'this link' : 'these links'} ` +
+            `within ${RELATED_TICKS} ticks (click to show the paths):`;
+        const ul = document.createElement('ul');
+        related.forEach(r => {
+            const item = document.createElement('li');
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'tl-related';
+            button.textContent = `tick ${r.tick}: flow ${r.flow_id} off ${linkLabel(r.trigger_link)} → ${switchPath(r.new_path)}`;
+            button.addEventListener('click', e => { e.stopPropagation(); selectEvent(r.id); });
+            button.addEventListener('keydown', e => e.stopPropagation());
+            item.appendChild(button);
+            ul.appendChild(item);
+        });
+        details.appendChild(ul);
+    }
+    li.appendChild(details);
+}
+
+// ── Topology highlights ────────────────────────────────────────
+function drawSegment(g, id, cls) {
+    const p = linkGeom[id];
+    if (!p) return;
+    g.append('line').attr('class', cls).attr('x1', p.x1).attr('y1', p.y1).attr('x2', p.x2).attr('y2', p.y2);
+}
+
+function drawBadge(g, id, text) {
+    const p = linkGeom[id];
+    if (!p) return;
+    const badge = g.append('g').attr('class', 'hl-badge')
+        .attr('transform', `translate(${(p.x1 + p.x2) / 2}, ${(p.y1 + p.y2) / 2})`);
+    badge.append('circle').attr('r', 7.5);
+    badge.append('text').text(text);
+}
+
+// Old path dashed red, new path cyan, trigger link dark halo + "!" badge.
+function drawReroute(layer, evt) {
+    const g = layer.append('g').attr('class', 'reroute-highlight');
+    if (evt.trigger_link) drawSegment(g, evt.trigger_link, 'hl-trigger-halo');
+    pathLinks(evt.old_path || []).forEach(id => drawSegment(g, id, 'hl-old-path'));
+    pathLinks(evt.new_path || []).forEach(id => drawSegment(g, id, 'hl-new-path'));
+    if (evt.trigger_link) drawBadge(g, evt.trigger_link, '!');
+    return g;
+}
+
+// New reroutes flash briefly, unless the user has pinned one (the timeline still logs them).
+function flashReroute(evt) {
+    if (!transientLayer || selectedId != null) return;
+    const shown = transientLayer.selectAll('.reroute-highlight').nodes();
+    shown.slice(0, Math.max(0, shown.length - TRANSIENT_MAX + 1)).forEach(node => node.remove());
+    const g = drawReroute(transientLayer, evt).classed('hl-transient', true);
+    setTimeout(() => g.classed('fading', true), TRANSIENT_MS - 400);
+    setTimeout(() => g.remove(), TRANSIENT_MS);
+}
+
+function clearTransient() {
+    if (transientLayer) transientLayer.selectAll('*').remove();
+}
+
+function drawSelection() {
+    if (!selectionLayer) return;
+    selectionLayer.selectAll('*').remove();
+    const evt = selectedId != null ? eventStore.get(selectedId) : null;
+    if (!evt) return;
+    if (evt.type === 'reroute') {
+        drawReroute(selectionLayer, evt);
+    } else if (evt.type === 'congestion') {
+        const g = selectionLayer.append('g');
+        evt.links.forEach(d => drawSegment(g, d.link, 'hl-selected-link'));
+        evt.links.forEach(d => drawBadge(g, d.link, '!'));
+    }
 }
 
 // ── Health Score ───────────────────────────────────────────────
@@ -427,22 +690,10 @@ function updateHealthScore(fabricThisTick, offeredThisTick) {
     const scoreEl = document.getElementById('health-score');
     const ringEl = document.getElementById('health-ring-fill');
     scoreEl.textContent = health;
-
-    // Ring: circumference = 2*π*18 ≈ 113.1
-    const offset = 113.1 * (1 - health / 100);
-    ringEl.style.strokeDashoffset = offset;
-
-    // Color
-    if (health > 70) {
-        ringEl.style.stroke = '#48bb78';
-        scoreEl.style.color = '#48bb78';
-    } else if (health > 40) {
-        ringEl.style.stroke = '#f6ad55';
-        scoreEl.style.color = '#f6ad55';
-    } else {
-        ringEl.style.stroke = '#e94560';
-        scoreEl.style.color = '#e94560';
-    }
+    ringEl.style.strokeDashoffset = 113.1 * (1 - health / 100);  // circumference 2π·18
+    const color = health > 70 ? '#38a169' : health > 40 ? '#d69e2e' : '#e53e3e';
+    ringEl.style.stroke = color;
+    scoreEl.style.color = color;
 }
 
 // ── Prediction Panel ───────────────────────────────────────────
@@ -459,8 +710,7 @@ function updatePredictionPanel(predictions) {
     }
 
     statusEl.textContent = 'Active';
-    statusEl.style.color = '#48bb78';
-    statusEl.style.borderColor = 'rgba(72, 187, 120, 0.3)';
+    statusEl.style.color = '#2f855a';
 
     // Build labelled cells once, grouped by layer: core–agg, then agg–edge (by pod).
     if (Object.keys(heatmapCells).length !== ids.length || ids.some(id => !heatmapCells[id])) {
@@ -503,7 +753,6 @@ function updatePredictionPanel(predictions) {
         avgProb += prob;
         if (predicted) riskCount++;
     });
-
     avgProb /= ids.length;
 
     document.getElementById('pred-avg').textContent = pct(avgProb);
@@ -525,9 +774,7 @@ const sparkCanvases = {};
 function initSparklines() {
     SPARK_KEYS.forEach(key => {
         const canvas = document.getElementById(`spark-${key}`);
-        if (canvas) {
-            sparkCanvases[key] = canvas.getContext('2d');
-        }
+        if (canvas) sparkCanvases[key] = canvas.getContext('2d');
     });
 }
 
@@ -538,27 +785,17 @@ function pushSparkData(key, value) {
 
 function drawAllSparklines() {
     const colors = {
-        flows: '#00d2ff',
-        packets: '#667eea',
-        fabric: '#e94560',
-        host: '#718096',
-        droprate: '#f6ad55',
-        reroutes: '#7b68ee',
-        predictions: '#805ad5',
+        flows: '#00b5d8', packets: '#667eea', fabric: '#e53e3e', host: '#718096',
+        droprate: '#dd6b20', reroutes: '#086f83', predictions: '#805ad5',
     };
-
-    Object.keys(sparkCanvases).forEach(key => {
-        drawSparkline(sparkCanvases[key], sparkData[key], colors[key]);
-    });
+    Object.keys(sparkCanvases).forEach(key => drawSparkline(sparkCanvases[key], sparkData[key], colors[key]));
 }
 
 function drawSparkline(ctx, data, color) {
     if (!ctx || data.length < 2) return;
-
     const w = ctx.canvas.width;
     const h = ctx.canvas.height;
     ctx.clearRect(0, 0, w, h);
-
     const max = Math.max(...data) || 1;
     const min = Math.min(...data);
     const range = max - min || 1;
@@ -568,7 +805,6 @@ function drawSparkline(ctx, data, color) {
     ctx.lineWidth = 1.5;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-
     data.forEach((val, i) => {
         const x = (i / (data.length - 1)) * w;
         const y = h - ((val - min) / range) * (h - 4) - 2;
@@ -577,7 +813,6 @@ function drawSparkline(ctx, data, color) {
     });
     ctx.stroke();
 
-    // Fill under curve
     ctx.lineTo(w, h);
     ctx.lineTo(0, h);
     ctx.closePath();
@@ -593,18 +828,13 @@ function renderTopology(data) {
     const svg = d3.select('#topology-svg');
     svg.selectAll('*').remove();
     linkElements = {};
+    linkGeom = {};
     predOutlines = {};
-    rerouteLines = {};
-    Object.values(rerouteTimers).forEach(clearTimeout);
-    rerouteTimers = {};
-    nodeElements = {};
 
     const width = container.clientWidth;
     const height = container.clientHeight;
-
     svg.attr('viewBox', `0 0 ${width} ${height}`);
 
-    // Create tooltip if needed
     let tooltip = document.querySelector('.tooltip');
     if (!tooltip) {
         tooltip = document.createElement('div');
@@ -612,13 +842,13 @@ function renderTopology(data) {
         document.body.appendChild(tooltip);
     }
 
-    // Layout
     const layerPositions = computeLayerLayout(data, width, height);
 
-    // Layers, bottom to top: predicted outlines, links, reroute highlights, nodes.
+    // Layers, bottom to top: predicted outlines, links, transient reroutes, pinned selection, nodes.
     const predGroup = svg.append('g').attr('class', 'pred-outlines');
     const linkGroup = svg.append('g').attr('class', 'links');
-    const rerouteGroup = svg.append('g').attr('class', 'reroute-highlights');
+    transientLayer = svg.append('g').attr('class', 'highlight-layer transient');
+    selectionLayer = svg.append('g').attr('class', 'highlight-layer selection');
 
     data.links.forEach(link => {
         const sourcePos = layerPositions[link.source];
@@ -626,6 +856,7 @@ function renderTopology(data) {
         if (!sourcePos || !targetPos) return;
 
         const id = linkId(link.source, link.target);
+        linkGeom[id] = { x1: sourcePos.x, y1: sourcePos.y, x2: targetPos.x, y2: targetPos.y };
         const coords = line => line
             .attr('x1', sourcePos.x).attr('y1', sourcePos.y)
             .attr('x2', targetPos.x).attr('y2', targetPos.y);
@@ -644,11 +875,6 @@ function renderTopology(data) {
             .attr('data-link-id', id);
         linkElements[id] = line;
 
-        rerouteLines[id] = coords(rerouteGroup.append('line'))
-            .attr('class', 'reroute-path')
-            .attr('stroke-width', link.is_host_link ? 4 : 5);
-
-        // Hover
         line.on('mouseover', function(event) {
             d3.select(this).attr('stroke-width', parseFloat(d3.select(this).attr('stroke-width')) + 3);
             showLinkTooltip(event, link, id);
@@ -661,9 +887,7 @@ function renderTopology(data) {
         line.datum(link);
     });
 
-    // Draw nodes
     const nodeGroup = svg.append('g').attr('class', 'nodes');
-
     data.nodes.forEach(node => {
         const pos = layerPositions[node.id];
         if (!pos) return;
@@ -671,20 +895,12 @@ function renderTopology(data) {
         const g = nodeGroup.append('g')
             .attr('class', 'node-group')
             .attr('transform', `translate(${pos.x}, ${pos.y})`);
-
         const radius = getNodeRadius(node.type);
         const color = getNodeColor(node.type);
 
-        // Outer glow for switches
         if (node.type !== 'host') {
-            g.append('circle')
-                .attr('class', 'node-glow')
-                .attr('r', radius + 6)
-                .attr('fill', color)
-                .attr('opacity', 0.08);
+            g.append('circle').attr('class', 'node-glow').attr('r', radius + 6).attr('fill', color).attr('opacity', 0.08);
         }
-
-        // Main circle
         g.append('circle')
             .attr('class', 'node-circle')
             .attr('r', radius)
@@ -692,16 +908,10 @@ function renderTopology(data) {
             .attr('stroke', 'rgba(255,255,255,0.15)')
             .attr('stroke-width', node.type === 'host' ? 0.5 : 1.5)
             .attr('data-node-id', node.id);
-
-        // Label for switches
         if (node.type !== 'host') {
-            g.append('text')
-                .attr('class', 'node-label')
-                .attr('dy', radius + 13)
-                .text(shortName(node.id));
+            g.append('text').attr('class', 'node-label').attr('dy', radius + 13).text(shortName(node.id));
         }
 
-        // Hover
         g.on('mouseover', function(event) {
             d3.select(this).select('.node-circle').attr('stroke-width', 3).attr('stroke', color);
             showNodeTooltip(event, node);
@@ -713,18 +923,17 @@ function renderTopology(data) {
                 .attr('stroke', 'rgba(255,255,255,0.15)');
             hideTooltip();
         });
-
-        nodeElements[node.id] = g;
     });
 
     // Re-apply the latest state (e.g. after a resize).
     if (Object.keys(latestLinkData).length) updateTopologyLinks(latestLinkData);
     updatePredictionOutlines(latestPredictions);
+    drawSelection();
 }
 
 function computeLayerLayout(data, width, height) {
     const positions = {};
-    const pad = { x: 50, y: 40 };
+    const pad = { x: 50, y: 36 };
     const usableW = width - 2 * pad.x;
     const usableH = height - 2 * pad.y;
 
@@ -736,76 +945,43 @@ function computeLayerLayout(data, width, height) {
     });
 
     const layerY = {
-        0: pad.y + 20,
+        0: pad.y + 16,
         1: pad.y + usableH * 0.3,
-        2: pad.y + usableH * 0.58,
-        3: pad.y + usableH * 0.88,
+        2: pad.y + usableH * 0.6,
+        3: pad.y + usableH * 0.92,
     };
 
+    const k = 4;
     Object.entries(layers).forEach(([layer, nodes]) => {
         const y = layerY[layer];
         if (nodes.length === 0) return;
+        nodes.sort((a, b) => (a.pod !== b.pod ? a.pod - b.pod : (a.index || 0) - (b.index || 0)));
 
-        // Sort by pod for visual grouping
-        nodes.sort((a, b) => {
-            if (a.pod !== b.pod) return a.pod - b.pod;
-            return (a.index || 0) - (b.index || 0);
-        });
-
-        // Add pod spacing
-        const k = 4;
-        if (parseInt(layer) === 3) {
-            // Hosts: group by pod more tightly
+        if (parseInt(layer) >= 1) {
+            // Aggregation, edge and hosts: grouped by pod.
             const perPod = nodes.length / k;
             const podWidth = usableW / k;
             nodes.forEach((n, i) => {
                 const podIdx = Math.floor(i / perPod);
                 const inPodIdx = i % perPod;
-                const podStart = pad.x + podIdx * podWidth;
                 const spacing = podWidth / (perPod + 1);
-                positions[n.id] = { x: podStart + spacing * (inPodIdx + 1), y };
-            });
-        } else if (parseInt(layer) >= 1) {
-            // Agg/Edge: group by pod
-            const perPod = nodes.length / k;
-            const podWidth = usableW / k;
-            nodes.forEach((n, i) => {
-                const podIdx = Math.floor(i / perPod);
-                const inPodIdx = i % perPod;
-                const podStart = pad.x + podIdx * podWidth;
-                const spacing = podWidth / (perPod + 1);
-                positions[n.id] = { x: podStart + spacing * (inPodIdx + 1), y };
+                positions[n.id] = { x: pad.x + podIdx * podWidth + spacing * (inPodIdx + 1), y };
             });
         } else {
             // Core: spread evenly
             const spacing = usableW / (nodes.length + 1);
-            nodes.forEach((n, i) => {
-                positions[n.id] = { x: pad.x + spacing * (i + 1), y };
-            });
+            nodes.forEach((n, i) => { positions[n.id] = { x: pad.x + spacing * (i + 1), y }; });
         }
     });
-
     return positions;
 }
 
 function getNodeRadius(type) {
-    switch (type) {
-        case 'core': return 14;
-        case 'aggregation': return 11;
-        case 'edge': return 10;
-        case 'host': return 5;
-        default: return 6;
-    }
+    return { core: 14, aggregation: 11, edge: 10, host: 5 }[type] || 6;
 }
 
 function getNodeColor(type) {
-    switch (type) {
-        case 'core': return '#00d2ff';
-        case 'aggregation': return '#7b68ee';
-        case 'edge': return '#4fd1c5';
-        case 'host': return '#5a6578';
-        default: return '#94a3b8';
-    }
+    return { core: '#00d2ff', aggregation: '#7b68ee', edge: '#4fd1c5', host: '#5a6578' }[type] || '#94a3b8';
 }
 
 // ── Update Topology Links ──────────────────────────────────────
@@ -828,9 +1004,7 @@ function styleLink(id, link) {
 
 function updateTopologyLinks(links) {
     if (!links) return;
-
     latestLinkData = links;
-
     Object.keys(links).forEach(id => {
         const line = linkElements[id];
         if (line) styleLink(id, line.datum());
@@ -843,23 +1017,6 @@ function updatePredictionOutlines(predictions) {
         const p = predictions[id];
         outline.classed('active', p !== undefined && liveThreshold !== null && p > liveThreshold);
     });
-}
-
-function highlightPath(path) {
-    for (let i = 0; i + 1 < path.length; i++) {
-        const id = linkId(path[i], path[i + 1]);
-        const line = rerouteLines[id];
-        if (!line) continue;
-        line.classed('active', true);
-        clearTimeout(rerouteTimers[id]);
-        rerouteTimers[id] = setTimeout(() => line.classed('active', false), REROUTE_HIGHLIGHT_MS);
-    }
-}
-
-function clearRerouteHighlights() {
-    Object.values(rerouteTimers).forEach(clearTimeout);
-    rerouteTimers = {};
-    Object.values(rerouteLines).forEach(line => line.classed('active', false));
 }
 
 // Offered load, green → amber → orange. Red is reserved for current congestion.
@@ -878,10 +1035,8 @@ function tooltipRow(label, value, color) {
 function showLinkTooltip(event, link, id) {
     const tooltip = document.querySelector('.tooltip');
     if (!tooltip) return;
-
     const data = latestLinkData[id];
     let html = `<div class="tooltip-title">${linkLabel(id)} <span class="tooltip-label">${id}</span></div>`;
-
     if (data) {
         const util = Math.min(1, data.utilization);
         const utilColor = utilizationColor(util);
@@ -895,12 +1050,11 @@ function showLinkTooltip(event, link, id) {
             html += tooltipRow('P(congested at t+5)', pct(p), predicted ? 'var(--link-predicted)' : null);
         }
         html += tooltipRow('Queue depth', data.queue_depth);
-        html += tooltipRow('Drops (this tick)', data.drops, data.drops > 0 ? '#e94560' : null);
+        html += tooltipRow('Drops (this tick)', data.drops, data.drops > 0 ? '#c53030' : null);
         html += tooltipRow('Latency', `${data.latency.toFixed(1)} μs`);
     } else {
         html += tooltipRow('Status', 'Idle');
     }
-
     tooltip.innerHTML = html;
     positionTooltip(event);
     tooltip.classList.add('visible');
@@ -909,17 +1063,11 @@ function showLinkTooltip(event, link, id) {
 function showNodeTooltip(event, node) {
     const tooltip = document.querySelector('.tooltip');
     if (!tooltip) return;
-
-    const typeNames = { core: 'Core Switch', aggregation: 'Aggregation Switch', edge: 'Edge (ToR) Switch', host: 'Server Host' };
-    const typeName = typeNames[node.type] || node.type;
-
-    let html = `<div class="tooltip-title">${typeName}</div>`;
+    const typeNames = { core: 'Core switch', aggregation: 'Aggregation switch', edge: 'Edge (ToR) switch', host: 'Server host' };
+    let html = `<div class="tooltip-title">${typeNames[node.type] || node.type}</div>`;
     html += tooltipRow('ID', node.id);
-    if (node.pod >= 0) {
-        html += tooltipRow('Pod', node.pod);
-    }
+    if (node.pod >= 0) html += tooltipRow('Pod', node.pod);
     html += tooltipRow('Layer', node.layer);
-
     tooltip.innerHTML = html;
     positionTooltip(event);
     tooltip.classList.add('visible');
@@ -927,15 +1075,8 @@ function showNodeTooltip(event, node) {
 
 function positionTooltip(event) {
     const tooltip = document.querySelector('.tooltip');
-    const x = event.clientX + 15;
-    const y = event.clientY - 10;
-
-    // Keep tooltip in viewport
-    const maxX = window.innerWidth - 290;
-    const maxY = window.innerHeight - 220;
-
-    tooltip.style.left = `${Math.min(x, maxX)}px`;
-    tooltip.style.top = `${Math.min(y, maxY)}px`;
+    tooltip.style.left = `${Math.min(event.clientX + 15, window.innerWidth - 300)}px`;
+    tooltip.style.top = `${Math.min(event.clientY - 10, window.innerHeight - 230)}px`;
 }
 
 function moveTooltip(event) {
@@ -950,17 +1091,14 @@ function hideTooltip() {
 // ── Time-Series Data ───────────────────────────────────────────
 function updateTimeSeries(links, metrics, fabricThisTick, hostThisTick) {
     let totalUtil = 0, maxUtil = 0, count = 0;
-
     Object.values(links).forEach(data => {
         totalUtil += data.utilization;
         maxUtil = Math.max(maxUtil, data.utilization);
         count++;
     });
 
-    const avgUtil = count > 0 ? totalUtil / count : 0;
-
     metricsHistory.ticks.push(metrics.tick);
-    metricsHistory.avgUtilization.push(avgUtil);
+    metricsHistory.avgUtilization.push(count > 0 ? totalUtil / count : 0);
     metricsHistory.maxUtilization.push(maxUtil);
     metricsHistory.flows.push(metrics.active_flows);
     metricsHistory.fabricDropsPerTick.push(fabricThisTick);
@@ -978,15 +1116,12 @@ function initCharts() {
         responsive: true,
         maintainAspectRatio: false,
         animation: { duration: 0 },
-        interaction: {
-            mode: 'index',
-            intersect: false,
-        },
+        interaction: { mode: 'index', intersect: false },
         plugins: {
             legend: {
                 labels: {
-                    color: '#7a8598',
-                    font: { family: FONT_MAIN, size: 10, weight: '500' },
+                    color: '#4a5568',
+                    font: { family: FONT_MAIN, size: 11, weight: '500' },
                     boxWidth: 10,
                     boxHeight: 3,
                     padding: 10,
@@ -996,32 +1131,19 @@ function initCharts() {
                 position: 'top',
             },
             tooltip: {
-                backgroundColor: 'rgba(6, 10, 19, 0.9)',
-                borderColor: 'rgba(255,255,255,0.08)',
-                borderWidth: 1,
+                backgroundColor: 'rgba(26, 32, 44, 0.92)',
                 titleFont: { family: FONT_MAIN, size: 11 },
                 bodyFont: { family: FONT_MONO, size: 10 },
-                padding: 10,
-                cornerRadius: 8,
-                displayColors: true,
+                padding: 9,
+                cornerRadius: 6,
                 boxPadding: 4,
             },
         },
         scales: {
-            x: {
-                display: false,
-                grid: { display: false },
-            },
+            x: { display: false, grid: { display: false } },
             y: {
-                grid: {
-                    color: 'rgba(0,0,0,0.05)',
-                    drawBorder: false,
-                },
-                ticks: {
-                    color: '#4a5568',
-                    font: { size: 9, family: FONT_MONO },
-                    maxTicksLimit: 5,
-                },
+                grid: { color: 'rgba(0,0,0,0.05)' },
+                ticks: { color: '#4a5568', font: { size: 10, family: FONT_MONO }, maxTicksLimit: 5 },
                 border: { display: false },
             },
         },
@@ -1031,112 +1153,58 @@ function initCharts() {
         },
     };
 
-    // Utilization chart
-    utilizationChart = new Chart(
-        document.getElementById('chart-utilization'),
-        {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    {
-                        label: 'Avg Utilization',
-                        data: [],
-                        borderColor: '#00d2ff',
-                        backgroundColor: 'rgba(0, 210, 255, 0.06)',
-                        fill: true,
-                    },
-                    {
-                        label: 'Peak Utilization',
-                        data: [],
-                        borderColor: '#e94560',
-                        backgroundColor: 'rgba(233, 69, 96, 0.04)',
-                        fill: true,
-                        borderDash: [4, 3],
-                    },
-                ],
-            },
-            options: {
-                ...commonOptions,
-                scales: {
-                    ...commonOptions.scales,
-                    y: {
-                        // Offered load can exceed 100%; auto-scale above a 100% floor.
-                        ...commonOptions.scales.y,
-                        min: 0,
-                        suggestedMax: 1,
-                        ticks: {
-                            ...commonOptions.scales.y.ticks,
-                            callback: v => `${(v * 100).toFixed(0)}%`,
-                        },
-                    },
+    utilizationChart = new Chart(document.getElementById('chart-utilization'), {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                { label: 'Avg offered load', data: [], borderColor: '#00b5d8', backgroundColor: 'rgba(0, 181, 216, 0.06)', fill: true },
+                { label: 'Peak offered load', data: [], borderColor: '#e53e3e', backgroundColor: 'rgba(229, 62, 62, 0.04)', fill: true, borderDash: [4, 3] },
+            ],
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                ...commonOptions.scales,
+                y: {
+                    // Offered load can exceed 100%; auto-scale above a 100% floor.
+                    ...commonOptions.scales.y,
+                    min: 0,
+                    suggestedMax: 1,
+                    ticks: { ...commonOptions.scales.y.ticks, callback: v => `${(v * 100).toFixed(0)}%` },
                 },
             },
-        }
-    );
+        },
+    });
 
-    // Drops + Flows chart
-    dropsChart = new Chart(
-        document.getElementById('chart-drops'),
-        {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    {
-                        label: 'Fabric drops / tick',
-                        data: [],
-                        borderColor: '#e94560',
-                        backgroundColor: 'rgba(233, 69, 96, 0.06)',
-                        fill: true,
-                        yAxisID: 'y',
-                    },
-                    {
-                        label: 'Host-link drops / tick',
-                        data: [],
-                        borderColor: '#718096',
-                        backgroundColor: 'rgba(113, 128, 150, 0.04)',
-                        borderDash: [4, 3],
-                        fill: false,
-                        yAxisID: 'y',
-                    },
-                    {
-                        label: 'Active Flows',
-                        data: [],
-                        borderColor: '#4fd1c5',
-                        backgroundColor: 'rgba(79, 209, 197, 0.04)',
-                        fill: true,
-                        yAxisID: 'y1',
-                    },
-                ],
-            },
-            options: {
-                ...commonOptions,
-                scales: {
-                    ...commonOptions.scales,
-                    y: {
-                        ...commonOptions.scales.y,
-                        position: 'left',
-                    },
-                    y1: {
-                        position: 'right',
-                        grid: { display: false },
-                        ticks: {
-                            color: '#3d8a80',
-                            font: { size: 9, family: FONT_MONO },
-                            maxTicksLimit: 5,
-                        },
-                        border: { display: false },
-                    },
+    dropsChart = new Chart(document.getElementById('chart-drops'), {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                { label: 'Fabric drops / tick', data: [], borderColor: '#e53e3e', backgroundColor: 'rgba(229, 62, 62, 0.06)', fill: true, yAxisID: 'y' },
+                { label: 'Host-link drops / tick', data: [], borderColor: '#718096', borderDash: [4, 3], fill: false, yAxisID: 'y' },
+                { label: 'Active flows', data: [], borderColor: '#319795', backgroundColor: 'rgba(49, 151, 149, 0.04)', fill: true, yAxisID: 'y1' },
+            ],
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                ...commonOptions.scales,
+                y: { ...commonOptions.scales.y, position: 'left' },
+                y1: {
+                    position: 'right',
+                    grid: { display: false },
+                    ticks: { color: '#2c7a7b', font: { size: 10, family: FONT_MONO }, maxTicksLimit: 5 },
+                    border: { display: false },
                 },
             },
-        }
-    );
+        },
+    });
 }
 
 function updateCharts() {
     if (!utilizationChart || !dropsChart) return;
-
     utilizationChart.data.labels = metricsHistory.ticks;
     utilizationChart.data.datasets[0].data = metricsHistory.avgUtilization;
     utilizationChart.data.datasets[1].data = metricsHistory.maxUtilization;
@@ -1165,6 +1233,10 @@ function setThreshold(value, { send = true } = {}) {
     refreshPredictionViews();
 }
 
+function formatSpeed(v) {
+    return `${v.toFixed(v < 1 ? 2 : 1)}x`;
+}
+
 function setupSliders() {
     const thresholdSlider = document.getElementById('threshold-slider');
     thresholdSlider.addEventListener('input', () => setThreshold(thresholdSlider.value));
@@ -1172,45 +1244,21 @@ function setupSliders() {
         if (alertThreshold != null) setThreshold(alertThreshold);
     });
 
+    // Simulation speed: left = slower, right = faster, applied immediately.
     const speedSlider = document.getElementById('speed-slider');
     const speedValue = document.getElementById('speed-value');
-    speedSlider.addEventListener('input', () => {
-        speedValue.textContent = `${parseFloat(speedSlider.value).toFixed(1)}x`;
+    const applySpeed = () => {
+        const speed = parseFloat(speedSlider.value);
+        speedValue.textContent = formatSpeed(speed);
+        speedSlider.setAttribute('aria-valuetext', `${formatSpeed(speed)} speed`);
         fetch('/api/config', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ speed: parseFloat(speedSlider.value) }),
+            body: JSON.stringify({ speed }),
         }).catch(() => {});
-    });
-}
-
-// ── Event Log ──────────────────────────────────────────────────
-function addLog(message, type = 'info') {
-    const log = document.getElementById('event-log');
-    const entry = document.createElement('div');
-    entry.className = `log-entry ${type}`;
-
-    const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-    const icons = { info: '●', success: '✓', warning: '⚠', danger: '✕', reroute: '↗' };
-
-    entry.innerHTML = `
-        <span class="log-time">${time}</span>
-        <span class="log-icon">${icons[type] || '●'}</span>
-        <span class="log-msg"></span>
-    `;
-    entry.querySelector('.log-msg').textContent = message;
-
-    log.insertBefore(entry, log.firstChild);
-
-    while (log.children.length > 100) {
-        log.removeChild(log.lastChild);
-    }
-}
-
-function clearLog() {
-    document.getElementById('event-log').innerHTML = '';
-    addLog('Log cleared', 'info');
+    };
+    speedSlider.addEventListener('input', applySpeed);
+    speedValue.textContent = formatSpeed(parseFloat(speedSlider.value));
 }
 
 // ── Utilities ──────────────────────────────────────────────────

@@ -8,7 +8,9 @@ from config import CHECKPOINT_OUT
 from model.gnn_model import check_checkpoint_schema
 from fastapi.testclient import TestClient
 from dashboard.server import (app, sim_state, _build_update_message, SCORE_THRESHOLD, DEFAULT_WORKLOAD,
-                              EPISODE_TICKS, SPIKE_ID_BASE)
+                              EPISODE_TICKS, SPIKE_ID_BASE, CLEAR_HOLD_TICKS, _Crossings, _tick_events,
+                              _reroute_trigger)
+from config import MODEL
 from research_benchmark import PATTERNS
 from routing.guarded import GuardedRerouter
 from simulation.topology import build_fat_tree
@@ -267,6 +269,8 @@ class DashboardTests(unittest.TestCase):
                     ws.send_json({'action': 'workload', 'value': 'uniform'})
                     msg = receive(ws, lambda m: m['type'] == 'update' and m['workload'] == 'uniform')
                     self.assertEqual(msg['metrics']['tick'], 1)  # first tick of the restarted run
+                    switch = [e for e in msg['events'] if e['type'] == 'workload']
+                    self.assertEqual([(e['workload'], e['controller']) for e in switch], [('uniform', 'guarded_score')])
                     self.assertEqual(msg['controller'], 'guarded_score')
                     m = msg['metrics']
                     self.assertLessEqual(m['fabric_drops'] + m['host_drops'], m['total_drops'])
@@ -276,6 +280,153 @@ class DashboardTests(unittest.TestCase):
                     self.assertEqual((body['workload'], body['controller']), ('mixed', 'guarded_gnn'))
             finally:
                 client.post('/api/workload', json={'workload': DEFAULT_WORKLOAD})
+                client.post('/api/stop')
+
+class TimelineEventTests(unittest.TestCase):
+    """Server-side timeline events: transition-only congestion / prediction events and the
+    fields that let the frontend draw a reroute's old path, new path and triggering link."""
+
+    def setUp(self):
+        torch.set_num_threads(2)
+        keys = ('running', 'pending_events', 'congestion_tracker', 'prediction_tracker', 'threshold', 'engine')
+        self.saved = {k: sim_state[k] for k in keys}
+        sim_state['running'] = False
+        sim_state['pending_events'] = []
+        sim_state['congestion_tracker'] = _Crossings()
+        sim_state['prediction_tracker'] = _Crossings()
+
+    def tearDown(self):
+        sim_state.update(self.saved)
+        sim_state['running'] = False
+
+    def run_ticks(self, pattern, ticks, seed=3001):
+        """Step a fresh engine, calling _tick_events each tick; returns (collector, events per tick,
+        set of congested fabric link IDs per tick)."""
+        graph = build_fat_tree(); engine = NetworkEngine(graph)
+        engine.set_flows(TrafficGenerator(graph, seed=seed).generate_scenario(total_ticks=ticks, pattern=pattern))
+        collector = TelemetryCollector(graph, engine)
+        sim_state['engine'] = engine
+        ids = [link_id(u, v) for u, v in collector.switch_edges]
+        per_tick, congested = [], []
+        for _ in range(ticks):
+            snapshot = engine.step(); collector.collect_tick(snapshot)
+            _tick_events(snapshot, collector, None)
+            per_tick.append(sim_state['pending_events']); sim_state['pending_events'] = []
+            congested.append({ids[i] for i, label in enumerate(collector.edge_labels_history[-1]) if label})
+        return collector, per_tick, congested
+
+    def test_crossings_hysteresis(self):
+        c = _Crossings(hold=3)
+        self.assertEqual(c.update({'a'}), ({'a'}, set()))
+        self.assertEqual(c.update({'a'}), (set(), set()))  # still above: no new event
+        self.assertEqual(c.update(set()), (set(), set()))
+        self.assertEqual(c.update({'a'}), (set(), set()))  # back above within the hold: no new event
+        self.assertEqual(c.update(set()), (set(), set()))
+        self.assertEqual(c.update(set()), (set(), set()))
+        self.assertEqual(c.update(set()), (set(), {'a'}))  # 3rd consecutive tick below: left
+        self.assertEqual(c.update({'a', 'b'}), ({'a', 'b'}, set()))  # entering together: one update
+
+    def test_congestion_events_fire_only_on_transitions_and_coalesce_per_tick(self):
+        _, per_tick, congested = self.run_ticks('mixed', 150)
+        reported, onset_events = {}, 0
+        for t, events in enumerate(per_tick):
+            types = [e['type'] for e in events]
+            self.assertLessEqual(types.count('congestion'), 1)  # coalesced: one event per tick
+            self.assertLessEqual(types.count('congestion_cleared'), 1)
+            for e in events:
+                self.assertEqual(e['tick'], t + 1)
+                if e['type'] == 'congestion':
+                    onset_events += 1
+                    for d in e['links']:
+                        self.assertIn(d['link'], congested[t])  # congested now (label 1)
+                        self.assertFalse(reported.get(d['link']))  # a transition, not a repeat
+                        self.assertGreaterEqual(d['score'], MODEL['congestion_threshold'])
+                        self.assertTrue({'utilization', 'served', 'queue_depth', 'queue_fraction'} <= set(d))
+                        reported[d['link']] = True
+                elif e['type'] == 'congestion_cleared':
+                    for link in e['links']:
+                        self.assertTrue(reported.get(link))
+                        self.assertTrue(all(link not in congested[t - k] for k in range(CLEAR_HOLD_TICKS)))
+                        reported[link] = False
+            # No missed onsets: every link congested now has been reported.
+            self.assertTrue(all(reported.get(link) for link in congested[t]))
+        self.assertGreater(onset_events, 0)
+        # Links staying congested do not re-emit: far fewer events than congested ticks.
+        self.assertLess(onset_events, sum(bool(c) for c in congested) / 2)
+
+    def test_predicted_events_fire_when_the_probability_crosses_the_live_threshold(self):
+        collector, _, _ = self.run_ticks('stride', 1)
+        snapshot = collector.snapshots[-1]
+        sim_state['threshold'] = .8
+        n, target = len(collector.switch_edges), link_id(*collector.switch_edges[3])
+
+        def crossings(p_target):
+            p = np.full(n, .1); p[3] = p_target
+            sim_state['pending_events'] = []
+            _tick_events(snapshot, collector, p)
+            return [e for e in sim_state['pending_events'] if e['type'] == 'predicted']
+
+        self.assertEqual(crossings(.5), [])
+        first = crossings(.9)
+        self.assertEqual(len(first), 1)
+        self.assertEqual((first[0]['links'], first[0]['threshold']), ([dict(link=target, probability=.9)], .8))
+        self.assertEqual(crossings(.95), [])  # still above: no repeat
+        for _ in range(CLEAR_HOLD_TICKS):
+            self.assertEqual(crossings(.2), [])
+        self.assertEqual(len(crossings(.9)), 1)  # crosses again after the hold
+
+    def test_reroute_trigger_is_the_riskiest_fabric_link_on_the_old_path(self):
+        graph = build_fat_tree(); collector = TelemetryCollector(graph, NetworkEngine(graph))
+        path = nx.shortest_path(graph, 'host_0_0_0', 'host_3_1_1')
+        hops = list(zip(path, path[1:]))
+        fabric = [(u, v) for u, v in hops if (u, v) in collector.edge_to_idx]
+        self.assertEqual(len(fabric), 4)  # edge-agg-core-agg-edge
+        signal = np.zeros(len(collector.switch_edges))
+        signal[collector.edge_to_idx[fabric[1]]] = .97
+        signal[collector.edge_to_idx[fabric[3]]] = .4
+        self.assertEqual(_reroute_trigger(path, signal, collector), (link_id(*fabric[1]), .97))
+        self.assertEqual(_reroute_trigger(path[:2], signal, collector), (None, None))  # host link only
+
+    def test_live_reroute_events_carry_paths_tick_and_triggering_link(self):
+        seen = []
+
+        def collect(match):
+            def predicate(m):
+                seen.extend(m.get('events', []))
+                return match(m)
+            return predicate
+
+        with TestClient(app) as client:
+            try:
+                client.post('/api/config', json={'speed': 20})
+                client.post('/api/start')
+                fabric = {link_id(u, v) for u, v in sim_state['collector'].switch_edges}
+                with client.websocket_connect('/ws') as ws:
+                    receive(ws, lambda m: m['type'] == 'topology')
+                    ws.send_json({'action': 'controller', 'value': 'guarded_score'})
+                    msg = receive(ws, collect(lambda m: m['type'] == 'update' and m['reroute_events']), limit=4000)
+                    controller_events = [e for e in seen if e['type'] == 'controller']
+                    self.assertEqual(controller_events[0]['controller'], 'guarded_score')
+                    evt = msg['reroute_events'][0]
+                    self.assertIsInstance(evt['id'], int)
+                    self.assertEqual(evt['tick'], msg['metrics']['tick'])
+                    self.assertEqual(evt['controller'], 'guarded_score')
+                    for path in (evt['old_path'], evt['new_path']):
+                        self.assertEqual((path[0], path[-1]), (evt['src'], evt['dst']))
+                    self.assertNotEqual(evt['old_path'], evt['new_path'])
+                    # The trigger is a fabric link on the old path, above the guard's threshold ...
+                    self.assertIn(evt['trigger_link'], fabric)
+                    old_hops = {link_id(u, v) for u, v in zip(evt['old_path'], evt['old_path'][1:])}
+                    self.assertIn(evt['trigger_link'], old_hops)
+                    self.assertEqual(evt['trigger_signal'], 'score')
+                    self.assertGreater(evt['trigger_value'], SCORE_THRESHOLD)
+                    # ... and was reported congested (score > threshold is the congestion label).
+                    congested = {d['link'] for e in seen if e['type'] == 'congestion' for d in e['links']}
+                    self.assertIn(evt['trigger_link'], congested)
+                    ws.send_json({'action': 'spike'})
+                    receive(ws, collect(lambda m: any(e['type'] == 'spike' for e in m.get('events', []))))
+                    self.assertGreater([e for e in seen if e['type'] == 'spike'][0]['flows'], 0)
+            finally:
                 client.post('/api/stop')
 
 if __name__=='__main__': unittest.main()
