@@ -4,21 +4,23 @@ Dashboard Server
 FastAPI backend with WebSocket support for the real-time visualization dashboard.
 
 Endpoints:
-  GET  /               â†’ Serves the dashboard HTML
-  WS   /ws             â†’ WebSocket for live simulation data
-  POST /api/start      â†’ Start simulation
-  POST /api/stop       â†’ Stop simulation
-  POST /api/spike      â†’ Inject traffic spike
-  POST /api/config     â†’ Update GNN alert threshold / speed
-  POST /api/controller â†’ Switch routing controller (restores ECMP paths)
-  POST /api/workload   â†’ Restart the simulation with another traffic family
-  GET  /api/status     â†’ Running state, workload, controller, thresholds
+  GET  /               → Serves the dashboard HTML
+  WS   /ws             → WebSocket for live simulation data
+  POST /api/start      → Start simulation
+  POST /api/stop       → Stop simulation
+  POST /api/spike      → Inject traffic spike
+  POST /api/config     → Update GNN alert threshold / speed
+  POST /api/controller → Switch routing controller (restores ECMP paths)
+  POST /api/workload   → Restart the simulation with another traffic family
+  GET  /api/status     → Running state, workload, controller, thresholds
 """
 
 import os
 import asyncio
+import itertools
 import random
 import time
+from collections import deque
 import numpy as np
 import torch
 
@@ -44,7 +46,7 @@ async def lifespan(app):
     with suppress(asyncio.CancelledError):
         await task
 
-app = FastAPI(lifespan=lifespan, title="NeuralFabric â€” GNN Congestion Pre-emption Engine")
+app = FastAPI(lifespan=lifespan, title="NeuralFabric — GNN Congestion Pre-emption Engine")
 
 # Serve static files
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
@@ -68,6 +70,35 @@ DEFAULT_WORKLOAD = "stride"
 # 2000-tick scenario ramped up so slowly that stride had no drops for its first 300+ ticks.)
 EPISODE_TICKS = 150
 SPIKE_ID_BASE = 1_000_000  # spike flow IDs; episode flows keep the generator's small IDs
+# Event Timeline: congestion / prediction events fire on transitions only, one coalesced event per
+# type per tick. A link leaves the congested (or predicted) set only after CLEAR_HOLD_TICKS
+# consecutive ticks below its threshold, so links hovering at the threshold do not flood the log
+# (mixed traffic: 167 -> 81 events per 150 ticks).
+CLEAR_HOLD_TICKS = 5
+RECENT_EVENTS = 200  # backlog sent to a viewer that connects mid-run
+_event_ids = itertools.count(1)
+
+
+class _Crossings:
+    """Links above a threshold, with hysteresis: a link enters on its first tick above and
+    leaves after `hold` consecutive ticks below. update() returns (entered, left)."""
+
+    def __init__(self, hold=CLEAR_HOLD_TICKS):
+        self.hold, self.active, self.quiet = hold, set(), {}
+
+    def update(self, above):
+        entered = set(above) - self.active
+        for link in above:
+            self.quiet.pop(link, None)
+        left = set()
+        for link in self.active - set(above):
+            self.quiet[link] = self.quiet.get(link, 0) + 1
+            if self.quiet[link] >= self.hold:
+                left.add(link)
+                del self.quiet[link]
+        self.active = (self.active | entered) - left
+        return entered, left
+
 
 # Global state
 sim_state = {
@@ -89,7 +120,20 @@ sim_state = {
     "total_reroutes": 0,
     "switch_reroutes": 0,
     "switch_baseline": None,
+    "pending_events": [],          # timeline events, sent with the next update message
+    "recent_events": deque(maxlen=RECENT_EVENTS),  # this run's events, replayed to new viewers
+    "congestion_tracker": _Crossings(),
+    "prediction_tracker": _Crossings(),
 }
+
+
+def _emit(event_type, **fields):
+    """Queue a timeline event (sent to every viewer with the next update)."""
+    engine = sim_state["engine"]
+    event = dict(id=next(_event_ids), type=event_type, tick=engine.tick if engine is not None else 0, **fields)
+    sim_state["pending_events"].append(event)
+    sim_state["recent_events"].append(event)
+    return event
 
 
 @app.get("/")
@@ -103,6 +147,8 @@ async def start_simulation():
     if sim_state["running"]:
         return JSONResponse({"status": "already_running"})
     _start(sim_state["workload"], keep_settings=False)
+    _emit("start", workload=sim_state["workload"], controller=sim_state["controller"],
+          controller_label=CONTROLLERS[sim_state["controller"]])
     return JSONResponse({"status": "started", "topology": _get_topology_data(sim_state["graph"]), **_run_status()})
 
 
@@ -123,6 +169,9 @@ def _start(workload, keep_settings):
     sim_state["rerouter"] = None
     sim_state["next_spike_id"] = SPIKE_ID_BASE
     sim_state["traffic_rng"] = random.Random(time.time_ns())
+    sim_state["congestion_tracker"] = _Crossings()
+    sim_state["prediction_tracker"] = _Crossings()
+    sim_state["recent_events"].clear()  # the backlog covers the current run only
     _next_episode(0)
 
     # Telemetry collector
@@ -195,6 +244,7 @@ async def inject_spike():
             f.start_tick = 5
             f.duration = 40
     _add_flows(spike_flows, start_tick=sim_state["tick"])
+    _emit("spike", flows=len(spike_flows))
 
     return JSONResponse({"status": "spike_injected", "new_flows": len(spike_flows)})
 
@@ -255,6 +305,7 @@ async def set_controller(data: ControllerUpdate):
     if data.controller == "guarded_gnn" and sim_state["model"] is None:
         raise HTTPException(409, "guarded_gnn needs a loaded schema-3 checkpoint")
     _switch_controller(data.controller)
+    _emit("controller", controller=data.controller, controller_label=CONTROLLERS[data.controller])
     return {"status": "switched", **_run_status()}
 
 
@@ -272,6 +323,8 @@ async def set_workload(data: WorkloadUpdate):
         sim_state["workload"] = data.workload
         return {"status": "selected", **_run_status()}
     _start(data.workload, keep_settings=True)
+    _emit("workload", workload=data.workload, controller=sim_state["controller"],
+          controller_label=CONTROLLERS[sim_state["controller"]])
     return {"status": "restarted", **_run_status()}
 
 
@@ -342,22 +395,26 @@ async def simulation_loop():
             predictions = None
             if ready and sim_state["model"] is not None:
                 predictions = _get_predictions(collector, sim_state["model"])
-            events, rerouter = [], sim_state["rerouter"]
+            reroutes, rerouter = [], sim_state["rerouter"]
             if ready and rerouter is not None:
                 if sim_state["controller"] == "guarded_gnn":
                     rerouter.threshold = sim_state["threshold"]
-                    signal = predictions
+                    signal, signal_name = predictions, "probability"
                 else:
-                    signal = collector.edge_scores_history[-1]
+                    signal, signal_name = collector.edge_scores_history[-1], "score"
                 events = rerouter.evaluate_and_reroute(sim_state["flows"], signal, engine, engine.tick)
                 sim_state["total_reroutes"] += len(events)
                 sim_state["switch_reroutes"] += len(events)
+                reroutes = [_describe_reroute(evt, signal, signal_name, collector) for evt in events]
+                sim_state["recent_events"].extend(dict(r, type="reroute") for r in reroutes)
+            _tick_events(snapshot, collector, predictions)
+            timeline, sim_state["pending_events"] = sim_state["pending_events"], []
             # Bound live telemetry history; offline collectors keep full scenarios.
             for name in ["node_features_history", "edge_features_history", "edge_labels_history",
                          "edge_scores_history", "snapshots"]:
                 history = getattr(collector, name)
                 del history[:-MODEL["window_size"]]
-            msg = _build_update_message(snapshot, collector, predictions, events)
+            msg = _build_update_message(snapshot, collector, predictions, reroutes, timeline)
             async def send(client):
                 try:
                     await asyncio.wait_for(client.send_json(msg), timeout=.5)
@@ -376,7 +433,8 @@ async def websocket_endpoint(websocket: WebSocket):
     sim_state["connected_clients"].add(websocket)
     try:
         if sim_state["graph"] is not None:
-            await websocket.send_json({"type": "topology", "data": _get_topology_data(sim_state["graph"])})
+            await websocket.send_json({"type": "topology", "data": _get_topology_data(sim_state["graph"]),
+                                       "recent_events": list(sim_state["recent_events"])})
         while True:
             cmd = await websocket.receive_json()
             if cmd.get("action") == "spike":
@@ -464,7 +522,58 @@ def _link_id(u, v) -> str:
     return f"{u}--{v}"
 
 
-def _build_update_message(snapshot, collector, predictions=None, reroute_events=None) -> dict:
+def _reroute_trigger(path, signal, collector):
+    """The fabric link on `path` with the highest guard signal: the link whose risk put the path
+    over the alert threshold (the guard rates a path by its riskiest link). (link ID, value)."""
+    best = (None, None)
+    for u, v in zip(path, path[1:]):
+        idx = collector.edge_to_idx.get((u, v))
+        if idx is not None and (best[1] is None or float(signal[idx]) > best[1]):
+            best = (_link_id(u, v), float(signal[idx]))
+    return best
+
+
+def _describe_reroute(evt, signal, signal_name, collector):
+    """A guard reroute event as sent to viewers (a copy; the guard's own log is not modified)."""
+    trigger, value = _reroute_trigger(evt["old_path"], signal, collector)
+    return dict(id=next(_event_ids), tick=evt["tick"], flow_id=evt["flow_id"], src=evt["src"], dst=evt["dst"],
+                reason=evt.get("reason", "guarded"), controller=sim_state["controller"],
+                old_path=list(evt["old_path"]), new_path=list(evt["new_path"]),
+                trigger_link=trigger, trigger_value=None if value is None else round(value, 4),
+                trigger_signal=signal_name)
+
+
+def _tick_events(snapshot, collector, predictions):
+    """Queue this tick's transition events: fabric links that became congested (served_or_queued
+    label 0 -> 1), links whose congestion cleared, and links whose GNN probability crossed the live
+    alert threshold. At most one coalesced event of each type per tick."""
+    labels = collector.edge_labels_history[-1]
+    congested = {_link_id(u, v) for (u, v), label in zip(collector.switch_edges, labels) if label}
+    onset, cleared = sim_state["congestion_tracker"].update(congested)
+    if onset:
+        merged, G = merge_directions(snapshot["links"]), collector.G
+        details = []
+        for link in sorted(onset):
+            u, v = link.split("--")
+            data, edge = merged[(u, v)], G.edges[u, v]
+            details.append(dict(
+                link=link, utilization=round(data["utilization"], 3),
+                served=round(data["packets_out"] / edge["capacity"], 3), queue_depth=data["queue_depth"],
+                queue_fraction=round(data["queue_depth"] / edge["buffer_size"], 3),
+                score=round(congestion_score(data, edge["capacity"], edge["buffer_size"]), 3)))
+        _emit("congestion", links=details)
+    if cleared:
+        _emit("congestion_cleared", links=sorted(cleared))
+    if predictions is not None:
+        threshold = sim_state["threshold"]
+        above = {_link_id(u, v): float(p) for (u, v), p in zip(collector.switch_edges, predictions) if p > threshold}
+        crossed, _ = sim_state["prediction_tracker"].update(set(above))
+        if crossed:
+            _emit("predicted", threshold=threshold,
+                  links=[dict(link=link, probability=round(above[link], 4)) for link in sorted(crossed)])
+
+
+def _build_update_message(snapshot, collector, predictions=None, reroute_events=None, events=None) -> dict:
     """Build WebSocket update message."""
     # Link data: one entry per physical link (max over both directions);
     # the frontend maps u--v and v--u to the same line.
@@ -503,18 +612,23 @@ def _build_update_message(snapshot, collector, predictions=None, reroute_events=
         "total_reroutes": sim_state["total_reroutes"],
     }
 
-    # Reroute events
+    # Reroute events (see _describe_reroute) and the other timeline events of this tick.
     reroute_data = []
-    if reroute_events:
-        for evt in reroute_events:
-            reroute_data.append({
-                "flow_id": evt["flow_id"],
-                "src": evt["src"],
-                "dst": evt["dst"],
-                "reason": evt.get("reason", "proactive"),
-                "controller": sim_state["controller"],
-                "new_path": list(evt["new_path"]),
-            })
+    for evt in reroute_events or []:
+        reroute_data.append({
+            "id": evt.get("id"),
+            "tick": evt.get("tick", snapshot["tick"]),
+            "flow_id": evt["flow_id"],
+            "src": evt["src"],
+            "dst": evt["dst"],
+            "reason": evt.get("reason", "proactive"),
+            "controller": evt.get("controller", sim_state["controller"]),
+            "old_path": list(evt.get("old_path", [])),
+            "new_path": list(evt["new_path"]),
+            "trigger_link": evt.get("trigger_link"),
+            "trigger_value": evt.get("trigger_value"),
+            "trigger_signal": evt.get("trigger_signal"),
+        })
 
     return {
         "type": "update",
@@ -522,6 +636,7 @@ def _build_update_message(snapshot, collector, predictions=None, reroute_events=
         "predictions": pred_data,
         "metrics": metrics,
         "reroute_events": reroute_data,
+        "events": list(events or []),
         **_run_status(),
     }
 
