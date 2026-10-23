@@ -1,0 +1,13 @@
+sweep: 600 tasks to run (0 done)
+  50/600 0.3 min, eta 3.3 min
+  100/600 0.5 min, eta 2.5 min
+  150/600 1.6 min, eta 4.9 min
+  200/600 2.4 min, eta 4.7 min
+  250/600 2.4 min, eta 3.4 min
+  300/600 2.5 min, eta 2.5 min
+  350/600 5.1 min, eta 3.7 min
+  400/600 7.3 min, eta 3.7 min
+  450/600 7.3 min, eta 2.4 min
+  500/600 7.4 min, eta 1.5 min
+  550/600 7.9 min, eta 0.7 min
+  600/600 8.2 min, eta 0.0 min

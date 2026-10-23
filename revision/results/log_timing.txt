@@ -1,0 +1,4 @@
+timing: 36 tasks to run (0 done)
+/usr/local/lib/python3.13/dist-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+  36/36 1.2 min, eta 0.0 min

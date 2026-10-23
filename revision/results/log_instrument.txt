@@ -1,0 +1,14 @@
+instrument: 420 tasks to run (0 done)
+/usr/local/lib/python3.13/dist-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.13/dist-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+  50/420 0.3 min, eta 2.5 min
+  100/420 0.7 min, eta 2.3 min
+  150/420 1.3 min, eta 2.3 min
+  200/420 1.5 min, eta 1.6 min
+  250/420 3.1 min, eta 2.1 min
+  300/420 3.8 min, eta 1.5 min
+  350/420 3.9 min, eta 0.8 min
+  400/420 4.2 min, eta 0.2 min
+  420/420 4.3 min, eta 0.0 min

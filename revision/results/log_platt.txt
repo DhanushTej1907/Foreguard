@@ -1,0 +1,9 @@
+platt: 180 tasks to run (0 done)
+/usr/local/lib/python3.13/dist-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.13/dist-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+  50/180 1.1 min, eta 2.9 min
+  100/180 2.0 min, eta 1.6 min
+  150/180 3.1 min, eta 0.6 min
+  180/180 3.4 min, eta 0.0 min

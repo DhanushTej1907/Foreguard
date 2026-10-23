@@ -1,0 +1,40 @@
+1680 tasks
+/usr/local/lib/python3.13/dist-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.13/dist-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+  50/1680 0.2 min, eta 7.4 min
+  100/1680 0.4 min, eta 6.6 min
+  150/1680 0.6 min, eta 6.4 min
+  200/1680 0.7 min, eta 5.5 min
+  250/1680 0.9 min, eta 5.0 min
+  300/1680 1.0 min, eta 4.6 min
+  350/1680 1.1 min, eta 4.2 min
+  400/1680 1.6 min, eta 5.0 min
+  450/1680 1.8 min, eta 4.9 min
+  500/1680 2.0 min, eta 4.7 min
+  550/1680 2.4 min, eta 4.9 min
+  600/1680 2.6 min, eta 4.6 min
+  650/1680 2.7 min, eta 4.3 min
+  700/1680 2.9 min, eta 4.0 min
+  750/1680 3.0 min, eta 3.7 min
+  800/1680 3.7 min, eta 4.1 min
+  850/1680 4.7 min, eta 4.6 min
+  900/1680 4.9 min, eta 4.3 min
+  950/1680 5.4 min, eta 4.1 min
+  1000/1680 5.8 min, eta 4.0 min
+  1050/1680 6.0 min, eta 3.6 min
+  1100/1680 6.2 min, eta 3.2 min
+  1150/1680 6.3 min, eta 2.9 min
+  1200/1680 6.7 min, eta 2.7 min
+  1250/1680 8.2 min, eta 2.8 min
+  1300/1680 8.7 min, eta 2.5 min
+  1350/1680 9.2 min, eta 2.2 min
+  1400/1680 9.8 min, eta 2.0 min
+  1450/1680 10.1 min, eta 1.6 min
+  1500/1680 10.3 min, eta 1.2 min
+  1550/1680 10.4 min, eta 0.9 min
+  1600/1680 10.5 min, eta 0.5 min
+  1650/1680 11.8 min, eta 0.2 min
+  1680/1680 12.7 min, eta 0.0 min
+DONE

@@ -57,6 +57,8 @@ expected and harmless.
   settings, default unchanged). Stride caveat: every stride seed has the same flows/ECMP paths.
 - Git: only `checkpoints/best_model_v3*.pt` and the legacy `best_model.pt` / `data/datasets.pkl` are tracked;
   other `*.pt` / `*.pkl` are gitignored (regenerable from fixed seeds).
+- `revision/`: review-round experiments (scripts, results, figs; `revision/README.md` maps them to paper
+  sections); `paths.py` defaults `NF_ROOT` to the repo root. Final paper: `paper/NeuralFabric_final_revised.docx`.
 - `tests/` unittest suite: `python -m unittest discover -s tests -v`
 
 ## Known findings — schema 3 (Phase 3 full run, `research/benchmark_results_v4.json`)

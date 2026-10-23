@@ -4,6 +4,19 @@
 
 NeuralFabric is a reproducible computer-networks research prototype. It combines a GCN-LSTM congestion forecaster with a deterministic rerouting controller that admits route changes only when predicted risk improves and the alternative path passes explicit capacity and stability checks.
 
+## Repository layout
+
+| Folder | Contents |
+|---|---|
+| project root (`simulation/`, `model/`, `routing/`, `dashboard/`, `research/`, ...) | The original NeuralFabric project: simulator, GCN-LSTM forecaster, guarded rerouting controller, dashboard, stored benchmark |
+| `revision/` | Every experiment added during the paper's review rounds: scripts, raw results, analysis summaries and figures. See `revision/README.md` for which script backs which section and table of the paper |
+| `paper/NeuralFabric_final_revised.docx` | The final revised IEEE paper |
+| `paper/changelogs/` | Edit-by-edit changelogs of the review rounds |
+
+The numbers in the final paper come from `revision/results/`; the "Recorded research result"
+table below is the original pilot benchmark. To rerun the revision experiments from the repo root:
+`bash revision/scripts/run_all.sh` (about 1.5–2 h with two workers; finished tasks are skipped).
+
 ## What is actually implemented
 
 The project is intentionally scoped as a synthetic simulator, not a production RoCEv2/PFC implementation.

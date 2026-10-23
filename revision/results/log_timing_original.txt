@@ -1,0 +1,8 @@
+/usr/local/lib/python3.13/dist-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+guarded_gnn {'ctrl_p50': 2.712, 'ctrl_p99': 81.799, 'ctrl_mean': 12.502, 'ctrl_share_over_1ms': 0.611, 'ctrl_share_over_5ms': 0.416, 'inf_p50': 2.868, 'inf_p99': 6.488, 'inf_mean': 3.171, 'ticks': 1692}
+   per family {'uniform': 3.59, 'hotspot': 14.99, 'elephant_mice': 3.14, 'stride': 0.52, 'llm_training': 0.17, 'mixed': 51.08} {'uniform': 13.7, 'hotspot': 45.6, 'elephant_mice': 11.0, 'stride': 4.4, 'llm_training': 0.6, 'mixed': 91.9}
+guarded_lstm {'ctrl_p50': 2.921, 'ctrl_p99': 94.859, 'ctrl_mean': 13.343, 'ctrl_share_over_1ms': 0.567, 'ctrl_share_over_5ms': 0.421, 'inf_p50': 1.133, 'inf_p99': 106.326, 'inf_mean': 10.285, 'ticks': 1692}
+   per family {'uniform': 3.14, 'hotspot': 12.87, 'elephant_mice': 3.94, 'stride': 0.23, 'llm_training': 0.07, 'mixed': 58.11} {'uniform': 11.8, 'hotspot': 37.1, 'elephant_mice': 12.8, 'stride': 1.9, 'llm_training': 3.3, 'mixed': 107.4}
+guarded_score {'ctrl_p50': 3.369, 'ctrl_p99': 69.202, 'ctrl_mean': 11.185, 'ctrl_share_over_1ms': 0.58, 'ctrl_share_over_5ms': 0.424, 'inf_p50': None, 'inf_p99': None, 'inf_mean': None, 'ticks': 1692}
+   per family {'uniform': 3.29, 'hotspot': 15.21, 'elephant_mice': 4.05, 'stride': 0.18, 'llm_training': 0.05, 'mixed': 44.0} {'uniform': 18.2, 'hotspot': 36.9, 'elephant_mice': 13.8, 'stride': 1.2, 'llm_training': 9.9, 'mixed': 84.3}

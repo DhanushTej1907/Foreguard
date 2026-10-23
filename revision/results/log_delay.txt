@@ -1,0 +1,29 @@
+delay: 1200 tasks to run (0 done)
+/usr/local/lib/python3.13/dist-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.13/dist-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+  50/1200 0.5 min, eta 12.6 min
+  100/1200 0.9 min, eta 9.4 min
+  150/1200 1.2 min, eta 8.2 min
+  200/1200 1.4 min, eta 7.2 min
+  250/1200 2.6 min, eta 9.9 min
+  300/1200 3.5 min, eta 10.6 min
+  350/1200 4.4 min, eta 10.8 min
+  400/1200 5.3 min, eta 10.6 min
+  450/1200 5.5 min, eta 9.1 min
+  500/1200 5.7 min, eta 7.9 min
+  550/1200 5.8 min, eta 6.9 min
+  600/1200 5.9 min, eta 5.9 min
+  650/1200 8.4 min, eta 7.1 min
+  700/1200 10.7 min, eta 7.7 min
+  750/1200 13.5 min, eta 8.1 min
+  800/1200 15.6 min, eta 7.8 min
+  850/1200 15.8 min, eta 6.5 min
+  900/1200 16.0 min, eta 5.3 min
+  950/1200 16.2 min, eta 4.3 min
+  1000/1200 16.4 min, eta 3.3 min
+  1050/1200 17.1 min, eta 2.4 min
+  1100/1200 17.6 min, eta 1.6 min
+  1150/1200 18.1 min, eta 0.8 min
+  1200/1200 18.5 min, eta 0.0 min

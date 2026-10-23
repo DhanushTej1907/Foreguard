@@ -1,0 +1,21 @@
+replicate: 780 tasks to run (0 done)
+/usr/local/lib/python3.13/dist-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.13/dist-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+  50/780 0.4 min, eta 5.7 min
+  100/780 0.7 min, eta 4.9 min
+  150/780 1.2 min, eta 5.2 min
+  200/780 1.8 min, eta 5.2 min
+  250/780 2.5 min, eta 5.2 min
+  300/780 2.7 min, eta 4.3 min
+  350/780 2.8 min, eta 3.5 min
+  400/780 3.3 min, eta 3.1 min
+  450/780 4.8 min, eta 3.5 min
+  500/780 6.2 min, eta 3.5 min
+  550/780 6.9 min, eta 2.9 min
+  600/780 7.0 min, eta 2.1 min
+  650/780 7.2 min, eta 1.4 min
+  700/780 7.6 min, eta 0.9 min
+  750/780 7.9 min, eta 0.3 min
+  780/780 8.1 min, eta 0.0 min

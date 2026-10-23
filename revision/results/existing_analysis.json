@@ -1,0 +1,1366 @@
+{
+ "per_family": {
+  "uniform": {
+   "ecmp": {
+    "total_drops": 33889.5,
+    "fabric_link_drops": 20697.1,
+    "host_link_drops": 13192.4,
+    "avg_throughput": 2700.612,
+    "total_offered": 444045.0,
+    "total_delivered": 405091.8,
+    "reroutes": 0.0,
+    "delivered_mean_latency_us": 6936.917221251328,
+    "delivered_p99_latency_us": 13300.0,
+    "total_change_pct": 0.0,
+    "fabric_change_pct": 0.0,
+    "host_change_pct": 0.0,
+    "delivered_change_pct": 0.0,
+    "loss_rate_pct": 7.631996757085431
+   },
+   "reactive": {
+    "total_drops": 22476.6,
+    "fabric_link_drops": 4980.9,
+    "host_link_drops": 17495.7,
+    "avg_throughput": 2776.7786666666666,
+    "total_offered": 444045.0,
+    "total_delivered": 416516.8,
+    "reroutes": 494.1,
+    "delivered_mean_latency_us": 7162.317565732196,
+    "delivered_p99_latency_us": 15300.0,
+    "total_change_pct": -33.676802549462224,
+    "fabric_change_pct": -75.93430963758207,
+    "host_change_pct": 32.61953852217945,
+    "delivered_change_pct": 2.8203483753558967,
+    "loss_rate_pct": 5.06178427862041
+   },
+   "gnn": {
+    "total_drops": 24739.0,
+    "fabric_link_drops": 7304.6,
+    "host_link_drops": 17434.4,
+    "avg_throughput": 2760.2866666666664,
+    "total_offered": 444045.0,
+    "total_delivered": 414042.99999999994,
+    "reroutes": 576.0,
+    "delivered_mean_latency_us": 7663.180148491013,
+    "delivered_p99_latency_us": 17100.000000000004,
+    "total_change_pct": -27.000988506764635,
+    "fabric_change_pct": -64.70713288335081,
+    "host_change_pct": 32.15487705042299,
+    "delivered_change_pct": 2.2096719805239085,
+    "loss_rate_pct": 5.5712821898681435
+   },
+   "guarded_gnn": {
+    "total_drops": 22791.93333333333,
+    "fabric_link_drops": 4694.633333333333,
+    "host_link_drops": 18097.3,
+    "avg_throughput": 2775.1342222222224,
+    "total_offered": 444045.0,
+    "total_delivered": 416270.13333333336,
+    "reroutes": 70.36666666666667,
+    "delivered_mean_latency_us": 6507.8145096468115,
+    "delivered_p99_latency_us": 11666.666666666668,
+    "total_change_pct": -32.746327525241355,
+    "fabric_change_pct": -77.317434165495,
+    "host_change_pct": 37.179739850216784,
+    "delivered_change_pct": 2.759456827645823,
+    "loss_rate_pct": 5.132798102294436
+   },
+   "guarded_lstm": {
+    "total_drops": 22718.933333333334,
+    "fabric_link_drops": 5190.966666666666,
+    "host_link_drops": 17527.966666666667,
+    "avg_throughput": 2775.7564444444447,
+    "total_offered": 444045.0,
+    "total_delivered": 416363.4666666667,
+    "reroutes": 73.16666666666666,
+    "delivered_mean_latency_us": 6560.764624198035,
+    "delivered_p99_latency_us": 12133.333333333332,
+    "total_change_pct": -32.9617334769373,
+    "fabric_change_pct": -74.91935263072283,
+    "host_change_pct": 32.864123788443855,
+    "delivered_change_pct": 2.782496872725315,
+    "loss_rate_pct": 5.116358327046433
+   },
+   "guarded_persistence": {
+    "total_drops": 22210.9,
+    "fabric_link_drops": 5544.0,
+    "host_link_drops": 16666.9,
+    "avg_throughput": 2779.137333333333,
+    "total_offered": 444045.0,
+    "total_delivered": 416870.6,
+    "reroutes": 60.6,
+    "delivered_mean_latency_us": 6496.020945060912,
+    "delivered_p99_latency_us": 11600.0,
+    "total_change_pct": -34.460821198306256,
+    "fabric_change_pct": -73.21363862570118,
+    "host_change_pct": 26.337133501106713,
+    "delivered_change_pct": 2.9076866033822313,
+    "loss_rate_pct": 5.0019480007656885
+   },
+   "guarded_score": {
+    "total_drops": 22144.0,
+    "fabric_link_drops": 4826.0,
+    "host_link_drops": 17318.0,
+    "avg_throughput": 2780.29,
+    "total_offered": 444045.0,
+    "total_delivered": 417043.5,
+    "reroutes": 49.3,
+    "delivered_mean_latency_us": 6455.95366704275,
+    "delivered_p99_latency_us": 11900.0,
+    "total_change_pct": -34.658227474586525,
+    "fabric_change_pct": -76.68272366660062,
+    "host_change_pct": 31.272550862617866,
+    "delivered_change_pct": 2.9503682868920134,
+    "loss_rate_pct": 4.986881960161695
+   }
+  },
+  "hotspot": {
+   "ecmp": {
+    "total_drops": 278899.4,
+    "fabric_link_drops": 128175.7,
+    "host_link_drops": 150723.7,
+    "avg_throughput": 2811.441333333333,
+    "total_offered": 709365.7,
+    "total_delivered": 421716.2,
+    "reroutes": 0.0,
+    "delivered_mean_latency_us": 9126.96567292489,
+    "delivered_p99_latency_us": 21300.0,
+    "total_change_pct": 0.0,
+    "fabric_change_pct": 0.0,
+    "host_change_pct": 0.0,
+    "delivered_change_pct": 0.0,
+    "loss_rate_pct": 39.3167304255055
+   },
+   "reactive": {
+    "total_drops": 269572.7,
+    "fabric_link_drops": 112994.7,
+    "host_link_drops": 156578.0,
+    "avg_throughput": 2870.542,
+    "total_offered": 709365.7,
+    "total_delivered": 430581.3,
+    "reroutes": 661.2,
+    "delivered_mean_latency_us": 9883.069843184674,
+    "delivered_p99_latency_us": 26100.0,
+    "total_change_pct": -3.344109022823283,
+    "fabric_change_pct": -11.843898648495777,
+    "host_change_pct": 3.884127048367292,
+    "delivered_change_pct": 2.102148316806418,
+    "loss_rate_pct": 38.00193609586706
+   },
+   "gnn": {
+    "total_drops": 269468.6666666666,
+    "fabric_link_drops": 109708.23333333335,
+    "host_link_drops": 159760.43333333332,
+    "avg_throughput": 2873.6995555555554,
+    "total_offered": 709365.7,
+    "total_delivered": 431054.9333333334,
+    "reroutes": 704.0666666666667,
+    "delivered_mean_latency_us": 9583.27974253184,
+    "delivered_p99_latency_us": 22666.666666666664,
+    "total_change_pct": -3.3814104058070393,
+    "fabric_change_pct": -14.407931196526835,
+    "host_change_pct": 5.995562299315438,
+    "delivered_change_pct": 2.2144592342749236,
+    "loss_rate_pct": 37.98727041167435
+   },
+   "guarded_gnn": {
+    "total_drops": 263726.3333333333,
+    "fabric_link_drops": 107961.03333333333,
+    "host_link_drops": 155765.3,
+    "avg_throughput": 2917.972,
+    "total_offered": 709365.7,
+    "total_delivered": 437695.8,
+    "reroutes": 69.26666666666668,
+    "delivered_mean_latency_us": 8730.783102804715,
+    "delivered_p99_latency_us": 20433.333333333332,
+    "total_change_pct": -5.440336790493882,
+    "fabric_change_pct": -15.77106008913286,
+    "host_change_pct": 3.3449285016224906,
+    "delivered_change_pct": 3.7891833417829535,
+    "loss_rate_pct": 37.17776787534742
+   },
+   "guarded_lstm": {
+    "total_drops": 264104.6333333333,
+    "fabric_link_drops": 108287.56666666668,
+    "host_link_drops": 155817.06666666665,
+    "avg_throughput": 2915.8206666666665,
+    "total_offered": 709365.7,
+    "total_delivered": 437373.1,
+    "reroutes": 72.6,
+    "delivered_mean_latency_us": 8824.328748576669,
+    "delivered_p99_latency_us": 20999.999999999996,
+    "total_change_pct": -5.30469648434766,
+    "fabric_change_pct": -15.51630561279035,
+    "host_change_pct": 3.3792739075982237,
+    "delivered_change_pct": 3.712662686422763,
+    "loss_rate_pct": 37.231097208863254
+   },
+   "guarded_persistence": {
+    "total_drops": 266308.4,
+    "fabric_link_drops": 114873.2,
+    "host_link_drops": 151435.2,
+    "avg_throughput": 2902.6426666666666,
+    "total_offered": 709365.7,
+    "total_delivered": 435396.4,
+    "reroutes": 68.2,
+    "delivered_mean_latency_us": 8779.701925675407,
+    "delivered_p99_latency_us": 20700.0,
+    "total_change_pct": -4.5145310459613786,
+    "fabric_change_pct": -10.378332242382914,
+    "host_change_pct": 0.47205582134728363,
+    "delivered_change_pct": 3.243935139318821,
+    "loss_rate_pct": 37.54176442418911
+   },
+   "guarded_score": {
+    "total_drops": 261996.3,
+    "fabric_link_drops": 104578.7,
+    "host_link_drops": 157417.6,
+    "avg_throughput": 2930.696,
+    "total_offered": 709365.7,
+    "total_delivered": 439604.4,
+    "reroutes": 56.0,
+    "delivered_mean_latency_us": 8627.659087975338,
+    "delivered_p99_latency_us": 20500.0,
+    "total_change_pct": -6.060644088872202,
+    "fabric_change_pct": -18.40988580518772,
+    "host_change_pct": 4.441172821527073,
+    "delivered_change_pct": 4.241762588205056,
+    "loss_rate_pct": 36.93388332703428
+   }
+  },
+  "elephant_mice": {
+   "ecmp": {
+    "total_drops": 76962.6,
+    "fabric_link_drops": 39262.4,
+    "host_link_drops": 37700.2,
+    "avg_throughput": 1874.277333333333,
+    "total_offered": 364921.1,
+    "total_delivered": 281141.6,
+    "reroutes": 0.0,
+    "delivered_mean_latency_us": 8036.992163429694,
+    "delivered_p99_latency_us": 14900.0,
+    "total_change_pct": 0.0,
+    "fabric_change_pct": 0.0,
+    "host_change_pct": 0.0,
+    "delivered_change_pct": 0.0,
+    "loss_rate_pct": 21.09020278630093
+   },
+   "reactive": {
+    "total_drops": 53415.7,
+    "fabric_link_drops": 7956.6,
+    "host_link_drops": 45459.1,
+    "avg_throughput": 2032.4666666666667,
+    "total_offered": 364921.1,
+    "total_delivered": 304870.0,
+    "reroutes": 241.2,
+    "delivered_mean_latency_us": 7806.66813757628,
+    "delivered_p99_latency_us": 15500.0,
+    "total_change_pct": -30.595250160467558,
+    "fabric_change_pct": -79.73480989445373,
+    "host_change_pct": 20.58052742425771,
+    "delivered_change_pct": 8.440017414712031,
+    "loss_rate_pct": 14.637602484482262
+   },
+   "gnn": {
+    "total_drops": 53900.533333333326,
+    "fabric_link_drops": 8400.1,
+    "host_link_drops": 45500.433333333334,
+    "avg_throughput": 2024.374222222222,
+    "total_offered": 364921.1,
+    "total_delivered": 303656.13333333336,
+    "reroutes": 283.49999999999994,
+    "delivered_mean_latency_us": 8330.540320583284,
+    "delivered_p99_latency_us": 17766.666666666664,
+    "total_change_pct": -29.96529050040757,
+    "fabric_change_pct": -78.60523044948857,
+    "host_change_pct": 20.690164331577378,
+    "delivered_change_pct": 8.008253966447288,
+    "loss_rate_pct": 14.770462254260805
+   },
+   "guarded_gnn": {
+    "total_drops": 55564.633333333324,
+    "fabric_link_drops": 11036.266666666666,
+    "host_link_drops": 44528.36666666667,
+    "avg_throughput": 2019.0744444444445,
+    "total_offered": 364921.1,
+    "total_delivered": 302861.1666666666,
+    "reroutes": 35.46666666666667,
+    "delivered_mean_latency_us": 7246.551487267378,
+    "delivered_p99_latency_us": 11899.999999999998,
+    "total_change_pct": -27.803071448556416,
+    "fabric_change_pct": -71.8910034367062,
+    "host_change_pct": 18.11175183862863,
+    "delivered_change_pct": 7.725490168180982,
+    "loss_rate_pct": 15.226478636980248
+   },
+   "guarded_lstm": {
+    "total_drops": 56456.433333333334,
+    "fabric_link_drops": 11771.766666666666,
+    "host_link_drops": 44684.666666666664,
+    "avg_throughput": 2013.5417777777777,
+    "total_offered": 364921.1,
+    "total_delivered": 302031.2666666667,
+    "reroutes": 36.233333333333334,
+    "delivered_mean_latency_us": 7262.117752768949,
+    "delivered_p99_latency_us": 12200.0,
+    "total_change_pct": -26.6443268115509,
+    "fabric_change_pct": -70.0177099039624,
+    "host_change_pct": 18.526338498646332,
+    "delivered_change_pct": 7.430300840098614,
+    "loss_rate_pct": 15.470860230700097
+   },
+   "guarded_persistence": {
+    "total_drops": 56007.3,
+    "fabric_link_drops": 12813.5,
+    "host_link_drops": 43193.8,
+    "avg_throughput": 2015.5993333333336,
+    "total_offered": 364921.1,
+    "total_delivered": 302339.9,
+    "reroutes": 35.8,
+    "delivered_mean_latency_us": 7234.5738149384615,
+    "delivered_p99_latency_us": 12400.0,
+    "total_change_pct": -27.227900304823383,
+    "fabric_change_pct": -67.36445046660418,
+    "host_change_pct": 14.57180598511416,
+    "delivered_change_pct": 7.540079447509762,
+    "loss_rate_pct": 15.347783397561832
+   },
+   "guarded_score": {
+    "total_drops": 55060.6,
+    "fabric_link_drops": 11889.1,
+    "host_link_drops": 43171.5,
+    "avg_throughput": 2022.0946666666666,
+    "total_offered": 364921.1,
+    "total_delivered": 303314.2,
+    "reroutes": 27.0,
+    "delivered_mean_latency_us": 7316.170289415619,
+    "delivered_p99_latency_us": 12200.0,
+    "total_change_pct": -28.457978290754216,
+    "fabric_change_pct": -69.71886588695546,
+    "host_change_pct": 14.512655105277972,
+    "delivered_change_pct": 7.886630793877547,
+    "loss_rate_pct": 15.08835745589937
+   }
+  },
+  "stride": {
+   "ecmp": {
+    "total_drops": 8916.5,
+    "fabric_link_drops": 8916.5,
+    "host_link_drops": 0.0,
+    "avg_throughput": 2047.7973333333334,
+    "total_offered": 319973.7,
+    "total_delivered": 307169.6,
+    "reroutes": 0.0,
+    "delivered_mean_latency_us": 6623.657048023017,
+    "delivered_p99_latency_us": 9000.0,
+    "total_change_pct": 0.0,
+    "fabric_change_pct": 0.0,
+    "host_change_pct": null,
+    "delivered_change_pct": 0.0,
+    "loss_rate_pct": 2.7866352765867943
+   },
+   "reactive": {
+    "total_drops": 0.0,
+    "fabric_link_drops": 0.0,
+    "host_link_drops": 0.0,
+    "avg_throughput": 2107.486,
+    "total_offered": 319973.7,
+    "total_delivered": 316122.9,
+    "reroutes": 126.8,
+    "delivered_mean_latency_us": 6240.882009620471,
+    "delivered_p99_latency_us": 7800.0,
+    "total_change_pct": -100.0,
+    "fabric_change_pct": -100.0,
+    "host_change_pct": null,
+    "delivered_change_pct": 2.914774118272101,
+    "loss_rate_pct": 0.0
+   },
+   "gnn": {
+    "total_drops": 753.3333333333334,
+    "fabric_link_drops": 753.3333333333334,
+    "host_link_drops": 0.0,
+    "avg_throughput": 2102.3597777777777,
+    "total_offered": 319973.7,
+    "total_delivered": 315353.9666666667,
+    "reroutes": 275.8666666666667,
+    "delivered_mean_latency_us": 6720.081076185294,
+    "delivered_p99_latency_us": 11600.000000000002,
+    "total_change_pct": -91.55124394848502,
+    "fabric_change_pct": -91.55124394848502,
+    "host_change_pct": null,
+    "delivered_change_pct": 2.664445526727466,
+    "loss_rate_pct": 0.23543601656427804
+   },
+   "guarded_gnn": {
+    "total_drops": 0.0,
+    "fabric_link_drops": 0.0,
+    "host_link_drops": 0.0,
+    "avg_throughput": 2107.486,
+    "total_offered": 319973.7,
+    "total_delivered": 316122.9,
+    "reroutes": 146.3,
+    "delivered_mean_latency_us": 6016.326755169805,
+    "delivered_p99_latency_us": 6533.333333333333,
+    "total_change_pct": -100.0,
+    "fabric_change_pct": -100.0,
+    "host_change_pct": null,
+    "delivered_change_pct": 2.914774118272101,
+    "loss_rate_pct": 0.0
+   },
+   "guarded_lstm": {
+    "total_drops": 0.0,
+    "fabric_link_drops": 0.0,
+    "host_link_drops": 0.0,
+    "avg_throughput": 2107.486,
+    "total_offered": 319973.7,
+    "total_delivered": 316122.9,
+    "reroutes": 66.7,
+    "delivered_mean_latency_us": 6017.86692904194,
+    "delivered_p99_latency_us": 6566.666666666666,
+    "total_change_pct": -100.0,
+    "fabric_change_pct": -100.0,
+    "host_change_pct": null,
+    "delivered_change_pct": 2.914774118272101,
+    "loss_rate_pct": 0.0
+   },
+   "guarded_persistence": {
+    "total_drops": 0.0,
+    "fabric_link_drops": 0.0,
+    "host_link_drops": 0.0,
+    "avg_throughput": 2107.486,
+    "total_offered": 319973.7,
+    "total_delivered": 316122.9,
+    "reroutes": 88.1,
+    "delivered_mean_latency_us": 6016.761734978046,
+    "delivered_p99_latency_us": 6400.0,
+    "total_change_pct": -100.0,
+    "fabric_change_pct": -100.0,
+    "host_change_pct": null,
+    "delivered_change_pct": 2.914774118272101,
+    "loss_rate_pct": 0.0
+   },
+   "guarded_score": {
+    "total_drops": 0.0,
+    "fabric_link_drops": 0.0,
+    "host_link_drops": 0.0,
+    "avg_throughput": 2107.486,
+    "total_offered": 319973.7,
+    "total_delivered": 316122.9,
+    "reroutes": 67.1,
+    "delivered_mean_latency_us": 6008.5320054412205,
+    "delivered_p99_latency_us": 6400.0,
+    "total_change_pct": -100.0,
+    "fabric_change_pct": -100.0,
+    "host_change_pct": null,
+    "delivered_change_pct": 2.914774118272101,
+    "loss_rate_pct": 0.0
+   }
+  },
+  "llm_training": {
+   "ecmp": {
+    "total_drops": 24684.3,
+    "fabric_link_drops": 0.0,
+    "host_link_drops": 24684.3,
+    "avg_throughput": 851.5146666666667,
+    "total_offered": 152411.5,
+    "total_delivered": 127727.2,
+    "reroutes": 0.0,
+    "delivered_mean_latency_us": 4025.0159029306587,
+    "delivered_p99_latency_us": 12300.0,
+    "total_change_pct": 0.0,
+    "fabric_change_pct": null,
+    "host_change_pct": 0.0,
+    "delivered_change_pct": 0.0,
+    "loss_rate_pct": 16.195825118183336
+   },
+   "reactive": {
+    "total_drops": 24725.1,
+    "fabric_link_drops": 0.0,
+    "host_link_drops": 24725.1,
+    "avg_throughput": 851.2426666666667,
+    "total_offered": 152411.5,
+    "total_delivered": 127686.4,
+    "reroutes": 32.6,
+    "delivered_mean_latency_us": 4029.086693669085,
+    "delivered_p99_latency_us": 12400.0,
+    "total_change_pct": 0.16528724735964673,
+    "fabric_change_pct": null,
+    "host_change_pct": 0.16528724735964673,
+    "delivered_change_pct": -0.03194307868645829,
+    "loss_rate_pct": 16.222594751708368
+   },
+   "gnn": {
+    "total_drops": 24711.500000000004,
+    "fabric_link_drops": 0.0,
+    "host_link_drops": 24711.500000000004,
+    "avg_throughput": 851.3333333333334,
+    "total_offered": 152411.5,
+    "total_delivered": 127700.0,
+    "reroutes": 11.433333333333334,
+    "delivered_mean_latency_us": 4023.04419634651,
+    "delivered_p99_latency_us": 12233.333333333332,
+    "total_change_pct": 0.11019149823978669,
+    "fabric_change_pct": null,
+    "host_change_pct": 0.11019149823978669,
+    "delivered_change_pct": -0.021295385790964794,
+    "loss_rate_pct": 16.213671540533362
+   },
+   "guarded_gnn": {
+    "total_drops": 24684.3,
+    "fabric_link_drops": 0.0,
+    "host_link_drops": 24684.3,
+    "avg_throughput": 851.5146666666667,
+    "total_offered": 152411.5,
+    "total_delivered": 127727.2,
+    "reroutes": 0.0,
+    "delivered_mean_latency_us": 4025.0159029306587,
+    "delivered_p99_latency_us": 12300.0,
+    "total_change_pct": 0.0,
+    "fabric_change_pct": null,
+    "host_change_pct": 0.0,
+    "delivered_change_pct": 0.0,
+    "loss_rate_pct": 16.195825118183336
+   },
+   "guarded_lstm": {
+    "total_drops": 24684.3,
+    "fabric_link_drops": 0.0,
+    "host_link_drops": 24684.3,
+    "avg_throughput": 851.5146666666667,
+    "total_offered": 152411.5,
+    "total_delivered": 127727.2,
+    "reroutes": 0.0,
+    "delivered_mean_latency_us": 4025.0159029306587,
+    "delivered_p99_latency_us": 12300.0,
+    "total_change_pct": 0.0,
+    "fabric_change_pct": null,
+    "host_change_pct": 0.0,
+    "delivered_change_pct": 0.0,
+    "loss_rate_pct": 16.195825118183336
+   },
+   "guarded_persistence": {
+    "total_drops": 24684.3,
+    "fabric_link_drops": 0.0,
+    "host_link_drops": 24684.3,
+    "avg_throughput": 851.5146666666667,
+    "total_offered": 152411.5,
+    "total_delivered": 127727.2,
+    "reroutes": 2.3,
+    "delivered_mean_latency_us": 4025.0159029306587,
+    "delivered_p99_latency_us": 12300.0,
+    "total_change_pct": 0.0,
+    "fabric_change_pct": null,
+    "host_change_pct": 0.0,
+    "delivered_change_pct": 0.0,
+    "loss_rate_pct": 16.195825118183336
+   },
+   "guarded_score": {
+    "total_drops": 24684.3,
+    "fabric_link_drops": 0.0,
+    "host_link_drops": 24684.3,
+    "avg_throughput": 851.5146666666667,
+    "total_offered": 152411.5,
+    "total_delivered": 127727.2,
+    "reroutes": 2.3,
+    "delivered_mean_latency_us": 4025.0159029306587,
+    "delivered_p99_latency_us": 12300.0,
+    "total_change_pct": 0.0,
+    "fabric_change_pct": null,
+    "host_change_pct": 0.0,
+    "delivered_change_pct": 0.0,
+    "loss_rate_pct": 16.195825118183336
+   }
+  },
+  "mixed": {
+   "ecmp": {
+    "total_drops": 887948.9,
+    "fabric_link_drops": 208435.2,
+    "host_link_drops": 679513.7,
+    "avg_throughput": 4763.459333333334,
+    "total_offered": 1641033.5,
+    "total_delivered": 714518.9,
+    "reroutes": 0.0,
+    "delivered_mean_latency_us": 11423.151758003281,
+    "delivered_p99_latency_us": 22000.0,
+    "total_change_pct": 0.0,
+    "fabric_change_pct": 0.0,
+    "host_change_pct": 0.0,
+    "delivered_change_pct": 0.0,
+    "loss_rate_pct": 54.10912696175916
+   },
+   "reactive": {
+    "total_drops": 886632.6,
+    "fabric_link_drops": 210405.6,
+    "host_link_drops": 676227.0,
+    "avg_throughput": 4732.617333333334,
+    "total_offered": 1641033.5,
+    "total_delivered": 709892.6,
+    "reroutes": 1729.0,
+    "delivered_mean_latency_us": 12600.638014084487,
+    "delivered_p99_latency_us": 28500.0,
+    "total_change_pct": -0.14824051248895076,
+    "fabric_change_pct": 0.9453297715549036,
+    "host_change_pct": -0.48368414058465037,
+    "delivered_change_pct": -0.6474706267392105,
+    "loss_rate_pct": 54.028915314647755
+   },
+   "gnn": {
+    "total_drops": 865410.0666666667,
+    "fabric_link_drops": 172015.06666666668,
+    "host_link_drops": 693395.0,
+    "avg_throughput": 4914.800888888889,
+    "total_offered": 1641033.5,
+    "total_delivered": 737220.1333333334,
+    "reroutes": 1662.9333333333332,
+    "delivered_mean_latency_us": 11388.224963495693,
+    "delivered_p99_latency_us": 21666.666666666664,
+    "total_change_pct": -2.5383029736658735,
+    "fabric_change_pct": -17.473120343077042,
+    "host_change_pct": 2.0428285699022775,
+    "delivered_change_pct": 3.1771354590246936,
+    "loss_rate_pct": 52.73567338306419
+   },
+   "guarded_gnn": {
+    "total_drops": 875471.3666666668,
+    "fabric_link_drops": 188606.1666666667,
+    "host_link_drops": 686865.2,
+    "avg_throughput": 4854.256888888889,
+    "total_offered": 1641033.5,
+    "total_delivered": 728138.5333333333,
+    "reroutes": 32.03333333333333,
+    "delivered_mean_latency_us": 11221.397886531315,
+    "delivered_p99_latency_us": 21433.333333333332,
+    "total_change_pct": -1.4052084904134898,
+    "fabric_change_pct": -9.513284384467369,
+    "host_change_pct": 1.0818766420750636,
+    "delivered_change_pct": 1.9061263926445138,
+    "loss_rate_pct": 53.34878091560391
+   },
+   "guarded_lstm": {
+    "total_drops": 872929.3,
+    "fabric_link_drops": 184874.63333333333,
+    "host_link_drops": 688054.6666666667,
+    "avg_throughput": 4874.191111111111,
+    "total_offered": 1641033.5,
+    "total_delivered": 731128.6666666667,
+    "reroutes": 38.16666666666667,
+    "delivered_mean_latency_us": 11116.396203496284,
+    "delivered_p99_latency_us": 21466.666666666668,
+    "total_change_pct": -1.6914937334794766,
+    "fabric_change_pct": -11.303545018627704,
+    "host_change_pct": 1.2569233948729552,
+    "delivered_change_pct": 2.3246084416614465,
+    "loss_rate_pct": 53.19387446996055
+   },
+   "guarded_persistence": {
+    "total_drops": 878360.3,
+    "fabric_link_drops": 192030.1,
+    "host_link_drops": 686330.2,
+    "avg_throughput": 4835.433999999999,
+    "total_offered": 1641033.5,
+    "total_delivered": 725315.1,
+    "reroutes": 31.7,
+    "delivered_mean_latency_us": 11143.779553078812,
+    "delivered_p99_latency_us": 21800.0,
+    "total_change_pct": -1.079859437857289,
+    "fabric_change_pct": -7.870599591623684,
+    "host_change_pct": 1.0031438659735548,
+    "delivered_change_pct": 1.5109747271905283,
+    "loss_rate_pct": 53.52482444752042
+   },
+   "guarded_score": {
+    "total_drops": 872411.4,
+    "fabric_link_drops": 183448.7,
+    "host_link_drops": 688962.7,
+    "avg_throughput": 4875.845333333333,
+    "total_offered": 1641033.5,
+    "total_delivered": 731376.8,
+    "reroutes": 25.9,
+    "delivered_mean_latency_us": 11122.196303308596,
+    "delivered_p99_latency_us": 21400.0,
+    "total_change_pct": -1.7498191618909642,
+    "fabric_change_pct": -11.98765851449275,
+    "host_change_pct": 1.390553273613171,
+    "delivered_change_pct": 2.3593357712440977,
+    "loss_rate_pct": 53.16231508985039
+   }
+  },
+  "ALL": {
+   "ecmp": {
+    "total_drops": 218550.2,
+    "fabric_link_drops": 67581.15,
+    "host_link_drops": 150969.05,
+    "avg_throughput": 2508.1836666666663,
+    "total_offered": 605291.75,
+    "total_delivered": 376227.55,
+    "reroutes": 0.0,
+    "delivered_mean_latency_us": 7695.449961093812,
+    "delivered_p99_latency_us": 15466.666666666666,
+    "total_change_pct": 0.0,
+    "fabric_change_pct": 0.0,
+    "host_change_pct": 0.0,
+    "delivered_change_pct": 0.0,
+    "loss_rate_pct": 36.106588269210675
+   },
+   "reactive": {
+    "total_drops": 209470.45,
+    "fabric_link_drops": 56056.3,
+    "host_link_drops": 153414.15,
+    "avg_throughput": 2561.8555555555563,
+    "total_offered": 605291.75,
+    "total_delivered": 384278.3333333333,
+    "reroutes": 547.4833333333333,
+    "delivered_mean_latency_us": 7953.777043977866,
+    "delivered_p99_latency_us": 17600.0,
+    "total_change_pct": -4.154537492987876,
+    "fabric_change_pct": -17.05334993559594,
+    "host_change_pct": 1.6196034882646426,
+    "delivered_change_pct": 2.139870759951923,
+    "loss_rate_pct": 34.60652652212756
+   },
+   "gnn": {
+    "total_drops": 206497.18333333332,
+    "fabric_link_drops": 49696.888888888876,
+    "host_link_drops": 156800.29444444444,
+    "avg_throughput": 2587.809074074074,
+    "total_offered": 605291.75,
+    "total_delivered": 388171.36111111107,
+    "reroutes": 585.6333333333333,
+    "delivered_mean_latency_us": 7951.391741272271,
+    "delivered_p99_latency_us": 17172.222222222223,
+    "total_change_pct": -5.51498770839226,
+    "fabric_change_pct": -26.46338677443506,
+    "host_change_pct": 3.8625429811239176,
+    "delivered_change_pct": 3.1746242695706695,
+    "loss_rate_pct": 34.11531436424391
+   },
+   "guarded_gnn": {
+    "total_drops": 207039.76111111112,
+    "fabric_link_drops": 52049.68333333334,
+    "host_link_drops": 154990.0777777778,
+    "avg_throughput": 2587.573037037037,
+    "total_offered": 605291.75,
+    "total_delivered": 388135.95555555547,
+    "reroutes": 58.90555555555556,
+    "delivered_mean_latency_us": 7291.314940725114,
+    "delivered_p99_latency_us": 14044.444444444445,
+    "total_change_pct": -5.266725397134797,
+    "fabric_change_pct": -22.981950834909814,
+    "host_change_pct": 2.663478228006211,
+    "delivered_change_pct": 3.1652135936232284,
+    "loss_rate_pct": 34.20495341479726
+   },
+   "guarded_lstm": {
+    "total_drops": 206815.6,
+    "fabric_link_drops": 51687.48888888889,
+    "host_link_drops": 155128.1111111111,
+    "avg_throughput": 2589.7184444444442,
+    "total_offered": 605291.75,
+    "total_delivered": 388457.7666666667,
+    "reroutes": 47.81111111111112,
+    "delivered_mean_latency_us": 7301.0816935020885,
+    "delivered_p99_latency_us": 14277.777777777777,
+    "total_change_pct": -5.369292729999797,
+    "fabric_change_pct": -23.517890878020143,
+    "host_change_pct": 2.7549097719771654,
+    "delivered_change_pct": 3.2507498897054843,
+    "loss_rate_pct": 34.16791985022099
+   },
+   "guarded_persistence": {
+    "total_drops": 207928.53333333333,
+    "fabric_link_drops": 54210.13333333333,
+    "host_link_drops": 153718.4,
+    "avg_throughput": 2581.969,
+    "total_offered": 605291.75,
+    "total_delivered": 387295.35,
+    "reroutes": 47.78333333333333,
+    "delivered_mean_latency_us": 7282.64231277705,
+    "delivered_p99_latency_us": 14200.0,
+    "total_change_pct": -4.860058085815833,
+    "fabric_change_pct": -19.785127460344587,
+    "host_change_pct": 1.8211348617481526,
+    "delivered_change_pct": 2.9417835030954187,
+    "loss_rate_pct": 34.35178710652067
+   },
+   "guarded_score": {
+    "total_drops": 206049.43333333332,
+    "fabric_link_drops": 50790.416666666664,
+    "host_link_drops": 155259.01666666666,
+    "avg_throughput": 2594.6544444444444,
+    "total_offered": 605291.75,
+    "total_delivered": 389198.1666666667,
+    "reroutes": 37.93333333333333,
+    "delivered_mean_latency_us": 7259.254542685697,
+    "delivered_p99_latency_us": 14116.666666666666,
+    "total_change_pct": -5.719860547675859,
+    "fabric_change_pct": -24.845290932949993,
+    "host_change_pct": 2.8416199655934005,
+    "delivered_change_pct": 3.4475456852287145,
+    "loss_rate_pct": 34.04134177168833
+   }
+  }
+ },
+ "overall": {},
+ "tost": {
+  "guarded_score": {
+   "mean": 990.3277777777797,
+   "mean_pct_of_ecmp": 0.45313515054105635,
+   "pair": {
+    "ci95": [
+     -358.60722222221995,
+     2449.4413888888844
+    ],
+    "ci90": [
+     -171.62527777777734,
+     2229.5525000000007
+    ],
+    "ci95_pct": [
+     -0.16408460034455238,
+     1.1207683126754788
+    ],
+    "ci90_pct": [
+     -0.07852899598251448,
+     1.0201557811431883
+    ],
+    "equivalent_at_1pct": false,
+    "smallest_equiv_margin_pct": 1.0201557811431883
+   },
+   "cluster": {
+    "ci95": [
+     -274.43472222221715,
+     2949.339861111109
+    ],
+    "ci90": [
+     -85.60694444444343,
+     2560.094722222227
+    ],
+    "ci95_pct": [
+     -0.12557056558274354,
+     1.3495022475893907
+    ],
+    "ci90_pct": [
+     -0.039170380280797466,
+     1.171398938194624
+    ],
+    "equivalent_at_1pct": false,
+    "smallest_equiv_margin_pct": 1.171398938194624
+   },
+   "per_family": {
+    "uniform": {
+     "mean": 647.9333333333328,
+     "ci95": [
+      -463.6675000000005,
+      1999.2458333333311
+     ],
+     "mean_pct_of_family_ecmp": 1.9118999493451743
+    },
+    "hotspot": {
+     "mean": 1730.0333333333372,
+     "ci95": [
+      -1723.0666666666627,
+      4640.341666666669
+     ],
+     "mean_pct_of_family_ecmp": 0.6203072983783174
+    },
+    "elephant_mice": {
+     "mean": 504.03333333333387,
+     "ci95": [
+      -305.37749999999903,
+      1836.1599999999999
+     ],
+     "mean_pct_of_family_ecmp": 0.6549068421978128
+    },
+    "stride": {
+     "mean": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "mean_pct_of_family_ecmp": 0.0
+    },
+    "llm_training": {
+     "mean": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "mean_pct_of_family_ecmp": 0.0
+    },
+    "mixed": {
+     "mean": 3059.9666666666744,
+     "ci95": [
+      -4553.947499999993,
+      11370.87500000002
+     ],
+     "mean_pct_of_family_ecmp": 0.3446106714774549
+    }
+   }
+  },
+  "guarded_lstm": {
+   "mean": 224.16111111110936,
+   "mean_pct_of_ecmp": 0.10256733286499364,
+   "pair": {
+    "ci95": [
+     -718.6409722222216,
+     1149.5855555555556
+    ],
+    "ci90": [
+     -567.5297222222272,
+     1032.8294444444414
+    ],
+    "ci95_pct": [
+     -0.3288219238519212,
+     0.5260052635758539
+    ],
+    "ci90_pct": [
+     -0.25967934242211954,
+     0.4725822462960186
+    ],
+    "equivalent_at_1pct": true,
+    "smallest_equiv_margin_pct": 0.4725822462960186
+   },
+   "cluster": {
+    "ci95": [
+     -940.3323611111108,
+     1620.1452777777758
+    ],
+    "ci90": [
+     -735.727222222223,
+     1391.296944444438
+    ],
+    "ci95_pct": [
+     -0.4302592086903196,
+     0.7413149371530091
+    ],
+    "ci90_pct": [
+     -0.3366399217306701,
+     0.6366029152315751
+    ],
+    "equivalent_at_1pct": true,
+    "smallest_equiv_margin_pct": 0.6366029152315751
+   },
+   "per_family": {
+    "uniform": {
+     "mean": 72.99999999999928,
+     "ci95": [
+      -1172.9783333333346,
+      1299.3049999999992
+     ],
+     "mean_pct_of_family_ecmp": 0.2154059516959509
+    },
+    "hotspot": {
+     "mean": -378.29999999999416,
+     "ci95": [
+      -3790.7049999999913,
+      2744.265000000002
+     ],
+     "mean_pct_of_family_ecmp": -0.1356403061462284
+    },
+    "elephant_mice": {
+     "mean": -891.7999999999996,
+     "ci95": [
+      -2265.5816666666688,
+      137.13750000000036
+     ],
+     "mean_pct_of_family_ecmp": -1.158744637005506
+    },
+    "stride": {
+     "mean": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "mean_pct_of_family_ecmp": 0.0
+    },
+    "llm_training": {
+     "mean": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "mean_pct_of_family_ecmp": 0.0
+    },
+    "mixed": {
+     "mean": 2542.066666666651,
+     "ci95": [
+      -1694.4800000000116,
+      6653.895833333337
+     ],
+     "mean_pct_of_family_ecmp": 0.286285243065975
+    }
+   }
+  },
+  "guarded_persistence": {
+   "mean": -888.7722222222204,
+   "mean_pct_of_ecmp": -0.40666731131896483,
+   "pair": {
+    "ci95": [
+     -2704.451527777776,
+     882.9081944444466
+    ],
+    "ci90": [
+     -2410.9405555555563,
+     633.2247222222244
+    ],
+    "ci95_pct": [
+     -1.237450950755376,
+     0.4039841621945194
+    ],
+    "ci90_pct": [
+     -1.1031518413415116,
+     0.28973879786988266
+    ],
+    "equivalent_at_1pct": false,
+    "smallest_equiv_margin_pct": 1.1031518413415116
+   },
+   "cluster": {
+    "ci95": [
+     -3212.6651388888877,
+     917.804722222222
+    ],
+    "ci90": [
+     -2836.563888888889,
+     576.1366666666665
+    ],
+    "ci95_pct": [
+     -1.4699895671058125,
+     0.4199514446668189
+    ],
+    "ci90_pct": [
+     -1.2979003857644096,
+     0.263617542636276
+    ],
+    "equivalent_at_1pct": false,
+    "smallest_equiv_margin_pct": 1.2979003857644096
+   },
+   "per_family": {
+    "uniform": {
+     "mean": 581.0333333333327,
+     "ci95": [
+      -12.56750000000048,
+      1703.836666666666
+     ],
+     "mean_pct_of_family_ecmp": 1.7144936730649103
+    },
+    "hotspot": {
+     "mean": -2582.066666666663,
+     "ci95": [
+      -6848.719166666664,
+      1945.7058333333334
+     ],
+     "mean_pct_of_family_ecmp": -0.9258057445324955
+    },
+    "elephant_mice": {
+     "mean": -442.6666666666662,
+     "ci95": [
+      -3505.466666666666,
+      2287.34333333333
+     ],
+     "mean_pct_of_family_ecmp": -0.5751711437330159
+    },
+    "stride": {
+     "mean": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "mean_pct_of_family_ecmp": 0.0
+    },
+    "llm_training": {
+     "mean": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "mean_pct_of_family_ecmp": 0.0
+    },
+    "mixed": {
+     "mean": -2888.9333333333257,
+     "ci95": [
+      -12524.96749999999,
+      6480.660000000003
+     ],
+     "mean_pct_of_family_ecmp": -0.32534905255621416
+    }
+   }
+  }
+ },
+ "cluster_bootstrap": {
+  "reactive": {
+   "total_drops": {
+    "mean": -9079.75,
+    "pair_ci95_pct": [
+     -6.129703267258506,
+     -2.302392463302863
+    ],
+    "cluster_ci95_pct": [
+     -7.5581475865346555,
+     -1.061743480445228
+    ]
+   },
+   "avg_throughput": {
+    "mean": 53.67188888888888,
+    "pair_ci95_pct": [
+     1.02154533871855,
+     3.3213235358938116
+    ],
+    "cluster_ci95_pct": [
+     0.02289472155880158,
+     4.258711804420842
+    ]
+   },
+   "fabric_link_drops": {
+    "mean": -11524.85,
+    "pair_ci95_pct": [
+     -25.217017491810466,
+     -9.474092751208486
+    ],
+    "cluster_ci95_pct": [
+     -32.12705700233472,
+     -3.1802624203149445
+    ]
+   },
+   "host_link_drops": {
+    "mean": 2445.1,
+    "pair_ci95_pct": [
+     0.22689004799328077,
+     3.173980031006354
+    ],
+    "cluster_ci95_pct": [
+     -0.6758863268111357,
+     4.153203090302282
+    ]
+   }
+  },
+  "gnn": {
+   "total_drops": {
+    "mean": -12053.016666666666,
+    "pair_ci95_pct": [
+     -7.52467479121756,
+     -3.781728344843021
+    ],
+    "cluster_ci95_pct": [
+     -9.211673234697466,
+     -2.3393649630865396
+    ]
+   },
+   "avg_throughput": {
+    "mean": 79.62540740740748,
+    "pair_ci95_pct": [
+     2.1551789823295358,
+     4.355537958344622
+    ],
+    "cluster_ci95_pct": [
+     1.341021802423089,
+     5.274681505913113
+    ]
+   },
+   "fabric_link_drops": {
+    "mean": -17884.261111111107,
+    "pair_ci95_pct": [
+     -34.48884702974786,
+     -19.36194999969996
+    ],
+    "cluster_ci95_pct": [
+     -42.87188850408402,
+     -11.410007738022298
+    ]
+   },
+   "host_link_drops": {
+    "mean": 5831.244444444445,
+    "pair_ci95_pct": [
+     2.3896853545662364,
+     5.523112371560779
+    ],
+    "cluster_ci95_pct": [
+     1.110815612721798,
+     6.882640109935709
+    ]
+   }
+  },
+  "guarded_gnn": {
+   "total_drops": {
+    "mean": -11510.438888888888,
+    "pair_ci95_pct": [
+     -6.7783864225854416,
+     -3.8875881452712786
+    ],
+    "cluster_ci95_pct": [
+     -7.911894180630151,
+     -2.676791571608416
+    ]
+   },
+   "avg_throughput": {
+    "mean": 79.3893703703704,
+    "pair_ci95_pct": [
+     2.372422472635099,
+     4.023762458827553
+    ],
+    "cluster_ci95_pct": [
+     1.6244094018219684,
+     4.703573933440606
+    ]
+   },
+   "fabric_link_drops": {
+    "mean": -15531.466666666665,
+    "pair_ci95_pct": [
+     -29.67318796242247,
+     -16.96767186971186
+    ],
+    "cluster_ci95_pct": [
+     -34.56305904498189,
+     -11.083978709710893
+    ]
+   },
+   "host_link_drops": {
+    "mean": 4021.0277777777783,
+    "pair_ci95_pct": [
+     1.3417886351908266,
+     4.19511528650703
+    ],
+    "cluster_ci95_pct": [
+     0.7129615308568205,
+     4.772010480882597
+    ]
+   }
+  },
+  "guarded_lstm": {
+   "total_drops": {
+    "mean": -11734.599999999997,
+    "pair_ci95_pct": [
+     -6.866245464174564,
+     -3.924677068853441
+    ],
+    "cluster_ci95_pct": [
+     -7.898967135341087,
+     -2.732125222895651
+    ]
+   },
+   "avg_throughput": {
+    "mean": 81.5347777777778,
+    "pair_ci95_pct": [
+     2.4149798292135856,
+     4.141111579651435
+    ],
+    "cluster_ci95_pct": [
+     1.649313914766036,
+     4.734912606597908
+    ]
+   },
+   "fabric_link_drops": {
+    "mean": -15893.66111111111,
+    "pair_ci95_pct": [
+     -30.122870183968953,
+     -17.51770546307004
+    ],
+    "cluster_ci95_pct": [
+     -34.91480037127381,
+     -11.480942006593395
+    ]
+   },
+   "host_link_drops": {
+    "mean": 4159.061111111113,
+    "pair_ci95_pct": [
+     1.3451365436234204,
+     4.262114762374587
+    ],
+    "cluster_ci95_pct": [
+     0.7558386967394982,
+     5.013514359400157
+    ]
+   }
+  },
+  "guarded_persistence": {
+   "total_drops": {
+    "mean": -10621.666666666666,
+    "pair_ci95_pct": [
+     -6.449929085705099,
+     -3.419583921680237
+    ],
+    "cluster_ci95_pct": [
+     -7.6375341912292924,
+     -2.301017683809031
+    ]
+   },
+   "avg_throughput": {
+    "mean": 73.78533333333333,
+    "pair_ci95_pct": [
+     2.11127913147243,
+     3.846101249097791
+    ],
+    "cluster_ci95_pct": [
+     1.4464713575600725,
+     4.503197931677247
+    ]
+   },
+   "fabric_link_drops": {
+    "mean": -13371.016666666666,
+    "pair_ci95_pct": [
+     -25.957282467078468,
+     -13.788285145586707
+    ],
+    "cluster_ci95_pct": [
+     -30.48376532016201,
+     -9.22478753321008
+    ]
+   },
+   "host_link_drops": {
+    "mean": 2749.35,
+    "pair_ci95_pct": [
+     0.6270195226549196,
+     3.1891713345660344
+    ],
+    "cluster_ci95_pct": [
+     0.10194280439158451,
+     3.739366887893024
+    ]
+   }
+  },
+  "guarded_score": {
+   "total_drops": {
+    "mean": -12500.766666666666,
+    "pair_ci95_pct": [
+     -7.2973549097644375,
+     -4.278204542175361
+    ],
+    "cluster_ci95_pct": [
+     -8.489492154815384,
+     -2.9213978451327587
+    ]
+   },
+   "avg_throughput": {
+    "mean": 86.4707777777778,
+    "pair_ci95_pct": [
+     2.622042054956725,
+     4.344399752224419
+    ],
+    "cluster_ci95_pct": [
+     1.7615129682377952,
+     5.033634565039162
+    ]
+   },
+   "fabric_link_drops": {
+    "mean": -16790.733333333334,
+    "pair_ci95_pct": [
+     -31.491556817248593,
+     -18.769825239730313
+    ],
+    "cluster_ci95_pct": [
+     -36.86627730760229,
+     -12.094783456629553
+    ]
+   },
+   "host_link_drops": {
+    "mean": 4289.966666666666,
+    "pair_ci95_pct": [
+     1.5004559985418646,
+     4.380945134118549
+    ],
+    "cluster_ci95_pct": [
+     0.8169911316259857,
+     5.223720248178902
+    ]
+   }
+  }
+ },
+ "tost_margin_packets": 2185.502
+}

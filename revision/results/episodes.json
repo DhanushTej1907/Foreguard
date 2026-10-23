@@ -1,0 +1,39 @@
+{
+ "n": 1560,
+ "median": 3.0,
+ "mean": 18.025,
+ "share_ticks_in_episodes_ge_10": 0.8955154877484974,
+ "share_ticks_in_episodes_gt_5": 0.9209075713930083,
+ "per_family": {
+  "uniform": {
+   "median": 2.0,
+   "mean": 26.930232558139537,
+   "n": 86
+  },
+  "hotspot": {
+   "median": 3.0,
+   "mean": 20.115384615384617,
+   "n": 364
+  },
+  "elephant_mice": {
+   "median": 12.0,
+   "mean": 28.357894736842105,
+   "n": 95
+  },
+  "stride": {
+   "median": 82.0,
+   "mean": 72.43589743589743,
+   "n": 39
+  },
+  "llm_training": {
+   "median": 5.0,
+   "mean": 3.902439024390244,
+   "n": 246
+  },
+  "mixed": {
+   "median": 2.0,
+   "mean": 16.44109589041096,
+   "n": 730
+  }
+ }
+}

@@ -1,0 +1,20 @@
+/usr/local/lib/python3.13/dist-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+  Dataset sizes: train=2448, val=816, test=816
+gnn seed 42: AP 0.9453 T 0.840 ECE raw 0.0645 cal 0.0523 platt 0.0119 (mass 0.0645/0.0523/0.0112) meanp 0.298/0.286 pos 0.233
+gnn seed 43: AP 0.9460 T 0.883 ECE raw 0.0662 cal 0.0567 platt 0.0105 (mass 0.0662/0.0567/0.0132) meanp 0.300/0.290 pos 0.233
+gnn seed 44: AP 0.9503 T 0.980 ECE raw 0.0473 cal 0.0461 platt 0.0090 (mass 0.0473/0.0461/0.0095) meanp 0.281/0.280 pos 0.233
+lstm_only seed 42: AP 0.9459 T 0.808 ECE raw 0.0473 cal 0.0306 platt 0.0112 (mass 0.0473/0.0306/0.0104) meanp 0.281/0.264 pos 0.233
+lstm_only seed 43: AP 0.9457 T 0.786 ECE raw 0.0451 cal 0.0262 platt 0.0119 (mass 0.0451/0.0266/0.0129) meanp 0.279/0.260 pos 0.233
+lstm_only seed 44: AP 0.9464 T 0.809 ECE raw 0.0440 cal 0.0276 platt 0.0120 (mass 0.0440/0.0276/0.0112) meanp 0.277/0.261 pos 0.233
+logreg ECE 0.0105 binary persistence ECE 0.0529
+scenario 11 mixed         pos  2348 AP gnn 0.962 lstm 0.966 pc 0.914 diff +0.048 | onset gnn 0.254 pc 0.252
+scenario 12 uniform       pos   675 AP gnn 0.980 lstm 0.983 pc 0.934 diff +0.047 | onset gnn 0.157 pc 0.138
+scenario 19 hotspot       pos  1577 AP gnn 0.939 lstm 0.942 pc 0.867 diff +0.071 | onset gnn 0.281 pc 0.26
+scenario 20 elephant_mice pos   774 AP gnn 0.965 lstm 0.968 pc 0.942 diff +0.023 | onset gnn 0.107 pc 0.137
+scenario 22 llm_training  pos   109 AP gnn 0.092 lstm 0.067 pc 0.036 diff +0.056 | onset gnn 0.056 pc 0.023
+scenario 27 stride        pos   611 AP gnn 0.958 lstm 0.933 pc 0.917 diff +0.041 | onset gnn 0.073 pc 0.017
+all scen 6 AP gnn 0.947 lstm 0.946 pc 0.880; diff +0.067 [0.04  0.131] onset +0.021 [0.001 0.04 ]; gnn-lstm +0.0012 [-0.003  0.014]
+no_stride scen 5 AP gnn 0.946 lstm 0.947 pc 0.879; diff +0.067 [0.041 0.144] onset +0.017 [-0.001  0.036]; gnn-lstm -0.0011 [-0.004  0.008]
+no_stride_no_llm scen 4 AP gnn 0.957 lstm 0.960 pc 0.905; diff +0.052 [0.033 0.065] onset +0.013 [-0.015  0.033]; gnn-lstm -0.0027 [-0.004 -0.002]
+wrote results/forecast_analysis.json

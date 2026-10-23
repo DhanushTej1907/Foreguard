@@ -1,0 +1,7 @@
+controls 120 tasks
+  20/120 0.1 min, eta 0.5 min
+  40/120 0.2 min, eta 0.5 min
+  60/120 0.3 min, eta 0.3 min
+  80/120 0.3 min, eta 0.2 min
+  100/120 0.4 min, eta 0.1 min
+  120/120 0.7 min, eta 0.0 min

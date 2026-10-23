@@ -1,0 +1,19 @@
+addone 360 tasks
+  20/360 0.1 min, eta 1.6 min
+  40/360 0.2 min, eta 1.4 min
+  60/360 0.3 min, eta 1.3 min
+  80/360 0.4 min, eta 1.3 min
+  100/360 0.5 min, eta 1.3 min
+  120/360 0.6 min, eta 1.3 min
+  140/360 0.7 min, eta 1.1 min
+  160/360 0.8 min, eta 0.9 min
+  180/360 0.8 min, eta 0.8 min
+  200/360 0.8 min, eta 0.7 min
+  220/360 0.9 min, eta 0.6 min
+  240/360 0.9 min, eta 0.4 min
+  260/360 0.9 min, eta 0.3 min
+  280/360 0.9 min, eta 0.3 min
+  300/360 0.9 min, eta 0.2 min
+  320/360 1.3 min, eta 0.2 min
+  340/360 1.6 min, eta 0.1 min
+  360/360 1.9 min, eta 0.0 min

@@ -1,0 +1,12 @@
+ablation: 1020 tasks to run (0 done)
+  50/1020 0.4 min, eta 7.7 min
+  100/1020 0.6 min, eta 5.2 min
+  150/1020 0.8 min, eta 4.9 min
+  200/1020 1.5 min, eta 6.1 min
+  250/1020 2.5 min, eta 7.7 min
+  300/1020 3.4 min, eta 8.1 min
+  350/1020 4.1 min, eta 7.9 min
+  400/1020 4.3 min, eta 6.6 min
+  450/1020 4.4 min, eta 5.6 min
+  500/1020 4.5 min, eta 4.7 min
+  550/1020 7.2 min, eta 6.1 min
