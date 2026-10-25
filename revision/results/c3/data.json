@@ -1,0 +1,209 @@
+{
+ "meta": {
+  "time": "2026-10-25T19:52:51",
+  "git_head": "40036fdeae5ef9bf33e6348db7139e114b72eb9a",
+  "python": "3.14.3",
+  "torch": "2.14.1+cpu",
+  "numpy": "2.5.3",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "torch_threads": 4,
+  "argv": [
+   "revision/scripts/c3_data.py"
+  ],
+  "step": "data"
+ },
+ "checks": {
+  "one_partition_per_scenario": true,
+  "partitions_equal_benchmark_at_every_load": true,
+  "window_counts": true,
+  "load1_slice_bitwise_equal": true,
+  "load1_slice_detail": {
+   "train": "identical",
+   "val": "identical",
+   "test": "identical"
+  }
+ },
+ "counts": {
+  "train": {
+   "0.1": {
+    "windows": 2448,
+    "link_windows": 78336,
+    "positives": 3,
+    "positive_rate": 3.829656998277642e-05,
+    "scenarios_with_positives": 1
+   },
+   "0.125": {
+    "windows": 2448,
+    "link_windows": 78336,
+    "positives": 8,
+    "positive_rate": 0.00010212418419541791,
+    "scenarios_with_positives": 2
+   },
+   "0.15": {
+    "windows": 2448,
+    "link_windows": 78336,
+    "positives": 63,
+    "positive_rate": 0.0008042279514484107,
+    "scenarios_with_positives": 4
+   },
+   "0.2": {
+    "windows": 2448,
+    "link_windows": 78336,
+    "positives": 281,
+    "positive_rate": 0.0035871118307113647,
+    "scenarios_with_positives": 6
+   },
+   "0.25": {
+    "windows": 2448,
+    "link_windows": 78336,
+    "positives": 778,
+    "positive_rate": 0.009931576438248158,
+    "scenarios_with_positives": 7
+   },
+   "0.5": {
+    "windows": 2448,
+    "link_windows": 78336,
+    "positives": 6913,
+    "positive_rate": 0.08824805915355682,
+    "scenarios_with_positives": 9
+   },
+   "0.75": {
+    "windows": 2448,
+    "link_windows": 78336,
+    "positives": 11241,
+    "positive_rate": 0.14349724352359772,
+    "scenarios_with_positives": 14
+   },
+   "1.0": {
+    "windows": 2448,
+    "link_windows": 78336,
+    "positives": 15980,
+    "positive_rate": 0.2039930522441864,
+    "scenarios_with_positives": 18
+   }
+  },
+  "val": {
+   "0.1": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 0,
+    "positive_rate": 0.0,
+    "scenarios_with_positives": 0
+   },
+   "0.125": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 6,
+    "positive_rate": 0.0002297794126207009,
+    "scenarios_with_positives": 1
+   },
+   "0.15": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 66,
+    "positive_rate": 0.002527573611587286,
+    "scenarios_with_positives": 2
+   },
+   "0.2": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 169,
+    "positive_rate": 0.006472120061516762,
+    "scenarios_with_positives": 2
+   },
+   "0.25": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 365,
+    "positive_rate": 0.013978247530758381,
+    "scenarios_with_positives": 2
+   },
+   "0.5": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 2422,
+    "positive_rate": 0.0927542895078659,
+    "scenarios_with_positives": 3
+   },
+   "0.75": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 3435,
+    "positive_rate": 0.1315487176179886,
+    "scenarios_with_positives": 4
+   },
+   "1.0": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 5310,
+    "positive_rate": 0.20335477590560913,
+    "scenarios_with_positives": 6
+   }
+  },
+  "test": {
+   "0.1": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 0,
+    "positive_rate": 0.0,
+    "scenarios_with_positives": 0
+   },
+   "0.125": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 40,
+    "positive_rate": 0.0015318627702072263,
+    "scenarios_with_positives": 1
+   },
+   "0.15": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 96,
+    "positive_rate": 0.0036764706019312143,
+    "scenarios_with_positives": 1
+   },
+   "0.2": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 169,
+    "positive_rate": 0.006472120061516762,
+    "scenarios_with_positives": 1
+   },
+   "0.25": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 382,
+    "positive_rate": 0.014629289507865906,
+    "scenarios_with_positives": 1
+   },
+   "0.5": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 2148,
+    "positive_rate": 0.08226102590560913,
+    "scenarios_with_positives": 4
+   },
+   "0.75": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 4644,
+    "positive_rate": 0.17784926295280457,
+    "scenarios_with_positives": 6
+   },
+   "1.0": {
+    "windows": 816,
+    "link_windows": 26112,
+    "positives": 6094,
+    "positive_rate": 0.2333792895078659,
+    "scenarios_with_positives": 6
+   }
+  }
+ },
+ "ok": true,
+ "pickle": {
+  "path": "C:\\Sem-3\\CN\\CN_Project\\NeuralFabric\\data\\datasets_c3_mixedload.pkl",
+  "sha256": "fbeed80292936aeaa41e2877e5ad00ca5124a5b90eff8e3291e9503d0d1ac71b",
+  "bytes": 285508780
+ },
+ "seconds": 25.759489059448242
+}

@@ -1,0 +1,87 @@
+{
+ "meta": {
+  "time": "2026-10-25T20:01:34",
+  "git_head": "40036fdeae5ef9bf33e6348db7139e114b72eb9a",
+  "python": "3.14.3",
+  "torch": "2.14.1+cpu",
+  "numpy": "2.5.3",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "torch_threads": 2,
+  "argv": [
+   "revision/scripts/c3_train.py",
+   "mixed"
+  ],
+  "step": "train",
+  "group": "mixed"
+ },
+ "group": "mixed",
+ "train_loads": [
+  0.1,
+  0.125,
+  0.15,
+  0.2,
+  0.25,
+  0.5,
+  0.75,
+  1.0
+ ],
+ "data_sha256": "fbeed80292936aeaa41e2877e5ad00ca5124a5b90eff8e3291e9503d0d1ac71b",
+ "n_train": 19584,
+ "n_val": 6528,
+ "batch_size": 32,
+ "runs": [
+  {
+   "seed": 42,
+   "checkpoint": "checkpoints\\c3\\best_model_c3_mixed.pt",
+   "best_epoch": 15,
+   "epochs_run": 25,
+   "best_val_ap": 0.9289239708648169,
+   "temperature": 0.8980782025844938,
+   "alert_threshold": 0.6910763656147068,
+   "val_brier_raw": 0.012814328074455261,
+   "val_brier_calibrated": 0.01271674927064839,
+   "gradient_steps": 15300,
+   "batches_per_epoch": 612,
+   "train_seconds": 1805.4673170000024,
+   "wall_seconds": 1805.4909057617188,
+   "sha256": "6bac8bd111c79886716da68176aa274ede70acdb66018480f927e98591e64180",
+   "test_ap_info_only": 0.9334460862322962
+  },
+  {
+   "seed": 43,
+   "checkpoint": "checkpoints\\c3\\best_model_c3_mixed_seed1.pt",
+   "best_epoch": 10,
+   "epochs_run": 20,
+   "best_val_ap": 0.9273483931937544,
+   "temperature": 1.072668464244149,
+   "alert_threshold": 0.7794975025382631,
+   "val_brier_raw": 0.015016097575426102,
+   "val_brier_calibrated": 0.01500079980085184,
+   "gradient_steps": 12240,
+   "batches_per_epoch": 612,
+   "train_seconds": 1254.787312200002,
+   "wall_seconds": 1254.8054432868958,
+   "sha256": "90bd67fc833da35273136cf0774ca33cebcbf06321ed27f95828b21d4b292b39",
+   "test_ap_info_only": 0.9309593045718121
+  },
+  {
+   "seed": 44,
+   "checkpoint": "checkpoints\\c3\\best_model_c3_mixed_seed2.pt",
+   "best_epoch": 23,
+   "epochs_run": 33,
+   "best_val_ap": 0.9296072300569123,
+   "temperature": 0.9031412434144286,
+   "alert_threshold": 0.7495416972434601,
+   "val_brier_raw": 0.014170454815030098,
+   "val_brier_calibrated": 0.014079779653123485,
+   "gradient_steps": 20196,
+   "batches_per_epoch": 612,
+   "train_seconds": 2250.4108485000033,
+   "wall_seconds": 2250.411939382553,
+   "sha256": "098b9d0a72520b2f5755c37c691bc5870db2fe40896977d936ed4e95e31938dd",
+   "test_ap_info_only": 0.9336815186966162
+  }
+ ],
+ "repro": [],
+ "B7_ok": true
+}

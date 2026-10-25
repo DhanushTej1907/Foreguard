@@ -200,14 +200,20 @@ def main():
             c = d.get(lf)
             if c:
                 D = float(np.mean([x['total_drops'] for x in c.values()]))
-                blk['variants'][v] = dict(cells=len(c), families=sorted({f for f, _ in c}), mean_drops=D,
-                                          total_pct_vs_ecmp=(D / E - 1) * 100 if E > 0 else None,
+                Ec = float(np.mean([e[k]['total_drops'] for k in c]))      # ECMP over the same cells
+                blk['variants'][v] = dict(cells=len(c), families=sorted({f for f, _ in c}), mean_drops=D, ecmp_mean_drops_same_cells=Ec,
+                                          total_pct_vs_ecmp=(D / Ec - 1) * 100 if Ec > 0 else None,
                                           reroutes=float(np.mean([x['reroutes'] for x in c.values()])),
                                           reordered_pct=float(sum(x.get('reordered_packets', 0) for x in c.values()) /
                                                               sum(x['total_delivered'] for x in c.values()) * 100))
         for name, a, b in ORACLE_COMPARISONS:
             A, B = both.get(a, {}).get(lf), both.get(b, {}).get(lf)
-            blk['diffs'][name] = diff(A, B, E) if A and B else None
+            if A and B:
+                common = set(A) & set(B)
+                Ec = float(np.mean([e[k]['total_drops'] for k in common]))   # normalise by ECMP over the compared cells
+                blk['diffs'][name] = diff({k: A[k] for k in common}, {k: B[k] for k in common}, Ec)
+            else:
+                blk['diffs'][name] = None
         orc[str(lf)] = blk
     S['oracle'] = orc
     C.write_json(os.path.join(C.OUT, 'summary.json'), S)
