@@ -29,3 +29,6 @@ scratch/
 *.fls
 *.bbl
 *.blg
+
+# Windows shortcuts
+*.lnk

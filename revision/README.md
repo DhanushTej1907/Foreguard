@@ -51,6 +51,12 @@ exactly (`verify_modelfree.py`, `results/verify_model.jsonl`). Timing results de
 | Round 4: noisy / rate-blind / telemetry rates, signal-free guard, controls with reordering (Tables A3, A4) | `rev4_c1.py`, `rev4_c2.py`, `rev4_c1_analyze.py` | `rev4_c1.jsonl`, `rev4_c1_summary.json` |
 | Round 4: closed loop with reordering penalty (Table A6) | `rev4_c4.py`, `rev4_c4_analyze.py` | `rev4_c4.jsonl`, `rev4_c4_summary.json` |
 | Round 4: FlowBender-style baseline (V-I, Table V) | `rev4_fb.py`, `rev4_fb_analyze.py` | `rev4_fb.jsonl`, `rev4_fb_summary.json` |
+| Round 5: terms of the capacity check (V-E, Table A7): configs A, B, C′, D, E, no check × score / random signal; counterfactual term attribution from audit-enabled A runs | `rev5_capterms.py`, `rev5_capterms_analyze.py`, `rev5_stats.py`, `rev5_external_check.py` | `rev5_capterms.jsonl` (720 outcome runs, audit off), `rev5_capterms_audit.jsonl` (120 A runs, audit on), `rev5_capterms_validation.jsonl` (60 ECMP, gate G0), `rev5_capterms_meta.json`, `rev5_capterms_summary.json` |
+
+Round 5 runs in this order: `rev5_capterms.py validation` and `rev5_capterms.py campaign --gate-only`, then
+`rev5_capterms_analyze.py gate` (must pass: the ECMP runs and the 180 runs that repeat saved results must equal
+them field by field), then `campaign`, `audit`, and `rev5_capterms_analyze.py summary`. The audit is opt-in
+(`GuardX(audit=True)`), never changes a decision, and its runs are not used for outcomes or timing.
 
 Statistics: paired bootstrap with seed 42 and 2,000 resamples over (family, traffic seed) pairs;
 the clustered variant resamples families first and seeds within families; TOST uses a ±1% of ECMP

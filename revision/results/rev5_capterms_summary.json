@@ -1,0 +1,766 @@
+{
+ "description": "Capacity-check term ablation (paper Table A7); unseen seeds 4000-4009, six families; outcomes from audit-off runs, attribution from audit-on A runs (counterfactual, per test, along A's own trajectory).",
+ "ecmp_reference": {
+  "source": "replicate.jsonl (60 ECMP runs)",
+  "total": 218621.41666666666,
+  "fabric": 60431.816666666666,
+  "host": 158189.6,
+  "deliv": 2579.595444444444,
+  "mean_ms": 7.409223899143188,
+  "p99_ms": 15.066666666666666,
+  "n": 60
+ },
+ "statistics": {
+  "pairing_unit": "(family, traffic seed)",
+  "n_pairs": 60,
+  "difference": "variant - reference, packets, in points of mean ECMP total drops; positive = more drops",
+  "resamples": 2000,
+  "rng": "numpy default_rng(42), reset per comparison",
+  "interval": "percentile 95% (90% also)",
+  "cluster": "two-stage: 6 families with replacement, then 10 seeds within each drawn family; mean of family means",
+  "order": "sorted (family name, seed)"
+ },
+ "cells": {
+  "A|random": {
+   "n": 60,
+   "total_pct": -4.5877252800408,
+   "fabric_pct": -22.637082177186464,
+   "host_pct": 2.3075157911771615,
+   "deliv_per_tick": 2648.3826666666664,
+   "deliv_pct": 2.6665895371449144,
+   "mean_ms": 7.144077755173153,
+   "p99_ms": 14.433333333333334,
+   "reroutes": 120.15,
+   "reordered_pct": 0.6665997075615625,
+   "flows_reordered_pct": 23.59102984883326
+  },
+  "A|score": {
+   "n": 60,
+   "total_pct": -4.279528881167094,
+   "fabric_pct": -19.50225446915518,
+   "host_pct": 1.5358784648295432,
+   "deliv_per_tick": 2644.3262222222215,
+   "deliv_pct": 2.509338350600099,
+   "mean_ms": 7.088380491771416,
+   "p99_ms": 14.0,
+   "reroutes": 33.85,
+   "reordered_pct": 0.22280407829997106,
+   "flows_reordered_pct": 7.44332473249711
+  },
+  "B|random": {
+   "n": 60,
+   "total_pct": -4.568277658067199,
+   "fabric_pct": -22.64312204194866,
+   "host_pct": 2.336700179194251,
+   "deliv_per_tick": 2648.6949999999997,
+   "deliv_pct": 2.6786973788611723,
+   "mean_ms": 7.14248633148506,
+   "p99_ms": 14.466666666666667,
+   "reroutes": 120.41666666666667,
+   "reordered_pct": 0.67210456470073,
+   "flows_reordered_pct": 23.80872647804674
+  },
+  "B|score": {
+   "n": 60,
+   "total_pct": -4.279528881167094,
+   "fabric_pct": -19.50225446915518,
+   "host_pct": 1.5358784648295432,
+   "deliv_per_tick": 2644.3262222222215,
+   "deliv_pct": 2.509338350600099,
+   "mean_ms": 7.088380491771416,
+   "p99_ms": 14.0,
+   "reroutes": 33.85,
+   "reordered_pct": 0.22280407829997106,
+   "flows_reordered_pct": 7.44332473249711
+  },
+  "Cp|random": {
+   "n": 60,
+   "total_pct": -4.459794843216402,
+   "fabric_pct": -23.28935999221161,
+   "host_pct": 2.7335024974250333,
+   "deliv_per_tick": 2647.6236666666664,
+   "deliv_pct": 2.6371663188013317,
+   "mean_ms": 7.122034370020628,
+   "p99_ms": 14.266666666666666,
+   "reroutes": 129.45,
+   "reordered_pct": 0.7950189966994722,
+   "flows_reordered_pct": 26.68249267826262
+  },
+  "Cp|score": {
+   "n": 60,
+   "total_pct": -4.132791198788466,
+   "fabric_pct": -19.441580028621797,
+   "host_pct": 1.7154941496364762,
+   "deliv_per_tick": 2641.966,
+   "deliv_pct": 2.4178425221629274,
+   "mean_ms": 7.076909019046229,
+   "p99_ms": 13.933333333333334,
+   "reroutes": 35.45,
+   "reordered_pct": 0.26795701887659923,
+   "flows_reordered_pct": 7.738621798996578
+  },
+  "D|random": {
+   "n": 60,
+   "total_pct": -4.325201442219173,
+   "fabric_pct": -22.774951053653027,
+   "host_pct": 2.7229982249149076,
+   "deliv_per_tick": 2645.6098888888887,
+   "deliv_pct": 2.5591006755193657,
+   "mean_ms": 7.1311072175696015,
+   "p99_ms": 14.316666666666666,
+   "reroutes": 131.95,
+   "reordered_pct": 0.8348211580198961,
+   "flows_reordered_pct": 26.842629440646785
+  },
+  "D|score": {
+   "n": 60,
+   "total_pct": -4.132791198788466,
+   "fabric_pct": -19.441580028621797,
+   "host_pct": 1.7154941496364762,
+   "deliv_per_tick": 2641.966,
+   "deliv_pct": 2.4178425221629274,
+   "mean_ms": 7.076909019046229,
+   "p99_ms": 13.933333333333334,
+   "reroutes": 35.45,
+   "reordered_pct": 0.26795701887659923,
+   "flows_reordered_pct": 7.738621798996578
+  },
+  "E|random": {
+   "n": 60,
+   "total_pct": -4.664364615086125,
+   "fabric_pct": -22.675858660545533,
+   "host_pct": 2.2164120355151917,
+   "deliv_per_tick": 2650.2855555555557,
+   "deliv_pct": 2.74035648742339,
+   "mean_ms": 7.1945193218521295,
+   "p99_ms": 14.6,
+   "reroutes": 129.66666666666666,
+   "reordered_pct": 1.0719976924918364,
+   "flows_reordered_pct": 28.87681837074176
+  },
+  "E|score": {
+   "n": 60,
+   "total_pct": -4.395437013070924,
+   "fabric_pct": -20.04631114570167,
+   "host_pct": 1.5835322507505856,
+   "deliv_per_tick": 2644.472,
+   "deliv_pct": 2.514989538195911,
+   "mean_ms": 7.144109575921067,
+   "p99_ms": 14.333333333333334,
+   "reroutes": 55.18333333333333,
+   "reordered_pct": 0.38246660286901213,
+   "flows_reordered_pct": 10.477367031141947
+  },
+  "nocheck|random": {
+   "n": 60,
+   "total_pct": -1.5746779916728126,
+   "fabric_pct": -6.897828930621253,
+   "host_pct": 0.458879724077943,
+   "deliv_per_tick": 2603.6193333333326,
+   "deliv_pct": 0.9313045167848921,
+   "mean_ms": 7.611113885453271,
+   "p99_ms": 15.983333333333334,
+   "reroutes": 294.0833333333333,
+   "reordered_pct": 7.79359962759533,
+   "flows_reordered_pct": 54.87610375032156
+  },
+  "nocheck|score": {
+   "n": 60,
+   "total_pct": -3.059421214069824,
+   "fabric_pct": -14.399313385967483,
+   "host_pct": 1.2726605710278616,
+   "deliv_per_tick": 2623.4278888888884,
+   "deliv_pct": 1.6991983971302194,
+   "mean_ms": 7.480752313914563,
+   "p99_ms": 15.666666666666666,
+   "reroutes": 172.18333333333334,
+   "reordered_pct": 4.6845240775099555,
+   "flows_reordered_pct": 45.29654809724858
+  }
+ },
+ "comparisons": {
+  "B_vs_A|score": {
+   "n": 60,
+   "mean": 0.0,
+   "mean_pct": 0.0,
+   "ci95_pct": [
+    0.0,
+    0.0
+   ],
+   "ci90_pct": [
+    0.0,
+    0.0
+   ],
+   "ci95_cluster_pct": [
+    0.0,
+    0.0
+   ],
+   "ci90_cluster_pct": [
+    0.0,
+    0.0
+   ],
+   "wins": 0,
+   "ties": 60,
+   "losses": 0
+  },
+  "Cp_vs_A|score": {
+   "n": 60,
+   "mean": 320.8,
+   "mean_pct": 0.14673768237863247,
+   "ci95_pct": [
+    -0.202,
+    0.531
+   ],
+   "ci90_pct": [
+    -0.151,
+    0.466
+   ],
+   "ci95_cluster_pct": [
+    -0.254,
+    0.644
+   ],
+   "ci90_cluster_pct": [
+    -0.183,
+    0.567
+   ],
+   "wins": 12,
+   "ties": 38,
+   "losses": 10
+  },
+  "D_vs_A|score": {
+   "n": 60,
+   "mean": 320.8,
+   "mean_pct": 0.14673768237863247,
+   "ci95_pct": [
+    -0.202,
+    0.531
+   ],
+   "ci90_pct": [
+    -0.151,
+    0.466
+   ],
+   "ci95_cluster_pct": [
+    -0.254,
+    0.644
+   ],
+   "ci90_cluster_pct": [
+    -0.183,
+    0.567
+   ],
+   "wins": 12,
+   "ties": 38,
+   "losses": 10
+  },
+  "E_vs_A|score": {
+   "n": 60,
+   "mean": -253.4,
+   "mean_pct": -0.11590813190382003,
+   "ci95_pct": [
+    -1.193,
+    0.927
+   ],
+   "ci90_pct": [
+    -1.013,
+    0.74
+   ],
+   "ci95_cluster_pct": [
+    -1.343,
+    0.941
+   ],
+   "ci90_cluster_pct": [
+    -1.091,
+    0.791
+   ],
+   "wins": 19,
+   "ties": 23,
+   "losses": 18
+  },
+  "nocheck_vs_A|score": {
+   "n": 60,
+   "mean": 2667.4166666666665,
+   "mean_pct": 1.220107667097269,
+   "ci95_pct": [
+    -0.009,
+    2.446
+   ],
+   "ci90_pct": [
+    0.199,
+    2.25
+   ],
+   "ci95_cluster_pct": [
+    -0.509,
+    3.224
+   ],
+   "ci90_cluster_pct": [
+    -0.248,
+    2.786
+   ],
+   "wins": 14,
+   "ties": 11,
+   "losses": 35
+  },
+  "D_vs_nocheck|score": {
+   "n": 60,
+   "mean": -2346.616666666667,
+   "mean_pct": -1.0733699847186366,
+   "ci95_pct": [
+    -2.293,
+    0.133
+   ],
+   "ci90_pct": [
+    -2.145,
+    -0.016
+   ],
+   "ci95_cluster_pct": [
+    -3.067,
+    0.571
+   ],
+   "ci90_cluster_pct": [
+    -2.633,
+    0.319
+   ],
+   "wins": 32,
+   "ties": 11,
+   "losses": 17
+  },
+  "E_vs_D|score": {
+   "n": 60,
+   "mean": -574.2,
+   "mean_pct": -0.26264581428245254,
+   "ci95_pct": [
+    -1.355,
+    0.803
+   ],
+   "ci90_pct": [
+    -1.135,
+    0.623
+   ],
+   "ci95_cluster_pct": [
+    -1.617,
+    0.848
+   ],
+   "ci90_cluster_pct": [
+    -1.316,
+    0.671
+   ],
+   "wins": 21,
+   "ties": 23,
+   "losses": 16
+  },
+  "E_vs_saved_blind_with_terms|score": {
+   "n": 60,
+   "mean": -35.3,
+   "mean_pct": -0.016146634002386924,
+   "ci95_pct": [
+    -0.574,
+    0.517
+   ],
+   "ci90_pct": [
+    -0.473,
+    0.416
+   ],
+   "ci95_cluster_pct": [
+    -0.595,
+    0.545
+   ],
+   "ci90_cluster_pct": [
+    -0.491,
+    0.446
+   ],
+   "wins": 19,
+   "ties": 26,
+   "losses": 15,
+   "note": "diagnostic: saved rev4_c1 mode blind keeps the queue and arrival terms (Table A4)"
+  },
+  "B_vs_A|random": {
+   "n": 60,
+   "mean": 42.516666666666666,
+   "mean_pct": 0.01944762197360201,
+   "ci95_pct": [
+    -0.017,
+    0.074
+   ],
+   "ci90_pct": [
+    -0.012,
+    0.067
+   ],
+   "ci95_cluster_pct": [
+    -0.023,
+    0.093
+   ],
+   "ci90_cluster_pct": [
+    -0.018,
+    0.078
+   ],
+   "wins": 3,
+   "ties": 51,
+   "losses": 6
+  },
+  "Cp_vs_A|random": {
+   "n": 60,
+   "mean": 279.68333333333334,
+   "mean_pct": 0.1279304368243886,
+   "ci95_pct": [
+    -0.437,
+    0.66
+   ],
+   "ci90_pct": [
+    -0.342,
+    0.587
+   ],
+   "ci95_cluster_pct": [
+    -0.662,
+    1.027
+   ],
+   "ci90_cluster_pct": [
+    -0.54,
+    0.859
+   ],
+   "wins": 16,
+   "ties": 27,
+   "losses": 17
+  },
+  "D_vs_A|random": {
+   "n": 60,
+   "mean": 573.9333333333333,
+   "mean_pct": 0.26252383782162236,
+   "ci95_pct": [
+    -0.358,
+    0.926
+   ],
+   "ci90_pct": [
+    -0.265,
+    0.816
+   ],
+   "ci95_cluster_pct": [
+    -0.642,
+    1.393
+   ],
+   "ci90_cluster_pct": [
+    -0.495,
+    1.164
+   ],
+   "wins": 15,
+   "ties": 27,
+   "losses": 18
+  },
+  "E_vs_A|random": {
+   "n": 60,
+   "mean": -167.55,
+   "mean_pct": -0.07663933504532379,
+   "ci95_pct": [
+    -0.971,
+    0.706
+   ],
+   "ci90_pct": [
+    -0.786,
+    0.601
+   ],
+   "ci95_cluster_pct": [
+    -1.03,
+    0.863
+   ],
+   "ci90_cluster_pct": [
+    -0.847,
+    0.706
+   ],
+   "wins": 21,
+   "ties": 21,
+   "losses": 18
+  },
+  "nocheck_vs_A|random": {
+   "n": 60,
+   "mean": 6587.166666666667,
+   "mean_pct": 3.0130472883679817,
+   "ci95_pct": [
+    1.56,
+    4.636
+   ],
+   "ci90_pct": [
+    1.767,
+    4.385
+   ],
+   "ci95_cluster_pct": [
+    0.485,
+    6.865
+   ],
+   "ci90_cluster_pct": [
+    0.705,
+    6.087
+   ],
+   "wins": 11,
+   "ties": 8,
+   "losses": 41
+  },
+  "D_vs_nocheck|random": {
+   "n": 60,
+   "mean": -6013.233333333334,
+   "mean_pct": -2.7505234505463596,
+   "ci95_pct": [
+    -4.262,
+    -1.432
+   ],
+   "ci90_pct": [
+    -3.978,
+    -1.633
+   ],
+   "ci95_cluster_pct": [
+    -5.714,
+    -0.765
+   ],
+   "ci90_cluster_pct": [
+    -5.198,
+    -0.946
+   ],
+   "wins": 41,
+   "ties": 8,
+   "losses": 11
+  },
+  "E_vs_D|random": {
+   "n": 60,
+   "mean": -741.4833333333333,
+   "mean_pct": -0.3391631728669462,
+   "ci95_pct": [
+    -1.171,
+    0.363
+   ],
+   "ci90_pct": [
+    -1.013,
+    0.261
+   ],
+   "ci95_cluster_pct": [
+    -1.479,
+    0.572
+   ],
+   "ci90_cluster_pct": [
+    -1.287,
+    0.435
+   ],
+   "wins": 22,
+   "ties": 22,
+   "losses": 16
+  },
+  "E_vs_saved_blind_with_terms|random": {
+   "n": 60,
+   "mean": -423.23333333333335,
+   "mean_pct": -0.19359189039500174,
+   "ci95_pct": [
+    -0.964,
+    0.47
+   ],
+   "ci90_pct": [
+    -0.802,
+    0.38
+   ],
+   "ci95_cluster_pct": [
+    -1.574,
+    0.808
+   ],
+   "ci90_cluster_pct": [
+    -1.301,
+    0.686
+   ],
+   "wins": 20,
+   "ties": 23,
+   "losses": 17,
+   "note": "diagnostic: saved rev4_c1 mode blind keeps the queue and arrival terms (Table A4)"
+  }
+ },
+ "attribution": {
+  "score": {
+   "kind": "counterfactual: reduced checks evaluated at every capacity test of the full check (A), on A's state; pooled over 60 runs",
+   "audit_definition_version": 1,
+   "totals": {
+    "tests": 30274,
+    "tests_queued": 0,
+    "tests_arrivals_raise": 14802,
+    "pass_A": 2031,
+    "pass_B": 2031,
+    "pass_Cp": 2460,
+    "pass_D": 2460,
+    "pass_E": 3975,
+    "A_ne_B": 0,
+    "A_ne_Cp": 429,
+    "B_ne_D": 429,
+    "Cp_ne_D": 0,
+    "A_ne_D": 429,
+    "A_ne_E": 2710,
+    "self_mismatch": 0
+   },
+   "runs_with_tests": 59,
+   "pct_tests_with_queued_link": 0.0,
+   "pct_tests_arrivals_raise_demand": 48.89343991543899,
+   "pct_queue_decides_arrivals_kept": 0.0,
+   "pct_arrivals_decide_queue_kept": 1.4170575411243973,
+   "pct_arrivals_decide_queue_removed": 1.4170575411243973,
+   "pct_queue_decides_arrivals_removed": 0.0,
+   "pct_A_vs_D": 1.4170575411243973,
+   "pct_A_vs_E": 8.951575609433837,
+   "per_run_pct_arrivals_decide_queue_kept": {
+    "min": 0.0,
+    "median": 0.7987220447284344,
+    "max": 6.981132075471698
+   },
+   "per_run_pct_queue_decides_arrivals_kept": {
+    "min": 0.0,
+    "median": 0.0,
+    "max": 0.0
+   }
+  },
+  "random": {
+   "kind": "counterfactual: reduced checks evaluated at every capacity test of the full check (A), on A's state; pooled over 60 runs",
+   "audit_definition_version": 1,
+   "totals": {
+    "tests": 79152,
+    "tests_queued": 36333,
+    "tests_arrivals_raise": 36330,
+    "pass_A": 7209,
+    "pass_B": 7275,
+    "pass_Cp": 8921,
+    "pass_D": 9353,
+    "pass_E": 10995,
+    "A_ne_B": 66,
+    "A_ne_Cp": 1712,
+    "B_ne_D": 2078,
+    "Cp_ne_D": 432,
+    "A_ne_D": 2144,
+    "A_ne_E": 5908,
+    "self_mismatch": 0
+   },
+   "runs_with_tests": 59,
+   "pct_tests_with_queued_link": 45.902819890842935,
+   "pct_tests_arrivals_raise_demand": 45.899029714978774,
+   "pct_queue_decides_arrivals_kept": 0.08338386901152213,
+   "pct_arrivals_decide_queue_kept": 2.1629270264806952,
+   "pct_arrivals_decide_queue_removed": 2.625328481908227,
+   "pct_queue_decides_arrivals_removed": 0.5457853244390539,
+   "pct_A_vs_D": 2.7087123509197495,
+   "pct_A_vs_E": 7.464119668485951,
+   "per_run_pct_arrivals_decide_queue_kept": {
+    "min": 0.0,
+    "median": 2.3696682464454977,
+    "max": 14.010989010989011
+   },
+   "per_run_pct_queue_decides_arrivals_kept": {
+    "min": 0.0,
+    "median": 0.0,
+    "max": 0.526592943654555
+   }
+  }
+ },
+ "validation": {
+  "G0_ecmp": true,
+  "G1_baselines": true,
+  "conservation_and_drop_split": true,
+  "offered_identical_per_scenario": true,
+  "guard_params_differ_only_in_intended_keys": true,
+  "campaign_runs_audit_off": true,
+  "random_signal_identical_across_configs": true,
+  "audit_purity": true,
+  "audit_self_mismatch_zero": true,
+  "digest_equivalence": {
+   "B": true,
+   "Cp": true,
+   "D": true
+  },
+  "determinism": {
+   "n": 12,
+   "identical": true,
+   "mismatches": []
+  },
+  "external_comparison": {
+   "status": "done",
+   "file": "rev5_cap.jsonl",
+   "matched": 780,
+   "equivalent": 780,
+   "runs_with_outcome_mismatch": 0,
+   "all_equivalent_runs_identical": true,
+   "missing": 0,
+   "extra": 0,
+   "unmapped": {},
+   "fields_not_in_external": {
+    "unroutable_drops": 780,
+    "rejections": 780,
+    "decision_digest": 780,
+    "signal_digest": 780
+   }
+  }
+ },
+ "gates": {
+  "G0": {
+   "source": "replicate.jsonl variant ecmp",
+   "n_expected": 60,
+   "n_found": 60,
+   "errors": 0,
+   "missing": [],
+   "mismatches": {},
+   "pass": true
+  },
+  "G1": {
+   "A|score": {
+    "source": "rev4_c1.jsonl exact|score",
+    "n_found": 60,
+    "fields_compared": [
+     "delivered_mean_latency_us",
+     "delivered_p99_latency_us",
+     "fabric_link_drops",
+     "flows_with_reordering",
+     "host_link_drops",
+     "n_flows",
+     "reordered_fraction",
+     "reordered_packets",
+     "reroutes",
+     "total_delivered",
+     "total_drops",
+     "total_offered"
+    ],
+    "mismatches": {},
+    "missing": [],
+    "pass": true
+   },
+   "A|random": {
+    "source": "rev4_c1.jsonl exact|random",
+    "n_found": 60,
+    "fields_compared": [
+     "delivered_mean_latency_us",
+     "delivered_p99_latency_us",
+     "fabric_link_drops",
+     "flows_with_reordering",
+     "host_link_drops",
+     "n_flows",
+     "reordered_fraction",
+     "reordered_packets",
+     "reroutes",
+     "total_delivered",
+     "total_drops",
+     "total_offered"
+    ],
+    "mismatches": {},
+    "missing": [],
+    "pass": true
+   },
+   "nocheck|score": {
+    "source": "ablation.jsonl no_capacity|score",
+    "n_found": 60,
+    "fields_compared": [
+     "avg_throughput",
+     "delivered_mean_latency_us",
+     "delivered_p99_latency_us",
+     "fabric_link_drops",
+     "host_link_drops",
+     "rejections",
+     "reroutes",
+     "total_delivered",
+     "total_drops",
+     "total_offered",
+     "unroutable_drops"
+    ],
+    "mismatches": {},
+    "missing": [],
+    "pass": true
+   }
+  },
+  "G1_pass": true,
+  "campaign_errors": 0
+ }
+}

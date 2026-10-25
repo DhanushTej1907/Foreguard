@@ -1,0 +1,120 @@
+{
+ "code_sha256": {
+  "revision/scripts/nf_exp.py": "d02ff3061ff8e5fb60d562517ca74a2860ca30311b970778e41c86a8d2833362",
+  "revision/scripts/rev5_capterms.py": "ea6fb76086a6c44ee5dfcf8eb434462fe54b057037c94b0fc3e8f5a60ae565e4",
+  "revision/scripts/paths.py": "adb9020f9a77cf7c56e4455ebefc23625b231d220bab72a909f3b495ea0594ad",
+  "config.py": "beb6e4e4cdcc87961150bee5e37b5db32ba1785828a18ddfda434f210a55635a",
+  "simulation/__init__.py": "8115219d4d16f57cd7278df940560c5981f384b8dc14866750b3f6db3997d474",
+  "simulation/network_engine.py": "76b835b55e5610871fa5c0ff37e09f0bbb6d226d36acf51cafa435e2b0eff3d8",
+  "simulation/telemetry.py": "3421f0421410589b7849571d892f562e61bfc459143944b05ca3ebcdd8f9662d",
+  "simulation/topology.py": "34a6a6268ecdc31e8d2659a9293b3e28f8e889d937363509a0b660d720bcacdd",
+  "simulation/traffic_generator.py": "1785a167622af44c63797fa876f4f204c99d1ec4967862a5efec30ad5491aae4",
+  "routing/rerouter.py": "830d3f4fd7c77a0da8fbe0c4c721e9089cadcfd9930d866290319d56032a76ab"
+ },
+ "environment": {
+  "python": "3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]",
+  "numpy": "2.5.3",
+  "networkx": "3.7",
+  "scipy": "1.18.1",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "machine": "AMD64",
+  "git_head": "7e6eecacea29bea74031300cb19aacbbc53c06ba",
+  "git_dirty": true
+ },
+ "base_guard": {
+  "max_changes": 4,
+  "headroom": 0.9,
+  "reserve": true,
+  "min_improvement": 0.15,
+  "stretch": 2,
+  "cooldown": 5,
+  "k_paths": 3,
+  "max_age": 1,
+  "rate_noise": 0.0,
+  "rate_mode": "exact",
+  "cap_arrivals": true,
+  "cap_queue": true,
+  "audit": false
+ },
+ "configs": {
+  "A": {},
+  "B": {
+   "cap_queue": false
+  },
+  "Cp": {
+   "cap_arrivals": false
+  },
+  "D": {
+   "cap_arrivals": false,
+   "cap_queue": false
+  },
+  "E": {
+   "cap_arrivals": false,
+   "cap_queue": false,
+   "rate_mode": "blind"
+  },
+  "nocheck": {
+   "headroom": null
+  }
+ },
+ "threshold": 0.851,
+ "families": [
+  "uniform",
+  "hotspot",
+  "elephant_mice",
+  "stride",
+  "llm_training",
+  "mixed"
+ ],
+ "seeds": [
+  4000,
+  4001,
+  4002,
+  4003,
+  4004,
+  4005,
+  4006,
+  4007,
+  4008,
+  4009
+ ],
+ "ticks": 150,
+ "invocations": [
+  {
+   "group": "validation",
+   "gate_only": false,
+   "start": "2026-10-25T13:25:32",
+   "end": "2026-10-25T13:25:39",
+   "n_tasks": 60,
+   "n_errors": 0,
+   "workers": 4
+  },
+  {
+   "group": "campaign",
+   "gate_only": true,
+   "start": "2026-10-25T13:25:40",
+   "end": "2026-10-25T13:28:17",
+   "n_tasks": 180,
+   "n_errors": 0,
+   "workers": 4
+  },
+  {
+   "group": "campaign",
+   "gate_only": false,
+   "start": "2026-10-25T13:28:27",
+   "end": "2026-10-25T13:35:29",
+   "n_tasks": 540,
+   "n_errors": 0,
+   "workers": 4
+  },
+  {
+   "group": "audit",
+   "gate_only": false,
+   "start": "2026-10-25T13:35:31",
+   "end": "2026-10-25T13:37:26",
+   "n_tasks": 120,
+   "n_errors": 0,
+   "workers": 4
+  }
+ ]
+}

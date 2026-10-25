@@ -1,0 +1,29 @@
+[2026-10-25T13:25:32] validation: 60 tasks to run (0 done)
+  50/60 0.1 min, eta 0.0 min
+  60/60 0.1 min, eta 0.0 min
+[2026-10-25T13:25:39] validation: done, 0 errors
+[2026-10-25T13:25:40] campaign (gate only): 180 tasks to run (0 done)
+  50/180 0.8 min, eta 2.1 min
+  100/180 1.5 min, eta 1.2 min
+  150/180 2.4 min, eta 0.5 min
+  180/180 2.6 min, eta 0.0 min
+[2026-10-25T13:28:17] campaign: done, 0 errors
+[2026-10-25T13:28:27] campaign: 540 tasks to run (180 done)
+  50/540 0.4 min, eta 3.6 min
+  100/540 0.8 min, eta 3.4 min
+  150/540 1.7 min, eta 4.4 min
+  200/540 2.1 min, eta 3.5 min
+  250/540 2.1 min, eta 2.5 min
+  300/540 3.7 min, eta 3.0 min
+  350/540 5.9 min, eta 3.2 min
+  400/540 6.2 min, eta 2.2 min
+  450/540 6.3 min, eta 1.3 min
+  500/540 6.8 min, eta 0.5 min
+  540/540 7.0 min, eta 0.0 min
+[2026-10-25T13:35:29] campaign: done, 0 errors
+[2026-10-25T13:35:31] audit: 120 tasks to run (0 done)
+  50/120 0.7 min, eta 1.0 min
+  100/120 1.9 min, eta 0.4 min
+  120/120 1.9 min, eta 0.0 min
+[2026-10-25T13:37:26] audit: done, 0 errors
+  12/12 0.2 min, eta 0.0 min

@@ -13,7 +13,7 @@ With default arguments run_case_x reproduces research_benchmark.run_case exactly
 (checked against research/benchmark_results_v4.json by verify_against_benchmark()).
 """
 from paths import NF_ROOT, RESULTS, FIGS, SCRIPTS  # folder locations (see paths.py)
-import copy, os, sys, time
+import copy, hashlib, os, sys, time
 from collections import Counter, defaultdict
 from itertools import islice
 from types import SimpleNamespace
@@ -45,11 +45,21 @@ class GuardX:
     min_improvement delta (0 = any candidate with risk <= current risk passes)
     stretch       max extra hops (None = unbounded)
     cooldown      kappa ticks between moves of the same flow (0 = none)
+    cap_arrivals  capacity check uses max(summed rate estimates, observed arrivals) as demand
+                  (False = summed rate estimates only)
+    cap_queue     capacity check adds the queue term (False = no queue term)
+    audit         opt-in, observational: at every capacity test also evaluate the reduced checks
+                  (A, B, C', D, E of paper Table A7) on the same state and count where they disagree.
+                  Never changes a decision; off by default and off in every outcome run. The shadow A-D
+                  predicates use the running configuration's rate estimate (exact in an A run); the
+                  shadow E uses the mean active sending rate.
     """
+    AUDIT_DEFINITION_VERSION = 1
 
     def __init__(self, graph, edge_to_idx, threshold, max_changes=4, headroom=.90, reserve=True,
                  min_improvement=.15, stretch=2, cooldown=None, k_paths=None, max_age=1,
-                 rate_noise=0.0, rate_mode='exact', noise_seed=0):
+                 rate_noise=0.0, rate_mode='exact', noise_seed=0,
+                 cap_arrivals=True, cap_queue=True, audit=False):
         self.G, self.edge_to_idx = graph, edge_to_idx
         self.threshold = threshold
         self.max_changes = max_changes if max_changes is not None else 10 ** 9
@@ -63,6 +73,47 @@ class GuardX:
         self.timing_ms = []
         self.rate_noise, self.rate_mode = rate_noise, rate_mode
         self._nrng = np.random.default_rng(noise_seed)
+        self.cap_arrivals, self.cap_queue, self.audit = cap_arrivals, cap_queue, audit
+        self.cap_audit = Counter()
+        self.last_state = None
+
+    def _own_check(self):
+        """Which Table A7 predicate the running configuration evaluates (None if not one of them)."""
+        if self.rate_noise > 0 or self.rate_mode == 'telemetry':
+            return None
+        if self.rate_mode == 'blind':
+            return 'E' if not (self.cap_arrivals or self.cap_queue) else None
+        return {(True, True): 'A', (True, False): 'B', (False, True): 'Cp', (False, False): 'D'}[
+            (self.cap_arrivals, self.cap_queue)]
+
+    def _audit_test(self, added, view, d_full, d_rates, d_blind, r, rbar, actual):
+        """Shadow evaluation of the reduced capacity checks at one test (counts only)."""
+        a = self.cap_audit
+        a['tests'] += 1
+        ok = dict(A=True, B=True, Cp=True, D=True, E=True)
+        queued = raised = False
+        for e in added:
+            s = view.link_states[e]
+            lim = self.headroom * s.capacity
+            q = s.queue
+            queued |= q > 0
+            raised |= d_full[e] > d_rates[e]
+            ok['A'] &= d_full[e] + r + q <= lim
+            ok['B'] &= d_full[e] + r <= lim
+            ok['Cp'] &= d_rates[e] + r + q <= lim
+            ok['D'] &= d_rates[e] + r <= lim
+            ok['E'] &= d_blind[e] + rbar <= lim
+        a['tests_queued'] += queued
+        a['tests_arrivals_raise'] += raised
+        for k, v in ok.items():
+            a['pass_' + k] += v
+        for x, y in (('A', 'B'), ('A', 'Cp'), ('B', 'D'), ('Cp', 'D'), ('A', 'D'), ('A', 'E')):
+            a[f'{x}_ne_{y}'] += ok[x] != ok[y]
+        own = self._own_check()
+        if own is None:
+            a['self_unchecked'] += 1
+        else:
+            a['self_mismatch'] += ok[own] != actual
 
     def evaluate_and_reroute(self, flows, predictions, engine, tick, prediction_tick=None,
                              view=None, path_of=None, apply=None):
@@ -108,9 +159,22 @@ class GuardX:
         for f in active:
             for e in edges(path_of(f)):
                 demand[e] += est[f.flow_id]
-        for e, s in view.link_states.items():
-            demand[e] = max(demand[e], s.packets_in)
+        audit = self.audit and self.headroom is not None
+        if audit:
+            # shadow state for the audit only: summed rate estimates (no arrivals) and the
+            # rate-blind sum (every active flow at the mean active sending rate)
+            rates = Counter(demand)
+            rbar = float(np.mean([f.rate for f in active])) if active else 0.0
+            blind = Counter()
+            for f in active:
+                for e in edges(path_of(f)):
+                    blind[e] += rbar
+        if self.cap_arrivals:
+            for e, s in view.link_states.items():
+                demand[e] = max(demand[e], s.packets_in)
         initial = Counter(demand)
+        if audit:
+            init_rates, init_blind = Counter(rates), Counter(blind)
         # per-tick link costs 1 + 10 * rho_e (identical values to the original closure, computed once)
         wmap = {e: 1 + 10 * float(p[i]) for e, i in self.edge_to_idx.items()}
         weight = lambda u, v, d: wmap.get((u, v), 1)
@@ -158,8 +222,16 @@ class GuardX:
                     if self.headroom is not None:
                         dem = demand if self.reserve else initial
                         added = set(edges(path)) - old_edges
-                        if not all(dem[e] + est[f.flow_id] + view.link_states[e].queue <=
-                                   self.headroom * view.link_states[e].capacity for e in added):
+                        if self.cap_queue:
+                            cap_ok = all(dem[e] + est[f.flow_id] + view.link_states[e].queue <=
+                                         self.headroom * view.link_states[e].capacity for e in added)
+                        else:
+                            cap_ok = all(dem[e] + est[f.flow_id] <=
+                                         self.headroom * view.link_states[e].capacity for e in added)
+                        if audit:
+                            self._audit_test(added, view, dem, rates if self.reserve else init_rates,
+                                             blind if self.reserve else init_blind, est[f.flow_id], rbar, cap_ok)
+                        if not cap_ok:
                             continue
                     chosen = path
                     break
@@ -172,6 +244,14 @@ class GuardX:
                 demand[e] -= est[f.flow_id]
             for e in edges(chosen):
                 demand[e] += est[f.flow_id]
+            if audit:
+                # identical reservation on the shadow counters
+                for e in old_edges:
+                    rates[e] -= est[f.flow_id]
+                    blind[e] -= rbar
+                for e in edges(chosen):
+                    rates[e] += est[f.flow_id]
+                    blind[e] += rbar
             if apply is None:
                 f.current_path = chosen
             else:
@@ -180,6 +260,9 @@ class GuardX:
             event = dict(tick=tick, flow_id=f.flow_id, old_path=old, new_path=chosen)
             events.append(event)
             self.reroute_log.append(event)
+        self.last_state = dict(demand=demand, initial=initial)
+        if audit:
+            self.last_state.update(rates=rates, blind=blind, rbar=rbar)
         self.timing_ms.append((time.perf_counter() - t0) * 1000)
         return events
 
@@ -506,6 +589,15 @@ def predict_window(model, collector, end_offset=0):
 
 
 # ─────────────────────────────── one run ───────────────────────────────────
+def decision_digest(reroute_log):
+    """SHA-256 over the ordered route changes (tick, flow, new path) of one run."""
+    h = hashlib.sha256()
+    for ev in reroute_log:
+        h.update(repr((ev['tick'], ev['flow_id'], tuple(ev['new_path']))).encode())
+        h.update(b'\n')
+    return h.hexdigest()
+
+
 def _delayed_view(snapshot, capacity_of):
     return SimpleNamespace(link_states={k: SimpleNamespace(queue=v['queue_depth'], packets_in=v['packets_in'],
                                                            capacity=capacity_of[k])
@@ -558,6 +650,7 @@ def run_case_x(graph, flows, ticks, strategy, threshold=None, model=None, guard=
     last_pred, inflight = None, []
     inference = []
     rng = np.random.default_rng(rng_seed)
+    sig_hash = hashlib.sha256()       # digest of the random / static risk draws (bookkeeping only)
     static_risk = None
     tel_prev, tel_hist = {}, {}
     W = MODEL['window_size']
@@ -603,6 +696,7 @@ def run_case_x(graph, flows, ticks, strategy, threshold=None, model=None, guard=
             # or one uniform value per link drawn once per run
             if signal == 'random' or static_risk is None:
                 draw = rng.random(max(c.edge_to_idx.values()) + 1)
+                sig_hash.update(draw.tobytes())
                 if signal == 'static':
                     static_risk = draw
             p = static_risk if signal == 'static' else draw
@@ -650,7 +744,13 @@ def run_case_x(graph, flows, ticks, strategy, threshold=None, model=None, guard=
     if inference:
         result['inference_ms_p50'] = float(np.median(inference))
         result['inference_ms_p99'] = float(np.percentile(inference, 99))
+    if strategy == 'guarded' and signal in ('random', 'static'):
+        result['signal_digest'] = sig_hash.hexdigest()
     if isinstance(controller, GuardX):
+        result['decision_digest'] = decision_digest(controller.reroute_log)
+        if controller.audit:
+            result['cap_audit'] = dict(controller.cap_audit)
+            result['audit_definition_version'] = GuardX.AUDIT_DEFINITION_VERSION
         result['rejections'] = dict(controller.rejections)
         if time_controller:
             result['controller_ms'] = controller.timing_ms
