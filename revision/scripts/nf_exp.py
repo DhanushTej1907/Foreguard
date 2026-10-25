@@ -532,8 +532,13 @@ class ClosedLoopEngine(NetworkEngine):
 _MODELS = {}
 
 
-def load_models(kinds=('gnn', 'lstm_only'), seeds=(0, 1, 2), threads=1):
-    """Temperature-scaled checkpoints + their calibrated validation thresholds."""
+def load_models(kinds=('gnn', 'lstm_only'), seeds=(0, 1, 2), threads=1, stem=None, tag=None, calibration=None):
+    """Temperature-scaled checkpoints + their calibrated validation thresholds.
+
+    Defaults load checkpoints/best_model_v3[_seedK][_lstm_only].pt into _MODELS[(kind, k)].
+    stem: other checkpoint stem (same _seedK / _lstm_only suffix rules), e.g. checkpoints/c3/best_model_c3_mixed.
+    tag: store entries under _MODELS[(tag, kind, k)] so they never replace the default entries.
+    calibration: {(kind, k): (temperature, threshold)} overriding the values stored in the checkpoint."""
     import torch
     torch.set_num_threads(threads)
     from model.gnn_model import CongestionPredictor, load_compatible_state_dict, check_checkpoint_schema
@@ -542,17 +547,18 @@ def load_models(kinds=('gnn', 'lstm_only'), seeds=(0, 1, 2), threads=1):
     g = __import__('simulation.topology', fromlist=['build_fat_tree']).build_fat_tree()
     col = TelemetryCollector(g, NetworkEngine(g))
     edge_pairs = [(col.switch_to_idx[u], col.switch_to_idx[v]) for u, v in col.switch_edges]
+    base = os.path.join(ROOT, 'checkpoints', 'best_model_v3') if stem is None else stem
     for kind in kinds:
         for k in seeds:
-            stem = os.path.join(ROOT, 'checkpoints', 'best_model_v3' + ('' if k == 0 else f'_seed{k}'))
-            path = stem + ('_lstm_only.pt' if kind == 'lstm_only' else '.pt')
+            path = base + ('' if k == 0 else f'_seed{k}') + ('_lstm_only.pt' if kind == 'lstm_only' else '.pt')
             ck = torch.load(path, map_location='cpu', weights_only=False)
             check_checkpoint_schema(ck)
             m = CongestionPredictor(num_edges=len(col.switch_edges), edge_pairs=edge_pairs) if kind == 'gnn' else LSTMOnly()
             load_compatible_state_dict(m, ck['model_state_dict'])
             m.eval()
-            _MODELS[(kind, k)] = dict(model=TemperatureScaled(m, ck['temperature']).eval(),
-                                      threshold=float(ck['alert_threshold']), temperature=float(ck['temperature']))
+            T, th = (calibration or {}).get((kind, k), (ck['temperature'], ck['alert_threshold']))
+            _MODELS[(kind, k) if tag is None else (tag, kind, k)] = dict(
+                model=TemperatureScaled(m, T).eval(), threshold=float(th), temperature=float(T), path=path)
     return _MODELS
 
 
