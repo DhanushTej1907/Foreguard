@@ -1,0 +1,8 @@
+{
+ "variant_field": "variant",
+ "signal_field": "signal",
+ "variant": {"A": "A", "B": "B", "Cp": "Cp", "D": "D", "E": "E", "nocap": "nocheck", "ecmp": "ecmp"},
+ "signal": {"score": "score", "random": "random", "None": "none"},
+ "fields": {"delivered_per_tick": "avg_throughput"},
+ "notes": "Mapping for revision/results/rev5_cap.jsonl (780 rows: 720 Table A7 runs + 60 ECMP). nocap = capacity check removed. ecmp rows (signal null) are compared with rev5_capterms_validation.jsonl. delivered_per_tick verified equal to total_delivered / 150 in every row, i.e. our avg_throughput."
+}

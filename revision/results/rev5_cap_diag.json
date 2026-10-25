@@ -1,0 +1,29 @@
+{
+ "score": {
+  "capacity_tests": 30274,
+  "candidates_with_queued_link": 0,
+  "queue_term_decides": 0.0,
+  "arrivals_decide": 0.014170575411243972,
+  "only_both_removed_admits": 0.0,
+  "outcomes": {
+   "A,B,Cp,D=1111": 2031,
+   "A,B,Cp,D=0000": 27814,
+   "A,B,Cp,D=0011": 429
+  }
+ },
+ "random": {
+  "capacity_tests": 79152,
+  "candidates_with_queued_link": 36333,
+  "queue_term_decides": 0.0008338386901152213,
+  "arrivals_decide": 0.021629270264806953,
+  "only_both_removed_admits": 0.004661916312916919,
+  "outcomes": {
+   "A,B,Cp,D=1111": 7209,
+   "A,B,Cp,D=0000": 69799,
+   "A,B,Cp,D=0011": 1709,
+   "A,B,Cp,D=0001": 369,
+   "A,B,Cp,D=0101": 63,
+   "A,B,Cp,D=0111": 3
+  }
+ }
+}

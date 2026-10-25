@@ -46,4 +46,7 @@ python3 scripts/rev4_c4.py "$W"
 python3 scripts/rev4_c4_analyze.py
 python3 scripts/rev4_fb.py "$W"
 python3 scripts/rev4_fb_analyze.py
+python3 scripts/rev5_cap.py "$W"
+python3 scripts/rev5_cap_analyze.py
+python3 scripts/rev5_fb_compare.py
 echo "done: see results/summary.json, results/rev*_summary.json and figs/"

@@ -1,0 +1,57 @@
+{
+ "status": "done",
+ "external_file": "C:\\Sem-3\\CN\\CN_Project\\NeuralFabric\\revision\\results\\rev5_cap.jsonl",
+ "mapping": {
+  "variant_field": "variant",
+  "signal_field": "signal",
+  "variant": {
+   "A": "A",
+   "B": "B",
+   "Cp": "Cp",
+   "D": "D",
+   "E": "E",
+   "nocap": "nocheck",
+   "ecmp": "ecmp"
+  },
+  "signal": {
+   "score": "score",
+   "random": "random",
+   "None": "none"
+  },
+  "fields": {
+   "delivered_per_tick": "avg_throughput"
+  },
+  "notes": "Mapping for revision/results/rev5_cap.jsonl (780 rows: 720 Table A7 runs + 60 ECMP). nocap = capacity check removed. ecmp rows (signal null) are compared with rev5_capterms_validation.jsonl. delivered_per_tick verified equal to total_delivered / 150 in every row, i.e. our avg_throughput."
+ },
+ "unparsable_lines": 0,
+ "unmapped_labels": {},
+ "duplicates": [],
+ "missing_in_external": [],
+ "extra_in_external": [],
+ "matched": 780,
+ "non_equivalent_inputs": [],
+ "outcome_mismatches": [],
+ "attribution_differences": [],
+ "fields_not_in_external": {
+  "unroutable_drops": 780,
+  "rejections": 780,
+  "decision_digest": 780,
+  "signal_digest": 780
+ },
+ "fields_not_in_ours": {
+  "n_flows": 60,
+  "reordered_packets": 60,
+  "flows_with_reordering": 60,
+  "reordered_fraction": 60
+ },
+ "input_fields_checkable": [
+  "n_flows",
+  "total_offered"
+ ],
+ "summary": {
+  "matched": 780,
+  "equivalent": 780,
+  "runs_with_outcome_mismatch": 0,
+  "all_equivalent_runs_identical": true
+ }
+}

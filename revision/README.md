@@ -52,11 +52,13 @@ exactly (`verify_modelfree.py`, `results/verify_model.jsonl`). Timing results de
 | Round 4: closed loop with reordering penalty (Table A6) | `rev4_c4.py`, `rev4_c4_analyze.py` | `rev4_c4.jsonl`, `rev4_c4_summary.json` |
 | Round 4: FlowBender-style baseline (V-I, Table V) | `rev4_fb.py`, `rev4_fb_analyze.py` | `rev4_fb.jsonl`, `rev4_fb_summary.json` |
 | Round 5: terms of the capacity check (V-E, Table A7): configs A, B, C′, D, E, no check × score / random signal; counterfactual term attribution from audit-enabled A runs | `rev5_capterms.py`, `rev5_capterms_analyze.py`, `rev5_stats.py`, `rev5_external_check.py` | `rev5_capterms.jsonl` (720 outcome runs, audit off), `rev5_capterms_audit.jsonl` (120 A runs, audit on), `rev5_capterms_validation.jsonl` (60 ECMP, gate G0), `rev5_capterms_meta.json`, `rev5_capterms_summary.json` |
+| Round 5: terms of the capacity check, first build (independent of the `rev5_capterms` build above; all 780 runs match it exactly) | `rev5_cap.py`, `rev5_cap_analyze.py` | `rev5_cap.jsonl` (720 Table A7 runs + 60 ECMP), `rev5_cap_summary.json`, `rev5_cap_diag.json` |
+| Round 5: FlowBender-style baseline vs score without rules and the guarded schemes, paired CIs on drops, throughput and delay (V-D, V-I; existing runs, no new simulation) | `rev5_fb_compare.py` | `rev5_fb_compare.json` |
 
 Round 5 runs in this order: `rev5_capterms.py validation` and `rev5_capterms.py campaign --gate-only`, then
 `rev5_capterms_analyze.py gate` (must pass: the ECMP runs and the 180 runs that repeat saved results must equal
 them field by field), then `campaign`, `audit`, and `rev5_capterms_analyze.py summary`. The audit is opt-in
-(`GuardX(audit=True)`), never changes a decision, and its runs are not used for outcomes or timing.
+(`GuardX(audit=True)`), never changes a decision, and its runs are not used for outcomes or timing. An earlier, separately written build of the same experiment (`rev5_cap.py`) reproduces all 780 runs field for field (`rev5_capterms_external_check.json`).
 
 Statistics: paired bootstrap with seed 42 and 2,000 resamples over (family, traffic seed) pairs;
 the clustered variant resamples families first and seeds within families; TOST uses a ±1% of ECMP
