@@ -1,0 +1,38 @@
+{
+ "steps": [
+  {
+   "step": "timing pilot (144 runs, settings off/W0/dup3, seed 3000, scratch path only, 3 workers)",
+   "minutes_wall": 3.98,
+   "note": "sum of per-run times 671 s"
+  },
+  {
+   "step": "gate settings off + W0 (480 runs, 4 workers)",
+   "minutes_wall": 10.67
+  },
+  {
+   "step": "W1, W2, W4, W8, W16, rtt4, dup3 (1,680 runs, 4 workers)",
+   "minutes_wall": 53.97,
+   "note": "includes a ~16 min machine pause: 4 concurrent runs on mixed|3002 took ~1,000 s each; two re-run in memory took 11 s / 31 s with identical outcomes"
+  },
+  {
+   "step": "c4_analyze.py gate + summary",
+   "minutes_wall": 2.0
+  },
+  {
+   "step": "test suite runs (3 x full suite, ~63 s each)",
+   "minutes_wall": 3.2
+  }
+ ],
+ "runs": 2160,
+ "sum_run_seconds": 15369.9,
+ "sum_run_seconds_excluding_paused_runs": 11350.9,
+ "paused_runs": [
+  "dup3|guarded_score|mixed|3002",
+  "rtt4|unguarded_gnn|mixed|3002",
+  "rtt4|guarded_persistence|mixed|3002",
+  "rtt4|score_no_rules|mixed|3002"
+ ],
+ "workers": 4,
+ "machine": "Windows 11, 8 logical CPUs, Python 3.14.3, torch 2.14.1+cpu, 1 torch thread per worker",
+ "total_minutes_wall": 73.8
+}
