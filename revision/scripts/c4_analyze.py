@@ -27,7 +27,8 @@ FAM = ['uniform', 'hotspot', 'elephant_mice', 'stride', 'llm_training', 'mixed']
 CELLS = [(f, s) for f in FAM for s in range(3000, 3005)]
 DRAWS, SEED = 2000, 42
 META = {'id', 'group', 'variant', 'strategy', 'signal', 'mseed', 'family', 'seed', 'guard', 'threshold_used', 'wall_s',
-        'sec', 'closed_loop', 'mode', 'penalty'}
+        'sec', 'closed_loop', 'mode', 'penalty',
+        'inference_ms_p50', 'inference_ms_p99'}   # wall-clock timing of the forecaster: machine-dependent, not an outcome
 load = lambda path: [json.loads(l) for l in open(path)]
 saved = lambda name: load(os.path.join(RESULTS, name))
 rt = lambda x: json.loads(json.dumps(x, default=float))
