@@ -190,7 +190,7 @@ def distributions(rows):
         disp_le_W_share_batches={W: sum(v for d, v in disp.items() if d <= W) / nb for W in (1, 2, 4, 8, 16)},
         disp_quantiles={p: float(np.percentile(np.repeat(np.array(sorted(disp)), [disp[k] for k in sorted(disp)]), p))
                         for p in (50, 90, 99)},
-        rtt_hist=rtt, rtt4_window_hist={str(k / 4): v for k, v in sorted(rtt.items())},
+        rtt_hist=rtt, rtt4_window_hist={f'{k / 4:g}': v for k, v in sorted(rtt.items())},
         rtt_all_multiple_of_4=all(k % 4 == 0 for k in rtt))
 
 
@@ -287,7 +287,7 @@ def summary():
                 basis_disagree=[s for s in [x for x, _ in have] + [x for x in EXTRA if x in out['settings']]
                                 if out['settings'][s]['variants'][v]['vs_guarded_score'][m]['basis_disagree']])
     json.dump(out, open(os.path.join(C4, 'summary.json'), 'w'), indent=1, default=float)
-    open(os.path.join(C4, 'tables.md'), 'w').write(tables(out))
+    open(os.path.join(C4, 'tables.md'), 'w', encoding='utf-8').write(tables(out))
     print('selfcheck', out['selfcheck_compare']['ok'])
     return out
 
