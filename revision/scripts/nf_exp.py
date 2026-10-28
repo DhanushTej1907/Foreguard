@@ -390,14 +390,33 @@ class ClosedLoopEngine(NetworkEngine):
     Flow.rate always holds the current sending rate, so controllers see current demand.
     """
 
-    def __init__(self, graph, ai=0.05, md=0.5, reorder_penalty=False):
+    DUPACK_BINS = (10, 20, 50, 100, 200, 500, 1000)   # dupACK histogram: exact below 10, then these bin edges
+
+    def __init__(self, graph, ai=0.05, md=0.5, reorder_penalty=False, reorder_window=None, dupack_threshold=None):
         self.ai, self.md = ai, md
         # reorder_penalty: an out-of-order delivery is treated by the sender as a loss
         # (duplicate-ACK fast retransmit): after half an RTT the reordered packets are retransmitted
         # spuriously (they consume capacity but add no progress) and the rate is decreased
-        # (at most once per RTT, shared with real losses). Every reordered batch is penalised,
-        # i.e. the penalty is conservative (no duplicate-ACK threshold).
+        # (at most once per RTT, shared with real losses). With no rule below, every reordered batch
+        # is penalised, i.e. the penalty is conservative (no duplicate-ACK threshold).
+        # Optional tolerance rules (require reorder_penalty=True; at most one of them):
+        #   reorder_window=W (int ticks >= 0): penalise a reordered batch only if its displacement
+        #       d = max_born - born exceeds W (W = 0 is the full penalty);
+        #   reorder_window='rtt/4': the same with W = RTT/4 of the batch's own path (test 4 d > RTT);
+        #   dupack_threshold=k: penalise only if at least k packets of the same flow with a strictly
+        #       later birth tick were delivered before this batch (spurious copies not counted).
+        if (reorder_window is not None or dupack_threshold is not None) and not reorder_penalty:
+            raise ValueError('reorder_window / dupack_threshold require reorder_penalty=True')
+        if reorder_window is not None and dupack_threshold is not None:
+            raise ValueError('give at most one of reorder_window and dupack_threshold')
+        if reorder_window is not None and reorder_window != 'rtt/4' and (
+                isinstance(reorder_window, bool) or not isinstance(reorder_window, (int, np.integer)) or reorder_window < 0):
+            raise ValueError(f'reorder_window must be an int >= 0 or "rtt/4", got {reorder_window!r}')
+        if dupack_threshold is not None and (
+                isinstance(dupack_threshold, bool) or not isinstance(dupack_threshold, (int, np.integer)) or dupack_threshold < 1):
+            raise ValueError(f'dupack_threshold must be an int >= 1, got {dupack_threshold!r}')
         self.reorder_penalty = reorder_penalty
+        self.reorder_window, self.dupack_threshold = reorder_window, dupack_threshold
         super().__init__(graph)
 
     def set_flows(self, flows):
@@ -411,6 +430,7 @@ class ClosedLoopEngine(NetworkEngine):
                 nominal=f.rate, size=size, sent_new=0, delivered=0, retx_ready=0, loss_events=[],
                 last_decrease=-10 ** 9, done=size == 0, fct=None, retx_sent=0,
                 spur_events=[], spur_ready=0, max_born=-1, reordered=0, spur_sent=0,
+                born_hist=Counter(),
                 ideal=int(np.ceil(size / f.rate)) - 1 + hops if size else 0)
 
     def reset(self):
@@ -418,6 +438,83 @@ class ClosedLoopEngine(NetworkEngine):
         self.retx_packets = 0
         self.spurious_packets = 0
         self.reordered_packets = 0
+        # diagnostics only (never read by the dynamics)
+        self.reordered_batches = 0
+        self.reordered_batches_open = 0
+        self.reordered_packets_open = 0
+        self.penalised_batches = 0
+        self.penalised_packets = 0
+        self.reorder_size_hist = Counter()     # packets in a reordered batch -> batches
+        self.reorder_disp_hist = Counter()     # displacement d (ticks) -> batches
+        self.reorder_dupack_hist = Counter()   # dupACK count (binned, see dupack_bin) -> batches
+        self.reorder_dupack_pk = Counter()     # same bins -> packets
+        self.reorder_rtt_hist = Counter()      # RTT of the batch's path (ticks) -> batches
+
+    @classmethod
+    def dupack_bin(cls, n):
+        if n < 10:
+            return str(n)
+        for lo, hi in zip(cls.DUPACK_BINS, cls.DUPACK_BINS[1:] + (None,)):
+            if hi is None or n < hi:
+                return f'{lo}+' if hi is None else f'{lo}-{hi - 1}'
+
+    @staticmethod
+    def dupack_count(st, born):
+        """Packets of this flow (st) delivered so far with a birth tick strictly later than `born`."""
+        h = st.born_hist
+        return sum(h.get(b, 0) for b in range(born + 1, st.max_born + 1))
+
+    def _deliver(self, now, count, path, born, flow_id, spurious):
+        """One batch leaves the last hop at tick `now` (deliveries are handled in FIFO order of that link)."""
+        self.total_delivered += count
+        self.delivery_latency_ticks[now - born + 1] += count
+        st = self.cl[flow_id]
+        if spurious:
+            return
+        if born < st.max_born:
+            st.reordered += count
+            self.reordered_packets += count
+            if self._reorder_penalised(st, born, count, path):
+                st.spur_events.append((now + max(1, len(path) - 1), count))
+        else:
+            st.max_born = born
+        st.born_hist[born] += count
+        st.delivered += count
+        if not st.done and st.delivered >= st.size:
+            st.done = True
+            st.fct = now + 1 - self._start[flow_id]
+
+    def _reorder_penalised(self, st, born, count, path):
+        """Decide the penalty for a reordered (born < st.max_born), non-spurious delivered batch.
+        Called before the batch is added to st.born_hist, so 'delivered before' covers every earlier
+        delivery of the flow, including earlier ones in the same tick (FIFO order on the last hop)."""
+        d = st.max_born - born
+        rtt = max(2, 2 * (len(path) - 1))
+        dup = self.dupack_count(st, born)
+        self.reordered_batches += 1
+        self.reorder_size_hist[count] += 1
+        self.reorder_disp_hist[d] += 1
+        self.reorder_dupack_hist[self.dupack_bin(dup)] += 1
+        self.reorder_dupack_pk[self.dupack_bin(dup)] += count
+        self.reorder_rtt_hist[rtt] += 1
+        if st.done:
+            return False
+        self.reordered_batches_open += 1
+        self.reordered_packets_open += count
+        if not self.reorder_penalty:
+            return False
+        if self.dupack_threshold is not None:
+            pen = dup >= self.dupack_threshold
+        elif self.reorder_window == 'rtt/4':
+            pen = 4 * d > rtt
+        elif self.reorder_window is not None:
+            pen = d > self.reorder_window
+        else:
+            pen = True
+        if pen:
+            self.penalised_batches += 1
+            self.penalised_packets += count
+        return pen
 
     def all_done(self):
         return all(s.done for s in self.cl.values())
@@ -504,22 +601,7 @@ class ClosedLoopEngine(NetworkEngine):
                 path, hop, born, flow_id = payload[:4]
                 spurious = len(payload) > 4
                 if hop + 1 == len(path) - 1:
-                    self.total_delivered += count
-                    self.delivery_latency_ticks[now - born + 1] += count
-                    st = self.cl[flow_id]
-                    if spurious:
-                        continue
-                    if born < st.max_born:
-                        st.reordered += count
-                        self.reordered_packets += count
-                        if self.reorder_penalty and not st.done:
-                            st.spur_events.append((now + max(1, len(path) - 1), count))
-                    else:
-                        st.max_born = born
-                    st.delivered += count
-                    if not st.done and st.delivered >= st.size:
-                        st.done = True
-                        st.fct = now + 1 - self._start[flow_id]
+                    self._deliver(now, count, path, born, flow_id, spurious)
                 else:
                     self.pending.append((count, (path, hop + 1, born, flow_id) + ((True,) if spurious else ())))
         self.tick += 1
@@ -612,11 +694,15 @@ def _delayed_view(snapshot, capacity_of):
 
 def run_case_x(graph, flows, ticks, strategy, threshold=None, model=None, guard=None,
                d_T=0, d_A=0, interval=1, instrument=False, closed_loop=False, max_ticks=600,
-               time_controller=False, rng_seed=0, reorder_penalty=False):
+               time_controller=False, rng_seed=0, reorder_penalty=False, reorder_window=None, dupack_threshold=None):
     """strategy: ecmp | reactive | unguarded | guarded (needs signal in guard['signal']).
-    guard: dict(signal='score'|'persistence'|'model', **GuardX kwargs)."""
+    guard: dict(signal='score'|'persistence'|'model', **GuardX kwargs).
+    reorder_penalty / reorder_window / dupack_threshold: closed-loop reordering model (see ClosedLoopEngine)."""
     if closed_loop:
-        engine = ClosedLoopEngine(graph, reorder_penalty=reorder_penalty)
+        engine = ClosedLoopEngine(graph, reorder_penalty=reorder_penalty, reorder_window=reorder_window,
+                                  dupack_threshold=dupack_threshold)
+    elif reorder_penalty or reorder_window is not None or dupack_threshold is not None:
+        raise ValueError('the reordering penalty exists only in the closed loop (closed_loop=True)')
     elif instrument:
         engine = InstrumentedEngine(graph)
     else:
@@ -789,4 +875,12 @@ def run_case_x(graph, flows, ticks, strategy, threshold=None, model=None, guard=
                       offered_unique=int(sum(s.size for s in cl.values())),
                       per_flow=[(f.flow_id, f.flow_type, cl[f.flow_id].size, cl[f.flow_id].ideal, cl[f.flow_id].fct)
                                 for f in flows])
+        result['reorder_diag'] = dict(
+            reordered_batches=engine.reordered_batches, reordered_batches_open=engine.reordered_batches_open,
+            reordered_packets_open=engine.reordered_packets_open, penalised_batches=engine.penalised_batches,
+            penalised_packets=engine.penalised_packets,
+            size_hist={str(k): v for k, v in sorted(engine.reorder_size_hist.items())},
+            disp_hist={str(k): v for k, v in sorted(engine.reorder_disp_hist.items())},
+            dupack_hist=dict(engine.reorder_dupack_hist), dupack_pk=dict(engine.reorder_dupack_pk),
+            rtt_hist={str(k): v for k, v in sorted(engine.reorder_rtt_hist.items())})
     return result
