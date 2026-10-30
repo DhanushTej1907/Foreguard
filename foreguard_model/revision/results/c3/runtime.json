@@ -1,0 +1,106 @@
+{
+ "steps": [
+  {
+   "step": "baseline tests B1 + 5 pre-commit suites",
+   "seconds": 180,
+   "note": "72-86 tests, ~18-24 s each run plus startup"
+  },
+  {
+   "step": "B2 copied-file verification (scratch copy)",
+   "seconds": 10,
+   "note": ""
+  },
+  {
+   "step": "G1/G2 gate (c3_gate.py)",
+   "seconds": 19,
+   "note": ""
+  },
+  {
+   "step": "mixed-load dataset + B5 (c3_data.py)",
+   "seconds": 35,
+   "note": "285.5 MB pickle"
+  },
+  {
+   "step": "M0' training x3 (c3_train.py load1)",
+   "seconds": 483,
+   "note": "110 / 138 / 222 s"
+  },
+  {
+   "step": "M1 training x3 (c3_train.py mixed)",
+   "seconds": 5333,
+   "note": "1805 / 1255 / 2250 s"
+  },
+  {
+   "step": "calibration (c3_calibrate.py)",
+   "seconds": 51,
+   "note": ""
+  },
+  {
+   "step": "forecast evaluation (c3_forecast.py, 3 workers)",
+   "seconds": 3833,
+   "note": "pooled unseen-set bootstrap job: 3811 s"
+  },
+  {
+   "step": "routing pilot (276 runs)",
+   "seconds": 225,
+   "note": "sum of per-run times 585 s -> parallel efficiency 2.6 of 3 workers"
+  },
+  {
+   "step": "oracle repro S4 (4 runs)",
+   "seconds": 27,
+   "note": ""
+  },
+  {
+   "step": "instrument check S2 (60 runs)",
+   "seconds": 50,
+   "note": ""
+  },
+  {
+   "step": "oracle pilot (family mixed, 40 runs)",
+   "seconds": 67,
+   "note": "4.3-5.0 s per run"
+  },
+  {
+   "step": "tier 1 sweep (6,552 runs)",
+   "seconds": 2845,
+   "note": "estimate was ~4,400 s"
+  },
+  {
+   "step": "full oracle (200 runs)",
+   "seconds": 138,
+   "note": "estimate was ~354 s"
+  },
+  {
+   "step": "tier 2 sweep (4,212 runs)",
+   "seconds": 1905,
+   "note": "estimate was ~3,355 s"
+  },
+  {
+   "step": "analysis (c3_analyze.py, 2 runs)",
+   "seconds": 55,
+   "note": ""
+  }
+ ],
+ "total_seconds": 15256,
+ "total_hours": 4.24,
+ "budget_hours": 6,
+ "tier_decision": {
+  "time": "2026-10-25 22:45 IST",
+  "used_hours_at_decision": 2.86,
+  "projected_remaining_seconds": {
+   "tier1": 4400,
+   "full_oracle": 354,
+   "tier2": 3355,
+   "analysis_tests": 300
+  },
+  "projected_total_hours": 5.2,
+  "decision": "tier 1 + full oracle + tier 2 (fits within 6 h)"
+ },
+ "not_run": [
+  "oracle_score_0851 (decision-identical to oracle_score_pmix: score Pmix tau 0.8510000109672546 = float32(0.851); score/Pmix and score/0.851 identical in all 480 cells)",
+  "oracle at loads 0.1, 0.125, 0.15, 0.5, 0.75, 1.0 (by design)",
+  "FCT / closed-loop sweep (deferred by design)",
+  "matched-sample-count training (not in this round by design)"
+ ],
+ "per_run_seconds_pilot": "see load.jsonl wall_s; load 0.25 / 1.0 means: ECMP 0.23/0.18, score 0.89/2.79, GNN variants 1.2-1.4/3.2-3.7, oracle 4.3-5.0"
+}

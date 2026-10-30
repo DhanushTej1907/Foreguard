@@ -30,5 +30,8 @@ scratch/
 *.bbl
 *.blg
 
-# Windows shortcuts
+# Windows shortcuts and lock files
 *.lnk
+~$*
+*.zip
+*.bak

@@ -1,0 +1,110 @@
+# ForeGuard (formerly NeuralFabric) — context for Claude Code
+
+GCN-LSTM link-congestion forecaster + capacity-guarded rerouting controller on a synthetic
+k=4 Fat-Tree simulator (1 ms ticks, 500 pkts/tick links, 2000-pkt buffers). Academic CN
+project + paper (`ForeGuard_final-lastsec.docx` / `ForeGuard_fully_resolved.docx`). Windows, Python 3.12+, torch CPU, PyG installed.
+The repository retains the earlier working title URL: `https://github.com/DhanushTej1907/NeuralFabric`.
+
+## Verification of Paper Concerns
+To verify all reviewer concerns from `Concerns5docx.docx`:
+1. Run `python verify_raw_metrics.py` to recompute the fabric/host drop splits from `revision/results/c3/load.jsonl` and onset AP from `revision/results/c3/forecast.json`, verifying exact alignment with the manuscript.
+2. Read `Remaining_Items_Concerns5_Final.docx` or `remaining_concerns_resolution.md` for the line-by-line audit of all 12 concerns.
+3. Check `ForeGuard_final-lastsec.docx` / `ForeGuard_fully_resolved.docx` (the final camera-ready manuscript).
+
+## Latest Pre-Submission Fixes (Verified & Applied)
+1. **Fig. 1 Caption (Para 51)**: Cleaned duplicate tail runs; preserved the Office Math $\rho_e$ symbol.
+2. **Abstract Last Sentence (Para 6)**: Completed as `"Controller computation time (2.7–3.4 ms median) exceeds the 1-ms tick."`.
+3. **Data and Code (Para 214)**: Removed unbacked `"A tagged release is pinned to the version used in this paper."`.
+4. **Host-Drop Mechanism (Para 183 / Sec V-F)**: Softened to `"packets kept out of fabric drops likely reach saturated destination host links"`.
+5. **Concern 4 (6.3× Confound)**: Fully disclosed in text across Section V-F, VI, and VII; budget-matched evaluation is an optional empirical follow-up.
+
+
+
+## Layout
+- `simulation/` topology, traffic_generator, network_engine (causal batch sim, full-duplex: one
+  FIFO per direction, `link_states` keyed by directed `(u, v)`), telemetry (features/labels; per
+  physical link = max over both directions, still 32 links)
+- `config.py`: `CHECKPOINT_SCHEMA_VERSION` (currently 3; checked by `model.gnn_model.check_checkpoint_schema`,
+  which also rejects a checkpoint whose `label_mode` differs from config),
+  `MODEL["label_mode"]` = `"served_or_queued"` (default since Phase 2) | `"offered"`.
+  Schema 3 covers Phase 1 + Phase 2; it was not bumped in Phase 2 because no schema-3 artifact existed yet.
+- Labels: `label = congestion_score > 0.85`; served_or_queued score
+  `s = clip(max(packets_out/cap, 0.85*queue/(0.1*buffer)))`. Samples carry `last_labels` / `last_scores`
+  (binary / continuous persistence). Edge features: offered util, queue/buffer, drops/cap, served util — all in [0, 1].
+- Output defaults (`config.py`): `checkpoints/best_model_v3.pt`, `research/benchmark_results_v4.json`,
+  `data/datasets_v3.pkl`, `plots/v3/`. `check_output_path` refuses the legacy files listed in `LEGACY_PATHS`.
+  Datasets store `schema_version` + `label_mode` and are rejected on mismatch.
+- `engine.metrics()` exports `host_link_drops + fabric_link_drops + unroutable_drops == total_drops` (`drop_split_ok`)
+- `model/` gnn_model (GCN-LSTM, 17,985 params), baselines (LSTM-only, per-link logistic regression),
+  metrics (overall + onset metrics, val-tuned threshold, scenario bootstrap), train (max 50 epochs, best epoch
+  and early stopping (patience 10) on val AP; then temperature scaling and `alert_threshold` fitted on val and
+  stored in the checkpoint), calibration (`TemperatureScaled` wrapper — use it whenever comparing
+  probabilities to `alert_threshold`), dataset, splits (stratified 3/1/1 per family is the benchmark
+  default; random; holdout by family), evaluate
+- `routing/` rerouter.py (reactive + unguarded proactive), guarded.py (GuardedRerouter), comparator.py
+- `research_benchmark.py` (`--train-seeds`, `--seeds` traffic seeds, `--split`, `--forecast-only`,
+  `--holdout-family <family>|all`, `--checkpoint-out`, `--results-out`, `--data-out`) →
+  `research/benchmark_results_v4.json`. Model routing strategies (gnn, guarded_gnn, guarded_lstm) run per
+  training seed; summaries/paired bootstraps use seed-averaged drops. `summarize_results.py` / `plot_extra_graphs.py` still read the
+  legacy `benchmark_results.json`.
+- `dashboard/` FastAPI + WebSocket server, static D3/Chart.js frontend (libs vendored in
+  `static/vendor/`, system fonts: works offline). Update messages key `links` and `predictions` by
+  physical link ID `"u--v"` (u < v); `predictions` = calibrated probabilities for the 32 fabric links in
+  `collector.switch_edges` order; `links[id].congested` = current served_or_queued label. Messages also carry
+  `threshold` (live slider), `alert_threshold` (checkpoint), `controller`, `since_switch`. Controllers
+  `ecmp` | `guarded_gnn` | `guarded_score` switch live via `POST /api/controller` or WS
+  `{"action": "controller"}`; every switch restores ECMP paths and resets the since-switch counters.
+  Workload (benchmark family, default `stride`) via `POST /api/workload`: restarts the run, keeps controller
+  and threshold. Live traffic = back-to-back 150-tick benchmark episodes that keep the generator's flow
+  IDs (ECMP hashes `(src, dst, flow_id)`; renumbering changes collisions). Health score = fabric drops only.
+  Event timeline: updates carry `events` (congestion / congestion_cleared / predicted, transition-only and
+  coalesced per tick with a 5-tick clear hold, plus spike / controller / workload / start) and
+  `reroute_events` with `tick`, `old_path`, `new_path`, `trigger_link` (riskiest fabric link on the old path)
+  and `trigger_value`; all have unique `id`s, and new viewers get the run's backlog in the `topology` message.
+  UI layout: sticky control bar, topology + charts left, sticky scrolling right column (forecast, timeline);
+  screenshots in `reports/ui_screens/`.
+- `paper_assets/` (figures as PDF + 300-dpi PNG, `tables.tex`, `KEY_NUMBERS.md`) is generated by
+  `python tools/make_paper_assets.py` from `research/benchmark_results_v4.json` (+ `guard_sweep_v4.json` if
+  present); regenerate instead of editing. IEEE 3.5 in, 8 pt, Okabe-Ito, TrueType fonts.
+- `tools/guard_sweep.py` → `research/guard_sweep_v4.json`: guarded_score with `max_changes` ∈ {2, 4, 8, 16} vs
+  ECMP on new traffic seeds 4000–4009 (sensitivity analysis; `run_case(..., guard_kwargs=)` passes guard
+  settings, default unchanged). Stride caveat: every stride seed has the same flows/ECMP paths.
+- Git: only `checkpoints/best_model_v3*.pt` and the legacy `best_model.pt` / `data/datasets.pkl` are tracked;
+  other `*.pt` / `*.pkl` are gitignored (regenerable from fixed seeds).
+- `revision/`: review-round experiments (scripts, results, figs; `revision/README.md` maps them to paper
+  sections); `paths.py` defaults `NF_ROOT` to the repo root. Final paper: `ForeGuard_final-lastsec.docx`.
+- `tests/` unittest suite: `python -m unittest discover -s tests -v`
+
+## Known findings — schema 3 (Phase 3 full run, `research/benchmark_results_v4.json`)
+See `reports/PHASE3_REPORT.md`. Stratified 18/6/6 split, 3 training seeds, 10 traffic seeds/family.
+- Forecast AP: GNN 0.947 ± 0.003 ≈ LSTM-only 0.946 > LogReg 0.938 > continuous persistence 0.880.
+  GNN − LSTM-only AP CI includes 0 (overall and onset): the GCN adds nothing measurable.
+- Onset AP is 0.16–0.19 for every predictor (onset rate 3.5%).
+- Routing: guarded_score (model-free) −5.72% total drops vs ECMP; guarded_gnn −5.27%; no
+  guarded_gnn vs guard-only/guarded_lstm paired CI excludes 0. The guard, not the GNN, gives the gain.
+- Rerouting shifts drops from fabric to host links (fabric −20–26%, total −4–6%).
+- Inference (2 threads): GNN p50 2.0 / p99 4.1 ms, below the 5 ms horizon; inference only.
+- Temperature scaling barely changes Brier (T 0.79–0.98).
+
+## Known findings — schema 2 (pre-Phase-1 shared-FIFO simulator)
+These were measured on the old simulator and recorded JSON; after Phase 1 (full-duplex) they must
+be re-verified. See `reports/PHASE1_REPORT.md` and `reports/PHASE2_REPORT.md` for schema-3 numbers
+(`checkpoints/best_model.pt` is schema 2 and is rejected).
+- Simulator is deterministic: ECMP drops reproduce the recorded JSON exactly (v2 simulator only).
+- **Guard-only ablation:** GuardedRerouter fed last-tick persistence labels gives 6.03% drop
+  reduction vs ECMP, fed current utilization 6.10%; with GNN predictions 5.94%. The guard, not the
+  GNN, produces the routing gain. See `tools/guard_ablation_check.py`.
+- GNN F1 0.794 < persistence 0.812. Continuous persistence (current util as score) AP 0.825 /
+  AUC 0.951 vs GNN 0.869 / 0.958. Recorded "persistence AP" uses a 0/1 score, which is unfair.
+- Inference p99 6–13.5 ms > 5 ms forecast horizon.
+- Onsets (not congested now → congested at t+5) are ~19% of test positives; no onset metric exists.
+
+## Working rules
+- Ask before large refactors; keep each phase a separate git commit.
+- Never overwrite `research/benchmark_results.json` or `checkpoints/best_model.pt` without being
+  told; write new results to new filenames (e.g. `benchmark_results_v4.json`).
+- Any change to simulator/features/labels invalidates the dataset and checkpoint: bump the
+  checkpoint `schema_version` and say so.
+- Add or update a unit test for every behavioural change; run the full test suite before finishing.
+- Keep claims honest: the paper must not say the GNN helps unless the benchmark shows it beats
+  the guard-only baselines.

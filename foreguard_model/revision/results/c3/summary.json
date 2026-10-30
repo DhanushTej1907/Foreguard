@@ -1,0 +1,4958 @@
+{
+ "meta": {
+  "time": "2026-10-26T00:05:41",
+  "git_head": "40036fdeae5ef9bf33e6348db7139e114b72eb9a",
+  "python": "3.14.3",
+  "torch": "2.14.1+cpu",
+  "numpy": "2.5.3",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "torch_threads": 4,
+  "argv": [
+   "revision/scripts/c3_analyze.py"
+  ],
+  "step": "analyze"
+ },
+ "checks": {
+  "S3": {
+   "ok": true,
+   "rows": 11280,
+   "errors": [],
+   "invariant_failures": []
+  },
+  "S1": {
+   "ok": true,
+   "compared": 1920,
+   "mismatches": [],
+   "n_mismatch": 0
+  },
+  "I2": {
+   "compared": 1440,
+   "identical": 1440,
+   "differing": 0,
+   "max_abs_total_drops_diff": 0.0,
+   "mean_total_drops_diff": 0.0,
+   "reroutes_diff_rows": 0
+  },
+  "S2": {
+   "ok": true,
+   "compared": 60,
+   "mismatches": []
+  },
+  "S4": {
+   "ok": true,
+   "compared": 4,
+   "mismatches": []
+  }
+ },
+ "variants_run": {
+  "ecmp": {
+   "0.25": 60,
+   "1.0": 60,
+   "0.1": 60,
+   "0.125": 60,
+   "0.15": 60,
+   "0.2": 60,
+   "0.5": 60,
+   "0.75": 60
+  },
+  "guarded_score": {
+   "0.25": 60,
+   "1.0": 60,
+   "0.1": 60,
+   "0.125": 60,
+   "0.15": 60,
+   "0.2": 60,
+   "0.5": 60,
+   "0.75": 60
+  },
+  "score_pmix": {
+   "0.25": 60,
+   "1.0": 60,
+   "0.1": 60,
+   "0.125": 60,
+   "0.15": 60,
+   "0.2": 60,
+   "0.5": 60,
+   "0.75": 60
+  },
+  "guarded_gnn": {
+   "0.25": 60,
+   "1.0": 60,
+   "0.1": 60,
+   "0.125": 60,
+   "0.15": 60,
+   "0.2": 60,
+   "0.5": 60,
+   "0.75": 60
+  },
+  "m0p_p10": {
+   "0.25": 60,
+   "1.0": 60,
+   "0.1": 60,
+   "0.125": 60,
+   "0.15": 60,
+   "0.2": 60,
+   "0.5": 60,
+   "0.75": 60
+  },
+  "m1_pmix": {
+   "0.25": 60,
+   "1.0": 60,
+   "0.1": 60,
+   "0.125": 60,
+   "0.15": 60,
+   "0.2": 60,
+   "0.5": 60,
+   "0.75": 60
+  },
+  "score_no_rules": {
+   "0.25": 60,
+   "1.0": 60,
+   "0.1": 60,
+   "0.125": 60,
+   "0.15": 60,
+   "0.2": 60,
+   "0.5": 60,
+   "0.75": 60
+  },
+  "random": {
+   "0.25": 60,
+   "1.0": 60,
+   "0.1": 60,
+   "0.125": 60,
+   "0.15": 60,
+   "0.2": 60,
+   "0.5": 60,
+   "0.75": 60
+  },
+  "m1_p10": {
+   "0.25": 60,
+   "1.0": 60,
+   "0.1": 60,
+   "0.125": 60,
+   "0.15": 60,
+   "0.2": 60,
+   "0.5": 60,
+   "0.75": 60
+  },
+  "m0_pmix": {
+   "0.25": 60,
+   "1.0": 60,
+   "0.1": 60,
+   "0.125": 60,
+   "0.15": 60,
+   "0.2": 60,
+   "0.5": 60,
+   "0.75": 60
+  },
+  "m0p_pmix": {
+   "0.25": 60,
+   "1.0": 60,
+   "0.1": 60,
+   "0.125": 60,
+   "0.15": 60,
+   "0.2": 60,
+   "0.5": 60,
+   "0.75": 60
+  }
+ },
+ "routing": {
+  "0.1": {
+   "ecmp_mean_drops": 0.0,
+   "ecmp_loss_pct": 0.0,
+   "variants": {
+    "ecmp": {
+     "cells": 60,
+     "mean_drops": 0.0,
+     "total_pct_vs_ecmp": null,
+     "reroutes": 0.0,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.016666666666667
+    },
+    "guarded_score": {
+     "cells": 60,
+     "mean_drops": 0.0,
+     "total_pct_vs_ecmp": null,
+     "reroutes": 0.0,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.016666666666667
+    },
+    "score_pmix": {
+     "cells": 60,
+     "mean_drops": 0.0,
+     "total_pct_vs_ecmp": null,
+     "reroutes": 0.0,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.016666666666667
+    },
+    "guarded_gnn": {
+     "cells": 60,
+     "mean_drops": 0.0,
+     "total_pct_vs_ecmp": null,
+     "reroutes": 0.04444444444444444,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.016666666666667
+    },
+    "m0p_p10": {
+     "cells": 60,
+     "mean_drops": 0.0,
+     "total_pct_vs_ecmp": null,
+     "reroutes": 0.04444444444444444,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.016666666666667
+    },
+    "m1_pmix": {
+     "cells": 60,
+     "mean_drops": 0.0,
+     "total_pct_vs_ecmp": null,
+     "reroutes": 0.02222222222222222,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.016666666666667
+    },
+    "score_no_rules": {
+     "cells": 60,
+     "mean_drops": 0.0,
+     "total_pct_vs_ecmp": null,
+     "reroutes": 0.0,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.016666666666667
+    },
+    "random": {
+     "cells": 60,
+     "mean_drops": 0.0,
+     "total_pct_vs_ecmp": null,
+     "reroutes": 294.0833333333333,
+     "reordered_pct": 1.0489206461357743,
+     "p99_ms": 7.666666666666667
+    },
+    "m1_p10": {
+     "cells": 60,
+     "mean_drops": 0.0,
+     "total_pct_vs_ecmp": null,
+     "reroutes": 0.02222222222222222,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.016666666666667
+    },
+    "m0_pmix": {
+     "cells": 60,
+     "mean_drops": 0.0,
+     "total_pct_vs_ecmp": null,
+     "reroutes": 0.02222222222222222,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.016666666666667
+    },
+    "m0p_pmix": {
+     "cells": 60,
+     "mean_drops": 0.0,
+     "total_pct_vs_ecmp": null,
+     "reroutes": 0.02222222222222222,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.016666666666667
+    }
+   },
+   "diffs": {
+    "PRIMARY M1/Pmix - score/Pmix": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "unit": "packets (ECMP drops are 0)",
+      "ci95_pkts": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pkts": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0
+     }
+    },
+    "M1/Pmix - M0'/P1.0 (mixed-training effect, same environment)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "unit": "packets (ECMP drops are 0)",
+      "ci95_pkts": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pkts": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0
+     }
+    },
+    "M0'/P1.0 - score/0.851 (same-environment replicate)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "unit": "packets (ECMP drops are 0)",
+      "ci95_pkts": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pkts": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0
+     }
+    },
+    "M0/P1.0 - score/0.851 (original checkpoints)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "unit": "packets (ECMP drops are 0)",
+      "ci95_pkts": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pkts": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0
+     }
+    },
+    "M1/Pmix - M0/P1.0": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "unit": "packets (ECMP drops are 0)",
+      "ci95_pkts": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pkts": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0
+     }
+    },
+    "score/Pmix - score/0.851 (threshold effect, score)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "unit": "packets (ECMP drops are 0)",
+      "ci95_pkts": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pkts": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0
+     }
+    },
+    "M1/P1.0 - M0'/P1.0 (model effect at P1.0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "unit": "packets (ECMP drops are 0)",
+      "ci95_pkts": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pkts": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0
+     }
+    },
+    "M1/Pmix - M0'/Pmix (model effect at Pmix)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "unit": "packets (ECMP drops are 0)",
+      "ci95_pkts": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pkts": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0
+     }
+    },
+    "M1/Pmix - M1/P1.0 (threshold effect, M1)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "unit": "packets (ECMP drops are 0)",
+      "ci95_pkts": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pkts": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0
+     }
+    },
+    "M0'/Pmix - M0'/P1.0 (threshold effect, M0')": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "unit": "packets (ECMP drops are 0)",
+      "ci95_pkts": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pkts": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0
+     }
+    },
+    "M0/Pmix - M0/P1.0 (threshold effect, M0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "unit": "packets (ECMP drops are 0)",
+      "ci95_pkts": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pkts": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0
+     }
+    },
+    "score/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "unit": "packets (ECMP drops are 0)",
+      "ci95_pkts": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pkts": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0
+     }
+    },
+    "score/Pmix - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "unit": "packets (ECMP drops are 0)",
+      "ci95_pkts": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pkts": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0
+     }
+    },
+    "score, no rules - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "unit": "packets (ECMP drops are 0)",
+      "ci95_pkts": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pkts": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0
+     }
+    },
+    "random/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "unit": "packets (ECMP drops are 0)",
+      "ci95_pkts": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pkts": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0
+     }
+    }
+   }
+  },
+  "0.125": {
+   "ecmp_mean_drops": 108.51666666666667,
+   "ecmp_loss_pct": 0.14104528179595205,
+   "variants": {
+    "ecmp": {
+     "cells": 60,
+     "mean_drops": 108.51666666666667,
+     "total_pct_vs_ecmp": 0.0,
+     "reroutes": 0.0,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.116666666666667
+    },
+    "guarded_score": {
+     "cells": 60,
+     "mean_drops": 108.51666666666667,
+     "total_pct_vs_ecmp": 0.0,
+     "reroutes": 1.7333333333333334,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.116666666666667
+    },
+    "score_pmix": {
+     "cells": 60,
+     "mean_drops": 108.51666666666667,
+     "total_pct_vs_ecmp": 0.0,
+     "reroutes": 1.7333333333333334,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.116666666666667
+    },
+    "guarded_gnn": {
+     "cells": 60,
+     "mean_drops": 108.51666666666667,
+     "total_pct_vs_ecmp": 0.0,
+     "reroutes": 2.5166666666666666,
+     "reordered_pct": 0.0008099991549738545,
+     "p99_ms": 6.116666666666667
+    },
+    "m0p_p10": {
+     "cells": 60,
+     "mean_drops": 108.51666666666667,
+     "total_pct_vs_ecmp": 0.0,
+     "reroutes": 2.5166666666666666,
+     "reordered_pct": 0.0008099991549738545,
+     "p99_ms": 6.116666666666667
+    },
+    "m1_pmix": {
+     "cells": 60,
+     "mean_drops": 108.02222222222223,
+     "total_pct_vs_ecmp": -0.4556391747299382,
+     "reroutes": 1.9777777777777776,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.116666666666667
+    },
+    "score_no_rules": {
+     "cells": 60,
+     "mean_drops": 96.28333333333333,
+     "total_pct_vs_ecmp": -11.273229918599291,
+     "reroutes": 12.4,
+     "reordered_pct": 0.06689071554241673,
+     "p99_ms": 6.183333333333333
+    },
+    "random": {
+     "cells": 60,
+     "mean_drops": 106.66666666666667,
+     "total_pct_vs_ecmp": -1.704807249270457,
+     "reroutes": 294.01666666666665,
+     "reordered_pct": 1.0574941536881866,
+     "p99_ms": 7.683333333333333
+    },
+    "m1_p10": {
+     "cells": 60,
+     "mean_drops": 108.02222222222223,
+     "total_pct_vs_ecmp": -0.4556391747299382,
+     "reroutes": 2.183333333333333,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.116666666666667
+    },
+    "m0_pmix": {
+     "cells": 60,
+     "mean_drops": 108.51666666666667,
+     "total_pct_vs_ecmp": 0.0,
+     "reroutes": 2.4277777777777776,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.116666666666667
+    },
+    "m0p_pmix": {
+     "cells": 60,
+     "mean_drops": 108.51666666666667,
+     "total_pct_vs_ecmp": 0.0,
+     "reroutes": 2.4277777777777776,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.116666666666667
+    }
+   },
+   "diffs": {
+    "PRIMARY M1/Pmix - score/Pmix": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -0.4944444444444419,
+      "mean_pct": -0.45563917472994186,
+      "ci95_pct": [
+       -1.367,
+       0.0
+      ],
+      "ci90_pct": [
+       -1.367,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       -2.278,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       -1.823,
+       0.0
+      ],
+      "wins": 1,
+      "ties": 59,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0'/P1.0 (mixed-training effect, same environment)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -0.4944444444444419,
+      "mean_pct": -0.45563917472994186,
+      "ci95_pct": [
+       -1.367,
+       0.0
+      ],
+      "ci90_pct": [
+       -1.367,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       -2.278,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       -1.823,
+       0.0
+      ],
+      "wins": 1,
+      "ties": 59,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0'/P1.0 - score/0.851 (same-environment replicate)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0/P1.0 - score/0.851 (original checkpoints)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0/P1.0": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -0.4944444444444419,
+      "mean_pct": -0.45563917472994186,
+      "ci95_pct": [
+       -1.367,
+       0.0
+      ],
+      "ci90_pct": [
+       -1.367,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       -2.278,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       -1.823,
+       0.0
+      ],
+      "wins": 1,
+      "ties": 59,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/Pmix - score/0.851 (threshold effect, score)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/P1.0 - M0'/P1.0 (model effect at P1.0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -0.4944444444444419,
+      "mean_pct": -0.45563917472994186,
+      "ci95_pct": [
+       -1.367,
+       0.0
+      ],
+      "ci90_pct": [
+       -1.367,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       -2.278,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       -1.823,
+       0.0
+      ],
+      "wins": 1,
+      "ties": 59,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0'/Pmix (model effect at Pmix)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -0.4944444444444419,
+      "mean_pct": -0.45563917472994186,
+      "ci95_pct": [
+       -1.367,
+       0.0
+      ],
+      "ci90_pct": [
+       -1.367,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       -2.278,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       -1.823,
+       0.0
+      ],
+      "wins": 1,
+      "ties": 59,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M1/P1.0 (threshold effect, M1)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0'/Pmix - M0'/P1.0 (threshold effect, M0')": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0/Pmix - M0/P1.0 (threshold effect, M0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/Pmix - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score, no rules - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -12.233333333333333,
+      "mean_pct": -11.273229918599291,
+      "ci95_pct": [
+       -26.432,
+       0.0
+      ],
+      "ci90_pct": [
+       -23.572,
+       -2.411
+      ],
+      "ci95_cluster_pct": [
+       -35.467,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       -30.395,
+       0.0
+      ],
+      "wins": 3,
+      "ties": 57,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "random/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -1.85,
+      "mean_pct": -1.7048072492704656,
+      "ci95_pct": [
+       -10.505,
+       4.009
+      ],
+      "ci90_pct": [
+       -9.169,
+       3.133
+      ],
+      "ci95_cluster_pct": [
+       -13.456,
+       5.345
+      ],
+      "ci90_cluster_pct": [
+       -10.505,
+       4.469
+      ],
+      "wins": 1,
+      "ties": 57,
+      "losses": 2,
+      "unit": "% of mean ECMP drops"
+     }
+    }
+   }
+  },
+  "0.15": {
+   "ecmp_mean_drops": 297.78333333333336,
+   "ecmp_loss_pct": 0.32252602483741016,
+   "variants": {
+    "ecmp": {
+     "cells": 60,
+     "mean_drops": 297.78333333333336,
+     "total_pct_vs_ecmp": 0.0,
+     "reroutes": 0.0,
+     "reordered_pct": 0.0,
+     "p99_ms": 6.3
+    },
+    "guarded_score": {
+     "cells": 60,
+     "mean_drops": 298.8,
+     "total_pct_vs_ecmp": 0.34141154082945047,
+     "reroutes": 3.816666666666667,
+     "reordered_pct": 0.0046787328017732395,
+     "p99_ms": 6.266666666666667
+    },
+    "score_pmix": {
+     "cells": 60,
+     "mean_drops": 298.8,
+     "total_pct_vs_ecmp": 0.34141154082945047,
+     "reroutes": 3.816666666666667,
+     "reordered_pct": 0.0046787328017732395,
+     "p99_ms": 6.266666666666667
+    },
+    "guarded_gnn": {
+     "cells": 60,
+     "mean_drops": 300.65,
+     "total_pct_vs_ecmp": 0.9626686069289514,
+     "reroutes": 4.744444444444444,
+     "reordered_pct": 0.005342942588162817,
+     "p99_ms": 6.277777777777778
+    },
+    "m0p_p10": {
+     "cells": 60,
+     "mean_drops": 300.65,
+     "total_pct_vs_ecmp": 0.9626686069289514,
+     "reroutes": 4.744444444444444,
+     "reordered_pct": 0.005342942588162817,
+     "p99_ms": 6.277777777777778
+    },
+    "m1_pmix": {
+     "cells": 60,
+     "mean_drops": 300.03333333333336,
+     "total_pct_vs_ecmp": 0.7555829182291474,
+     "reroutes": 4.622222222222222,
+     "reordered_pct": 0.0053916379168490024,
+     "p99_ms": 6.266666666666667
+    },
+    "score_no_rules": {
+     "cells": 60,
+     "mean_drops": 274.26666666666665,
+     "total_pct_vs_ecmp": -7.897240723120847,
+     "reroutes": 92.91666666666667,
+     "reordered_pct": 0.7569256034237514,
+     "p99_ms": 6.483333333333333
+    },
+    "random": {
+     "cells": 60,
+     "mean_drops": 295.53333333333336,
+     "total_pct_vs_ecmp": -0.7555829182291363,
+     "reroutes": 293.6333333333333,
+     "reordered_pct": 1.052522644366924,
+     "p99_ms": 7.766666666666667
+    },
+    "m1_p10": {
+     "cells": 60,
+     "mean_drops": 300.03333333333336,
+     "total_pct_vs_ecmp": 0.7555829182291474,
+     "reroutes": 4.955555555555557,
+     "reordered_pct": 0.005147930504522168,
+     "p99_ms": 6.266666666666667
+    },
+    "m0_pmix": {
+     "cells": 60,
+     "mean_drops": 300.65,
+     "total_pct_vs_ecmp": 0.9626686069289514,
+     "reroutes": 4.616666666666666,
+     "reordered_pct": 0.006268979044673392,
+     "p99_ms": 6.277777777777778
+    },
+    "m0p_pmix": {
+     "cells": 60,
+     "mean_drops": 300.65,
+     "total_pct_vs_ecmp": 0.9626686069289514,
+     "reroutes": 4.616666666666666,
+     "reordered_pct": 0.006268979044673392,
+     "p99_ms": 6.277777777777778
+    }
+   },
+   "diffs": {
+    "PRIMARY M1/Pmix - score/Pmix": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 1.2333333333333334,
+      "mean_pct": 0.41417137739967536,
+      "ci95_pct": [
+       0.0,
+       1.243
+      ],
+      "ci90_pct": [
+       0.0,
+       1.243
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       1.657
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       1.243
+      ],
+      "wins": 0,
+      "ties": 59,
+      "losses": 1,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0'/P1.0 (mixed-training effect, same environment)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -0.6166666666666667,
+      "mean_pct": -0.20708568869983768,
+      "ci95_pct": [
+       -0.621,
+       0.0
+      ],
+      "ci90_pct": [
+       -0.621,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       -0.828,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       -0.621,
+       0.0
+      ],
+      "wins": 1,
+      "ties": 59,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0'/P1.0 - score/0.851 (same-environment replicate)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 1.85,
+      "mean_pct": 0.621257066099513,
+      "ci95_pct": [
+       0.0,
+       1.864
+      ],
+      "ci90_pct": [
+       0.0,
+       1.864
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       2.485
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       1.864
+      ],
+      "wins": 0,
+      "ties": 59,
+      "losses": 1,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0/P1.0 - score/0.851 (original checkpoints)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 1.85,
+      "mean_pct": 0.621257066099513,
+      "ci95_pct": [
+       0.0,
+       1.864
+      ],
+      "ci90_pct": [
+       0.0,
+       1.864
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       2.485
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       1.864
+      ],
+      "wins": 0,
+      "ties": 59,
+      "losses": 1,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0/P1.0": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -0.6166666666666667,
+      "mean_pct": -0.20708568869983768,
+      "ci95_pct": [
+       -0.621,
+       0.0
+      ],
+      "ci90_pct": [
+       -0.621,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       -0.828,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       -0.621,
+       0.0
+      ],
+      "wins": 1,
+      "ties": 59,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/Pmix - score/0.851 (threshold effect, score)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/P1.0 - M0'/P1.0 (model effect at P1.0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -0.6166666666666667,
+      "mean_pct": -0.20708568869983768,
+      "ci95_pct": [
+       -0.621,
+       0.0
+      ],
+      "ci90_pct": [
+       -0.621,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       -0.828,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       -0.621,
+       0.0
+      ],
+      "wins": 1,
+      "ties": 59,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0'/Pmix (model effect at Pmix)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -0.6166666666666667,
+      "mean_pct": -0.20708568869983768,
+      "ci95_pct": [
+       -0.621,
+       0.0
+      ],
+      "ci90_pct": [
+       -0.621,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       -0.828,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       -0.621,
+       0.0
+      ],
+      "wins": 1,
+      "ties": 59,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M1/P1.0 (threshold effect, M1)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0'/Pmix - M0'/P1.0 (threshold effect, M0')": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0/Pmix - M0/P1.0 (threshold effect, M0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": 1.0166666666666666,
+      "mean_pct": 0.34141154082946207,
+      "ci95_pct": [
+       0.0,
+       1.024
+      ],
+      "ci90_pct": [
+       0.0,
+       1.024
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       1.366
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       1.366
+      ],
+      "wins": 0,
+      "ties": 59,
+      "losses": 1,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/Pmix - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": 1.0166666666666666,
+      "mean_pct": 0.34141154082946207,
+      "ci95_pct": [
+       0.0,
+       1.024
+      ],
+      "ci90_pct": [
+       0.0,
+       1.024
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       1.366
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       1.366
+      ],
+      "wins": 0,
+      "ties": 59,
+      "losses": 1,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score, no rules - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -23.516666666666666,
+      "mean_pct": -7.897240723120837,
+      "ci95_pct": [
+       -18.173,
+       -1.181
+      ],
+      "ci90_pct": [
+       -15.979,
+       -1.892
+      ],
+      "ci95_cluster_pct": [
+       -26.447,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       -22.755,
+       0.0
+      ],
+      "wins": 4,
+      "ties": 56,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "random/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -2.25,
+      "mean_pct": -0.7555829182291375,
+      "ci95_pct": [
+       -4.78,
+       2.552
+      ],
+      "ci90_pct": [
+       -4.144,
+       2.306
+      ],
+      "ci95_cluster_pct": [
+       -6.342,
+       4.298
+      ],
+      "ci90_cluster_pct": [
+       -5.497,
+       3.224
+      ],
+      "wins": 2,
+      "ties": 55,
+      "losses": 3,
+      "unit": "% of mean ECMP drops"
+     }
+    }
+   }
+  },
+  "0.2": {
+   "ecmp_mean_drops": 2206.85,
+   "ecmp_loss_pct": 1.7924926248575872,
+   "variants": {
+    "ecmp": {
+     "cells": 60,
+     "mean_drops": 2206.85,
+     "total_pct_vs_ecmp": 0.0,
+     "reroutes": 0.0,
+     "reordered_pct": 0.0,
+     "p99_ms": 7.366666666666667
+    },
+    "guarded_score": {
+     "cells": 60,
+     "mean_drops": 2241.383333333333,
+     "total_pct_vs_ecmp": 1.5648246746871486,
+     "reroutes": 14.583333333333334,
+     "reordered_pct": 0.036199342169614124,
+     "p99_ms": 7.233333333333333
+    },
+    "score_pmix": {
+     "cells": 60,
+     "mean_drops": 2241.383333333333,
+     "total_pct_vs_ecmp": 1.5648246746871486,
+     "reroutes": 14.583333333333334,
+     "reordered_pct": 0.036199342169614124,
+     "p99_ms": 7.233333333333333
+    },
+    "guarded_gnn": {
+     "cells": 60,
+     "mean_drops": 2242.5333333333333,
+     "total_pct_vs_ecmp": 1.6169351488924733,
+     "reroutes": 17.72222222222222,
+     "reordered_pct": 0.05051661084262228,
+     "p99_ms": 7.25
+    },
+    "m0p_p10": {
+     "cells": 60,
+     "mean_drops": 2242.5333333333333,
+     "total_pct_vs_ecmp": 1.6169351488924733,
+     "reroutes": 17.72222222222222,
+     "reordered_pct": 0.05051661084262228,
+     "p99_ms": 7.25
+    },
+    "m1_pmix": {
+     "cells": 60,
+     "mean_drops": 2230.5111111111114,
+     "total_pct_vs_ecmp": 1.0721667132388424,
+     "reroutes": 16.033333333333335,
+     "reordered_pct": 0.04688351418201921,
+     "p99_ms": 7.233333333333333
+    },
+    "score_no_rules": {
+     "cells": 60,
+     "mean_drops": 2126.5833333333335,
+     "total_pct_vs_ecmp": -3.6371600546782235,
+     "reroutes": 369.5,
+     "reordered_pct": 2.6717103983598545,
+     "p99_ms": 7.633333333333333
+    },
+    "random": {
+     "cells": 60,
+     "mean_drops": 2214.2166666666667,
+     "total_pct_vs_ecmp": 0.33380912461955514,
+     "reroutes": 292.8666666666667,
+     "reordered_pct": 1.0732274139499076,
+     "p99_ms": 8.516666666666666
+    },
+    "m1_p10": {
+     "cells": 60,
+     "mean_drops": 2233.2611111111114,
+     "total_pct_vs_ecmp": 1.1967787167733057,
+     "reroutes": 16.8,
+     "reordered_pct": 0.048049765178020294,
+     "p99_ms": 7.233333333333333
+    },
+    "m0_pmix": {
+     "cells": 60,
+     "mean_drops": 2242.805555555555,
+     "total_pct_vs_ecmp": 1.6292704785352496,
+     "reroutes": 16.155555555555555,
+     "reordered_pct": 0.04794428986851968,
+     "p99_ms": 7.233333333333333
+    },
+    "m0p_pmix": {
+     "cells": 60,
+     "mean_drops": 2242.805555555555,
+     "total_pct_vs_ecmp": 1.6292704785352496,
+     "reroutes": 16.155555555555555,
+     "reordered_pct": 0.04794428986851968,
+     "p99_ms": 7.233333333333333
+    }
+   },
+   "diffs": {
+    "PRIMARY M1/Pmix - score/Pmix": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -10.872222222222167,
+      "mean_pct": -0.49265796144831625,
+      "ci95_pct": [
+       -2.588,
+       1.125
+      ],
+      "ci90_pct": [
+       -2.146,
+       0.903
+      ],
+      "ci95_cluster_pct": [
+       -3.131,
+       1.023
+      ],
+      "ci90_cluster_pct": [
+       -2.633,
+       0.831
+      ],
+      "wins": 5,
+      "ties": 52,
+      "losses": 3,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0'/P1.0 (mixed-training effect, same environment)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -12.022222222222206,
+      "mean_pct": -0.5447684356536333,
+      "ci95_pct": [
+       -1.524,
+       0.061
+      ],
+      "ci90_pct": [
+       -1.338,
+       0.006
+      ],
+      "ci95_cluster_pct": [
+       -1.956,
+       0.044
+      ],
+      "ci90_cluster_pct": [
+       -1.644,
+       0.007
+      ],
+      "wins": 5,
+      "ties": 49,
+      "losses": 6,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0'/P1.0 - score/0.851 (same-environment replicate)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 1.1500000000000399,
+      "mean_pct": 0.05211047420531707,
+      "ci95_pct": [
+       -2.14,
+       2.347
+      ],
+      "ci90_pct": [
+       -1.631,
+       1.934
+      ],
+      "ci95_cluster_pct": [
+       -2.385,
+       2.367
+      ],
+      "ci90_cluster_pct": [
+       -1.921,
+       1.851
+      ],
+      "wins": 7,
+      "ties": 50,
+      "losses": 3,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0/P1.0 - score/0.851 (original checkpoints)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 1.1500000000000399,
+      "mean_pct": 0.05211047420531707,
+      "ci95_pct": [
+       -2.14,
+       2.347
+      ],
+      "ci90_pct": [
+       -1.631,
+       1.934
+      ],
+      "ci95_cluster_pct": [
+       -2.385,
+       2.367
+      ],
+      "ci90_cluster_pct": [
+       -1.921,
+       1.851
+      ],
+      "wins": 7,
+      "ties": 50,
+      "losses": 3,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0/P1.0": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -12.022222222222206,
+      "mean_pct": -0.5447684356536333,
+      "ci95_pct": [
+       -1.524,
+       0.061
+      ],
+      "ci90_pct": [
+       -1.338,
+       0.006
+      ],
+      "ci95_cluster_pct": [
+       -1.956,
+       0.044
+      ],
+      "ci90_cluster_pct": [
+       -1.644,
+       0.007
+      ],
+      "wins": 5,
+      "ties": 49,
+      "losses": 6,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/Pmix - score/0.851 (threshold effect, score)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/P1.0 - M0'/P1.0 (model effect at P1.0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -9.272222222222206,
+      "mean_pct": -0.42015643211918374,
+      "ci95_pct": [
+       -1.628,
+       0.302
+      ],
+      "ci90_pct": [
+       -1.429,
+       0.239
+      ],
+      "ci95_cluster_pct": [
+       -1.887,
+       0.329
+      ],
+      "ci90_cluster_pct": [
+       -1.593,
+       0.241
+      ],
+      "wins": 4,
+      "ties": 49,
+      "losses": 7,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0'/Pmix (model effect at Pmix)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -12.294444444444347,
+      "mean_pct": -0.5571037652964337,
+      "ci95_pct": [
+       -2.065,
+       0.415
+      ],
+      "ci90_pct": [
+       -1.743,
+       0.297
+      ],
+      "ci95_cluster_pct": [
+       -2.605,
+       0.562
+      ],
+      "ci90_cluster_pct": [
+       -2.185,
+       0.406
+      ],
+      "wins": 4,
+      "ties": 50,
+      "losses": 6,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M1/P1.0 (threshold effect, M1)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -2.75,
+      "mean_pct": -0.12461200353444957,
+      "ci95_pct": [
+       -0.652,
+       0.289
+      ],
+      "ci90_pct": [
+       -0.552,
+       0.2
+      ],
+      "ci95_cluster_pct": [
+       -0.777,
+       0.278
+      ],
+      "ci90_cluster_pct": [
+       -0.652,
+       0.189
+      ],
+      "wins": 2,
+      "ties": 57,
+      "losses": 1,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0'/Pmix - M0'/P1.0 (threshold effect, M0')": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 0.2722222222221414,
+      "mean_pct": 0.012335329642800433,
+      "ci95_pct": [
+       -0.55,
+       0.607
+      ],
+      "ci90_pct": [
+       -0.48,
+       0.506
+      ],
+      "ci95_cluster_pct": [
+       -0.768,
+       0.762
+      ],
+      "ci90_cluster_pct": [
+       -0.577,
+       0.66
+      ],
+      "wins": 6,
+      "ties": 50,
+      "losses": 4,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0/Pmix - M0/P1.0 (threshold effect, M0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 0.2722222222221414,
+      "mean_pct": 0.012335329642800433,
+      "ci95_pct": [
+       -0.55,
+       0.607
+      ],
+      "ci90_pct": [
+       -0.48,
+       0.506
+      ],
+      "ci95_cluster_pct": [
+       -0.768,
+       0.762
+      ],
+      "ci90_cluster_pct": [
+       -0.577,
+       0.66
+      ],
+      "wins": 6,
+      "ties": 50,
+      "losses": 4,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": 34.53333333333333,
+      "mean_pct": 1.5648246746871481,
+      "ci95_pct": [
+       -5.991,
+       8.747
+      ],
+      "ci90_pct": [
+       -4.436,
+       7.526
+      ],
+      "ci95_cluster_pct": [
+       -9.947,
+       13.975
+      ],
+      "ci90_cluster_pct": [
+       -7.496,
+       11.82
+      ],
+      "wins": 3,
+      "ties": 52,
+      "losses": 5,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/Pmix - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": 34.53333333333333,
+      "mean_pct": 1.5648246746871481,
+      "ci95_pct": [
+       -5.991,
+       8.747
+      ],
+      "ci90_pct": [
+       -4.436,
+       7.526
+      ],
+      "ci95_cluster_pct": [
+       -9.947,
+       13.975
+      ],
+      "ci90_cluster_pct": [
+       -7.496,
+       11.82
+      ],
+      "wins": 3,
+      "ties": 52,
+      "losses": 5,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score, no rules - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -80.26666666666667,
+      "mean_pct": -3.6371600546782368,
+      "ci95_pct": [
+       -10.775,
+       1.443
+      ],
+      "ci90_pct": [
+       -9.571,
+       0.928
+      ],
+      "ci95_cluster_pct": [
+       -14.081,
+       1.849
+      ],
+      "ci90_cluster_pct": [
+       -12.099,
+       1.174
+      ],
+      "wins": 10,
+      "ties": 45,
+      "losses": 5,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "random/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": 7.366666666666666,
+      "mean_pct": 0.3338091246195558,
+      "ci95_pct": [
+       -8.042,
+       7.675
+      ],
+      "ci90_pct": [
+       -6.22,
+       6.294
+      ],
+      "ci95_cluster_pct": [
+       -13.314,
+       12.464
+      ],
+      "ci90_cluster_pct": [
+       -10.289,
+       10.875
+      ],
+      "wins": 9,
+      "ties": 43,
+      "losses": 8,
+      "unit": "% of mean ECMP drops"
+     }
+    }
+   }
+  },
+  "0.25": {
+   "ecmp_mean_drops": 7009.816666666667,
+   "ecmp_loss_pct": 4.554678142820942,
+   "variants": {
+    "ecmp": {
+     "cells": 60,
+     "mean_drops": 7009.816666666667,
+     "total_pct_vs_ecmp": 0.0,
+     "reroutes": 0.0,
+     "reordered_pct": 0.0,
+     "p99_ms": 8.15
+    },
+    "guarded_score": {
+     "cells": 60,
+     "mean_drops": 7218.166666666667,
+     "total_pct_vs_ecmp": 2.9722603301560513,
+     "reroutes": 24.366666666666667,
+     "reordered_pct": 0.05856156532916447,
+     "p99_ms": 7.7
+    },
+    "score_pmix": {
+     "cells": 60,
+     "mean_drops": 7218.166666666667,
+     "total_pct_vs_ecmp": 2.9722603301560513,
+     "reroutes": 24.366666666666667,
+     "reordered_pct": 0.05856156532916447,
+     "p99_ms": 7.7
+    },
+    "guarded_gnn": {
+     "cells": 60,
+     "mean_drops": 7239.855555555555,
+     "total_pct_vs_ecmp": 3.281667693005108,
+     "reroutes": 28.527777777777775,
+     "reordered_pct": 0.08474290032643382,
+     "p99_ms": 7.8277777777777775
+    },
+    "m0p_p10": {
+     "cells": 60,
+     "mean_drops": 7239.855555555555,
+     "total_pct_vs_ecmp": 3.281667693005108,
+     "reroutes": 28.527777777777775,
+     "reordered_pct": 0.08474290032643382,
+     "p99_ms": 7.8277777777777775
+    },
+    "m1_pmix": {
+     "cells": 60,
+     "mean_drops": 7224.183333333333,
+     "total_pct_vs_ecmp": 3.0580923419300188,
+     "reroutes": 26.555555555555557,
+     "reordered_pct": 0.08769923298397865,
+     "p99_ms": 7.794444444444443
+    },
+    "score_no_rules": {
+     "cells": 60,
+     "mean_drops": 6848.083333333333,
+     "total_pct_vs_ecmp": -2.307240560261925,
+     "reroutes": 674.3333333333334,
+     "reordered_pct": 4.332718776303151,
+     "p99_ms": 8.466666666666667
+    },
+    "random": {
+     "cells": 60,
+     "mean_drops": 7166.116666666667,
+     "total_pct_vs_ecmp": 2.229730211679337,
+     "reroutes": 289.78333333333336,
+     "reordered_pct": 1.1532472282504562,
+     "p99_ms": 9.066666666666666
+    },
+    "m1_p10": {
+     "cells": 60,
+     "mean_drops": 7204.7444444444445,
+     "total_pct_vs_ecmp": 2.7807828228191056,
+     "reroutes": 28.394444444444442,
+     "reordered_pct": 0.08822528243939766,
+     "p99_ms": 7.777777777777779
+    },
+    "m0_pmix": {
+     "cells": 60,
+     "mean_drops": 7213.138888888889,
+     "total_pct_vs_ecmp": 2.900535518839842,
+     "reroutes": 28.622222222222224,
+     "reordered_pct": 0.08465221204014128,
+     "p99_ms": 7.816666666666667
+    },
+    "m0p_pmix": {
+     "cells": 60,
+     "mean_drops": 7213.138888888889,
+     "total_pct_vs_ecmp": 2.900535518839842,
+     "reroutes": 28.622222222222224,
+     "reordered_pct": 0.08465221204014128,
+     "p99_ms": 7.816666666666667
+    }
+   },
+   "diffs": {
+    "PRIMARY M1/Pmix - score/Pmix": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 6.016666666666757,
+      "mean_pct": 0.0858320117739659,
+      "ci95_pct": [
+       -0.563,
+       1.123
+      ],
+      "ci90_pct": [
+       -0.516,
+       0.944
+      ],
+      "ci95_cluster_pct": [
+       -0.596,
+       1.228
+      ],
+      "ci90_cluster_pct": [
+       -0.532,
+       1.068
+      ],
+      "wins": 12,
+      "ties": 43,
+      "losses": 5,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0'/P1.0 (mixed-training effect, same environment)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -15.672222222222201,
+      "mean_pct": -0.22357535107511897,
+      "ci95_pct": [
+       -1.048,
+       0.43
+      ],
+      "ci90_pct": [
+       -0.903,
+       0.358
+      ],
+      "ci95_cluster_pct": [
+       -1.123,
+       0.398
+      ],
+      "ci90_cluster_pct": [
+       -0.95,
+       0.314
+      ],
+      "wins": 7,
+      "ties": 44,
+      "losses": 9,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0'/P1.0 - score/0.851 (same-environment replicate)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 21.68888888888896,
+      "mean_pct": 0.3094073628490849,
+      "ci95_pct": [
+       -0.852,
+       2.1
+      ],
+      "ci90_pct": [
+       -0.753,
+       1.739
+      ],
+      "ci95_cluster_pct": [
+       -0.839,
+       2.23
+      ],
+      "ci90_cluster_pct": [
+       -0.704,
+       1.866
+      ],
+      "wins": 15,
+      "ties": 42,
+      "losses": 3,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0/P1.0 - score/0.851 (original checkpoints)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 21.68888888888896,
+      "mean_pct": 0.3094073628490849,
+      "ci95_pct": [
+       -0.852,
+       2.1
+      ],
+      "ci90_pct": [
+       -0.753,
+       1.739
+      ],
+      "ci95_cluster_pct": [
+       -0.839,
+       2.23
+      ],
+      "ci90_cluster_pct": [
+       -0.704,
+       1.866
+      ],
+      "wins": 15,
+      "ties": 42,
+      "losses": 3,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0/P1.0": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -15.672222222222201,
+      "mean_pct": -0.22357535107511897,
+      "ci95_pct": [
+       -1.048,
+       0.43
+      ],
+      "ci90_pct": [
+       -0.903,
+       0.358
+      ],
+      "ci95_cluster_pct": [
+       -1.123,
+       0.398
+      ],
+      "ci90_cluster_pct": [
+       -0.95,
+       0.314
+      ],
+      "wins": 7,
+      "ties": 44,
+      "losses": 9,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/Pmix - score/0.851 (threshold effect, score)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/P1.0 - M0'/P1.0 (model effect at P1.0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -35.11111111111125,
+      "mean_pct": -0.5008848701860189,
+      "ci95_pct": [
+       -1.916,
+       0.37
+      ],
+      "ci90_pct": [
+       -1.605,
+       0.304
+      ],
+      "ci95_cluster_pct": [
+       -2.193,
+       0.367
+      ],
+      "ci90_cluster_pct": [
+       -1.872,
+       0.293
+      ],
+      "wins": 5,
+      "ties": 44,
+      "losses": 11,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0'/Pmix (model effect at Pmix)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 11.044444444444434,
+      "mean_pct": 0.15755682309015834,
+      "ci95_pct": [
+       -0.183,
+       0.522
+      ],
+      "ci90_pct": [
+       -0.125,
+       0.472
+      ],
+      "ci95_cluster_pct": [
+       -0.268,
+       0.648
+      ],
+      "ci90_cluster_pct": [
+       -0.186,
+       0.55
+      ],
+      "wins": 5,
+      "ties": 44,
+      "losses": 11,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M1/P1.0 (threshold effect, M1)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 19.43888888888905,
+      "mean_pct": 0.27730951911089996,
+      "ci95_pct": [
+       -0.132,
+       0.974
+      ],
+      "ci90_pct": [
+       -0.095,
+       0.842
+      ],
+      "ci95_cluster_pct": [
+       -0.146,
+       1.254
+      ],
+      "ci90_cluster_pct": [
+       -0.113,
+       1.059
+      ],
+      "wins": 7,
+      "ties": 45,
+      "losses": 8,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0'/Pmix - M0'/P1.0 (threshold effect, M0')": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -26.716666666666637,
+      "mean_pct": -0.3811321741652773,
+      "ci95_pct": [
+       -1.309,
+       0.322
+      ],
+      "ci90_pct": [
+       -1.127,
+       0.232
+      ],
+      "ci95_cluster_pct": [
+       -1.436,
+       0.292
+      ],
+      "ci90_cluster_pct": [
+       -1.247,
+       0.193
+      ],
+      "wins": 6,
+      "ties": 47,
+      "losses": 7,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0/Pmix - M0/P1.0 (threshold effect, M0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -26.716666666666637,
+      "mean_pct": -0.3811321741652773,
+      "ci95_pct": [
+       -1.309,
+       0.322
+      ],
+      "ci90_pct": [
+       -1.127,
+       0.232
+      ],
+      "ci95_cluster_pct": [
+       -1.436,
+       0.292
+      ],
+      "ci90_cluster_pct": [
+       -1.247,
+       0.193
+      ],
+      "wins": 6,
+      "ties": 47,
+      "losses": 7,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": 208.35,
+      "mean_pct": 2.972260330156043,
+      "ci95_pct": [
+       0.522,
+       5.559
+      ],
+      "ci90_pct": [
+       0.87,
+       5.091
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       7.935
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       6.979
+      ],
+      "wins": 5,
+      "ties": 41,
+      "losses": 14,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/Pmix - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": 208.35,
+      "mean_pct": 2.972260330156043,
+      "ci95_pct": [
+       0.522,
+       5.559
+      ],
+      "ci90_pct": [
+       0.87,
+       5.091
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       7.935
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       6.979
+      ],
+      "wins": 5,
+      "ties": 41,
+      "losses": 14,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score, no rules - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -161.73333333333332,
+      "mean_pct": -2.307240560261918,
+      "ci95_pct": [
+       -5.269,
+       -0.003
+      ],
+      "ci90_pct": [
+       -4.643,
+       -0.339
+      ],
+      "ci95_cluster_pct": [
+       -7.211,
+       0.409
+      ],
+      "ci90_cluster_pct": [
+       -6.254,
+       0.034
+      ],
+      "wins": 13,
+      "ties": 40,
+      "losses": 7,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "random/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": 156.3,
+      "mean_pct": 2.2297302116793354,
+      "ci95_pct": [
+       -0.104,
+       4.711
+      ],
+      "ci90_pct": [
+       0.302,
+       4.222
+      ],
+      "ci95_cluster_pct": [
+       -0.676,
+       6.397
+      ],
+      "ci90_cluster_pct": [
+       -0.136,
+       5.651
+      ],
+      "wins": 3,
+      "ties": 40,
+      "losses": 17,
+      "unit": "% of mean ECMP drops"
+     }
+    }
+   }
+  },
+  "0.5": {
+   "ecmp_mean_drops": 47382.63333333333,
+   "ecmp_loss_pct": 15.392111023209893,
+   "variants": {
+    "ecmp": {
+     "cells": 60,
+     "mean_drops": 47382.63333333333,
+     "total_pct_vs_ecmp": 0.0,
+     "reroutes": 0.0,
+     "reordered_pct": 0.0,
+     "p99_ms": 10.766666666666666
+    },
+    "guarded_score": {
+     "cells": 60,
+     "mean_drops": 44741.73333333333,
+     "total_pct_vs_ecmp": -5.573561058587573,
+     "reroutes": 33.15,
+     "reordered_pct": 0.19060057269492733,
+     "p99_ms": 10.483333333333334
+    },
+    "score_pmix": {
+     "cells": 60,
+     "mean_drops": 44741.73333333333,
+     "total_pct_vs_ecmp": -5.573561058587573,
+     "reroutes": 33.15,
+     "reordered_pct": 0.19060057269492733,
+     "p99_ms": 10.483333333333334
+    },
+    "guarded_gnn": {
+     "cells": 60,
+     "mean_drops": 44783.61111111111,
+     "total_pct_vs_ecmp": -5.485178934522894,
+     "reroutes": 38.483333333333334,
+     "reordered_pct": 0.2793281244086685,
+     "p99_ms": 10.533333333333333
+    },
+    "m0p_p10": {
+     "cells": 60,
+     "mean_drops": 44783.61111111111,
+     "total_pct_vs_ecmp": -5.485178934522894,
+     "reroutes": 38.483333333333334,
+     "reordered_pct": 0.2793281244086685,
+     "p99_ms": 10.533333333333333
+    },
+    "m1_pmix": {
+     "cells": 60,
+     "mean_drops": 44697.972222222226,
+     "total_pct_vs_ecmp": -5.665917916010943,
+     "reroutes": 38.46666666666667,
+     "reordered_pct": 0.282523759807523,
+     "p99_ms": 10.477777777777778
+    },
+    "score_no_rules": {
+     "cells": 60,
+     "mean_drops": 43706.11666666667,
+     "total_pct_vs_ecmp": -7.7592071356664345,
+     "reroutes": 1536.0166666666667,
+     "reordered_pct": 9.079652424016887,
+     "p99_ms": 10.8
+    },
+    "random": {
+     "cells": 60,
+     "mean_drops": 44998.95,
+     "total_pct_vs_ecmp": -5.030710970756513,
+     "reroutes": 239.25,
+     "reordered_pct": 1.1064527712082555,
+     "p99_ms": 11.3
+    },
+    "m1_p10": {
+     "cells": 60,
+     "mean_drops": 44897.8,
+     "total_pct_vs_ecmp": -5.2441858092873606,
+     "reroutes": 39.111111111111114,
+     "reordered_pct": 0.29946724437681677,
+     "p99_ms": 10.444444444444443
+    },
+    "m0_pmix": {
+     "cells": 60,
+     "mean_drops": 44956.69444444445,
+     "total_pct_vs_ecmp": -5.11989038646834,
+     "reroutes": 36.777777777777786,
+     "reordered_pct": 0.2603484554406805,
+     "p99_ms": 10.466666666666667
+    },
+    "m0p_pmix": {
+     "cells": 60,
+     "mean_drops": 44956.69444444445,
+     "total_pct_vs_ecmp": -5.11989038646834,
+     "reroutes": 36.777777777777786,
+     "reordered_pct": 0.2603484554406805,
+     "p99_ms": 10.466666666666667
+    }
+   },
+   "diffs": {
+    "PRIMARY M1/Pmix - score/Pmix": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -43.761111111110104,
+      "mean_pct": -0.09235685742338108,
+      "ci95_pct": [
+       -0.667,
+       0.527
+      ],
+      "ci90_pct": [
+       -0.574,
+       0.424
+      ],
+      "ci95_cluster_pct": [
+       -0.711,
+       0.595
+      ],
+      "ci90_cluster_pct": [
+       -0.586,
+       0.473
+      ],
+      "wins": 12,
+      "ties": 40,
+      "losses": 8,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0'/P1.0 (mixed-training effect, same environment)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -85.63888888888748,
+      "mean_pct": -0.18073898148805748,
+      "ci95_pct": [
+       -0.774,
+       0.461
+      ],
+      "ci90_pct": [
+       -0.686,
+       0.351
+      ],
+      "ci95_cluster_pct": [
+       -0.977,
+       0.36
+      ],
+      "ci90_cluster_pct": [
+       -0.828,
+       0.27
+      ],
+      "wins": 12,
+      "ties": 40,
+      "losses": 8,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0'/P1.0 - score/0.851 (same-environment replicate)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 41.877777777777375,
+      "mean_pct": 0.0883821240646764,
+      "ci95_pct": [
+       -0.567,
+       0.822
+      ],
+      "ci90_pct": [
+       -0.476,
+       0.694
+      ],
+      "ci95_cluster_pct": [
+       -0.535,
+       1.056
+      ],
+      "ci90_cluster_pct": [
+       -0.455,
+       0.862
+      ],
+      "wins": 11,
+      "ties": 40,
+      "losses": 9,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0/P1.0 - score/0.851 (original checkpoints)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 41.877777777777375,
+      "mean_pct": 0.0883821240646764,
+      "ci95_pct": [
+       -0.567,
+       0.822
+      ],
+      "ci90_pct": [
+       -0.476,
+       0.694
+      ],
+      "ci95_cluster_pct": [
+       -0.535,
+       1.056
+      ],
+      "ci90_cluster_pct": [
+       -0.455,
+       0.862
+      ],
+      "wins": 11,
+      "ties": 40,
+      "losses": 9,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0/P1.0": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -85.63888888888748,
+      "mean_pct": -0.18073898148805748,
+      "ci95_pct": [
+       -0.774,
+       0.461
+      ],
+      "ci90_pct": [
+       -0.686,
+       0.351
+      ],
+      "ci95_cluster_pct": [
+       -0.977,
+       0.36
+      ],
+      "ci90_cluster_pct": [
+       -0.828,
+       0.27
+      ],
+      "wins": 12,
+      "ties": 40,
+      "losses": 8,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/Pmix - score/0.851 (threshold effect, score)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/P1.0 - M0'/P1.0 (model effect at P1.0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 114.18888888888965,
+      "mean_pct": 0.2409931252355251,
+      "ci95_pct": [
+       -0.306,
+       0.827
+      ],
+      "ci90_pct": [
+       -0.204,
+       0.726
+      ],
+      "ci95_cluster_pct": [
+       -0.286,
+       0.944
+      ],
+      "ci90_cluster_pct": [
+       -0.202,
+       0.795
+      ],
+      "wins": 7,
+      "ties": 40,
+      "losses": 13,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0'/Pmix (model effect at Pmix)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -258.72222222222115,
+      "mean_pct": -0.5460275295425845,
+      "ci95_pct": [
+       -1.431,
+       0.271
+      ],
+      "ci90_pct": [
+       -1.277,
+       0.15
+      ],
+      "ci95_cluster_pct": [
+       -2.216,
+       0.357
+      ],
+      "ci90_cluster_pct": [
+       -1.922,
+       0.272
+      ],
+      "wins": 10,
+      "ties": 40,
+      "losses": 10,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M1/P1.0 (threshold effect, M1)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -199.82777777777713,
+      "mean_pct": -0.4217321067235826,
+      "ci95_pct": [
+       -0.967,
+       0.053
+      ],
+      "ci90_pct": [
+       -0.893,
+       -0.007
+      ],
+      "ci95_cluster_pct": [
+       -1.334,
+       0.094
+      ],
+      "ci90_cluster_pct": [
+       -1.165,
+       0.024
+      ],
+      "wins": 11,
+      "ties": 41,
+      "losses": 8,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0'/Pmix - M0'/P1.0 (threshold effect, M0')": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 173.08333333333368,
+      "mean_pct": 0.36528854805452704,
+      "ci95_pct": [
+       -0.133,
+       0.965
+      ],
+      "ci90_pct": [
+       -0.057,
+       0.859
+      ],
+      "ci95_cluster_pct": [
+       -0.403,
+       1.579
+      ],
+      "ci90_cluster_pct": [
+       -0.32,
+       1.355
+      ],
+      "wins": 9,
+      "ties": 40,
+      "losses": 11,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0/Pmix - M0/P1.0 (threshold effect, M0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 173.08333333333368,
+      "mean_pct": 0.36528854805452704,
+      "ci95_pct": [
+       -0.133,
+       0.965
+      ],
+      "ci90_pct": [
+       -0.057,
+       0.859
+      ],
+      "ci95_cluster_pct": [
+       -0.403,
+       1.579
+      ],
+      "ci90_cluster_pct": [
+       -0.32,
+       1.355
+      ],
+      "wins": 9,
+      "ties": 40,
+      "losses": 11,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -2640.9,
+      "mean_pct": -5.57356105858757,
+      "ci95_pct": [
+       -9.659,
+       -2.396
+      ],
+      "ci90_pct": [
+       -8.934,
+       -2.713
+      ],
+      "ci95_cluster_pct": [
+       -17.051,
+       0.041
+      ],
+      "ci90_cluster_pct": [
+       -14.938,
+       -0.031
+      ],
+      "wins": 19,
+      "ties": 38,
+      "losses": 3,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/Pmix - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -2640.9,
+      "mean_pct": -5.57356105858757,
+      "ci95_pct": [
+       -9.659,
+       -2.396
+      ],
+      "ci90_pct": [
+       -8.934,
+       -2.713
+      ],
+      "ci95_cluster_pct": [
+       -17.051,
+       0.041
+      ],
+      "ci90_cluster_pct": [
+       -14.938,
+       -0.031
+      ],
+      "wins": 19,
+      "ties": 38,
+      "losses": 3,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score, no rules - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -3676.516666666667,
+      "mean_pct": -7.759207135666443,
+      "ci95_pct": [
+       -13.238,
+       -3.412
+      ],
+      "ci90_pct": [
+       -12.339,
+       -3.897
+      ],
+      "ci95_cluster_pct": [
+       -23.804,
+       0.053
+      ],
+      "ci90_cluster_pct": [
+       -21.204,
+       -0.031
+      ],
+      "wins": 18,
+      "ties": 37,
+      "losses": 5,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "random/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -2383.6833333333334,
+      "mean_pct": -5.030710970756515,
+      "ci95_pct": [
+       -8.951,
+       -1.794
+      ],
+      "ci90_pct": [
+       -8.415,
+       -2.251
+      ],
+      "ci95_cluster_pct": [
+       -15.626,
+       -0.031
+      ],
+      "ci90_cluster_pct": [
+       -13.306,
+       -0.101
+      ],
+      "wins": 18,
+      "ties": 37,
+      "losses": 5,
+      "unit": "% of mean ECMP drops"
+     }
+    }
+   }
+  },
+  "0.75": {
+   "ecmp_mean_drops": 120830.23333333334,
+   "ecmp_loss_pct": 26.166495292779373,
+   "variants": {
+    "ecmp": {
+     "cells": 60,
+     "mean_drops": 120830.23333333334,
+     "total_pct_vs_ecmp": 0.0,
+     "reroutes": 0.0,
+     "reordered_pct": 0.0,
+     "p99_ms": 13.216666666666667
+    },
+    "guarded_score": {
+     "cells": 60,
+     "mean_drops": 115463.41666666667,
+     "total_pct_vs_ecmp": -4.441617398736019,
+     "reroutes": 29.0,
+     "reordered_pct": 0.20816341299233287,
+     "p99_ms": 12.4
+    },
+    "score_pmix": {
+     "cells": 60,
+     "mean_drops": 115463.41666666667,
+     "total_pct_vs_ecmp": -4.441617398736019,
+     "reroutes": 29.0,
+     "reordered_pct": 0.20816341299233287,
+     "p99_ms": 12.4
+    },
+    "guarded_gnn": {
+     "cells": 60,
+     "mean_drops": 116163.17222222223,
+     "total_pct_vs_ecmp": -3.8624944952610707,
+     "reroutes": 42.32777777777778,
+     "reordered_pct": 0.27160456849700304,
+     "p99_ms": 12.61111111111111
+    },
+    "m0p_p10": {
+     "cells": 60,
+     "mean_drops": 116163.17222222223,
+     "total_pct_vs_ecmp": -3.8624944952610707,
+     "reroutes": 42.32777777777778,
+     "reordered_pct": 0.27160456849700304,
+     "p99_ms": 12.61111111111111
+    },
+    "m1_pmix": {
+     "cells": 60,
+     "mean_drops": 115921.92777777779,
+     "total_pct_vs_ecmp": -4.06215019217504,
+     "reroutes": 36.327777777777776,
+     "reordered_pct": 0.2673990157016848,
+     "p99_ms": 12.733333333333336
+    },
+    "score_no_rules": {
+     "cells": 60,
+     "mean_drops": 109933.21666666666,
+     "total_pct_vs_ecmp": -9.01845205959767,
+     "reroutes": 2088.8166666666666,
+     "reordered_pct": 14.480580228619843,
+     "p99_ms": 13.233333333333334
+    },
+    "random": {
+     "cells": 60,
+     "mean_drops": 114808.86666666667,
+     "total_pct_vs_ecmp": -4.9833278481351435,
+     "reroutes": 172.8,
+     "reordered_pct": 0.9161784896273583,
+     "p99_ms": 13.083333333333334
+    },
+    "m1_p10": {
+     "cells": 60,
+     "mean_drops": 115669.0111111111,
+     "total_pct_vs_ecmp": -4.27146590703339,
+     "reroutes": 39.42777777777778,
+     "reordered_pct": 0.27913821195390215,
+     "p99_ms": 12.611111111111112
+    },
+    "m0_pmix": {
+     "cells": 60,
+     "mean_drops": 115654.65,
+     "total_pct_vs_ecmp": -4.283351269425683,
+     "reroutes": 39.76111111111111,
+     "reordered_pct": 0.23897851855038008,
+     "p99_ms": 12.800000000000002
+    },
+    "m0p_pmix": {
+     "cells": 60,
+     "mean_drops": 115654.65,
+     "total_pct_vs_ecmp": -4.283351269425683,
+     "reroutes": 39.76111111111111,
+     "reordered_pct": 0.23897851855038008,
+     "p99_ms": 12.800000000000002
+    }
+   },
+   "diffs": {
+    "PRIMARY M1/Pmix - score/Pmix": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 458.51111111111044,
+      "mean_pct": 0.37946720656097693,
+      "ci95_pct": [
+       -0.279,
+       0.922
+      ],
+      "ci90_pct": [
+       -0.145,
+       0.857
+      ],
+      "ci95_cluster_pct": [
+       -0.668,
+       1.736
+      ],
+      "ci90_cluster_pct": [
+       -0.546,
+       1.472
+      ],
+      "wins": 7,
+      "ties": 35,
+      "losses": 18,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0'/P1.0 (mixed-training effect, same environment)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -241.24444444444498,
+      "mean_pct": -0.19965569691397186,
+      "ci95_pct": [
+       -0.665,
+       0.201
+      ],
+      "ci90_pct": [
+       -0.564,
+       0.141
+      ],
+      "ci95_cluster_pct": [
+       -0.76,
+       0.258
+      ],
+      "ci90_cluster_pct": [
+       -0.622,
+       0.161
+      ],
+      "wins": 14,
+      "ties": 35,
+      "losses": 11,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0'/P1.0 - score/0.851 (same-environment replicate)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 699.7555555555555,
+      "mean_pct": 0.5791229034749488,
+      "ci95_pct": [
+       -0.109,
+       1.266
+      ],
+      "ci90_pct": [
+       -0.01,
+       1.151
+      ],
+      "ci95_cluster_pct": [
+       -0.609,
+       2.031
+      ],
+      "ci90_cluster_pct": [
+       -0.415,
+       1.765
+      ],
+      "wins": 9,
+      "ties": 35,
+      "losses": 16,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0/P1.0 - score/0.851 (original checkpoints)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 699.7555555555555,
+      "mean_pct": 0.5791229034749488,
+      "ci95_pct": [
+       -0.109,
+       1.266
+      ],
+      "ci90_pct": [
+       -0.01,
+       1.151
+      ],
+      "ci95_cluster_pct": [
+       -0.609,
+       2.031
+      ],
+      "ci90_cluster_pct": [
+       -0.415,
+       1.765
+      ],
+      "wins": 9,
+      "ties": 35,
+      "losses": 16,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0/P1.0": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -241.24444444444498,
+      "mean_pct": -0.19965569691397186,
+      "ci95_pct": [
+       -0.665,
+       0.201
+      ],
+      "ci90_pct": [
+       -0.564,
+       0.141
+      ],
+      "ci95_cluster_pct": [
+       -0.76,
+       0.258
+      ],
+      "ci90_cluster_pct": [
+       -0.622,
+       0.161
+      ],
+      "wins": 14,
+      "ties": 35,
+      "losses": 11,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/Pmix - score/0.851 (threshold effect, score)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/P1.0 - M0'/P1.0 (model effect at P1.0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -494.1611111111118,
+      "mean_pct": -0.4089714117723117,
+      "ci95_pct": [
+       -0.981,
+       0.097
+      ],
+      "ci90_pct": [
+       -0.909,
+       0.026
+      ],
+      "ci95_cluster_pct": [
+       -1.402,
+       0.182
+      ],
+      "ci90_cluster_pct": [
+       -1.174,
+       0.1
+      ],
+      "wins": 17,
+      "ties": 35,
+      "losses": 8,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0'/Pmix (model effect at Pmix)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 267.27777777777976,
+      "mean_pct": 0.2212010772506272,
+      "ci95_pct": [
+       -0.591,
+       1.145
+      ],
+      "ci90_pct": [
+       -0.46,
+       1.009
+      ],
+      "ci95_cluster_pct": [
+       -0.529,
+       1.53
+      ],
+      "ci90_cluster_pct": [
+       -0.393,
+       1.217
+      ],
+      "wins": 14,
+      "ties": 35,
+      "losses": 11,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M1/P1.0 (threshold effect, M1)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 252.91666666666686,
+      "mean_pct": 0.20931571485833994,
+      "ci95_pct": [
+       -0.141,
+       0.647
+      ],
+      "ci90_pct": [
+       -0.093,
+       0.577
+      ],
+      "ci95_cluster_pct": [
+       -0.192,
+       0.98
+      ],
+      "ci90_cluster_pct": [
+       -0.138,
+       0.779
+      ],
+      "wins": 13,
+      "ties": 35,
+      "losses": 12,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0'/Pmix - M0'/P1.0 (threshold effect, M0')": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -508.52222222222474,
+      "mean_pct": -0.420856774164599,
+      "ci95_pct": [
+       -1.107,
+       0.125
+      ],
+      "ci90_pct": [
+       -0.983,
+       0.054
+      ],
+      "ci95_cluster_pct": [
+       -1.518,
+       0.148
+      ],
+      "ci90_cluster_pct": [
+       -1.279,
+       0.095
+      ],
+      "wins": 12,
+      "ties": 36,
+      "losses": 12,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0/Pmix - M0/P1.0 (threshold effect, M0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -508.52222222222474,
+      "mean_pct": -0.420856774164599,
+      "ci95_pct": [
+       -1.107,
+       0.125
+      ],
+      "ci90_pct": [
+       -0.983,
+       0.054
+      ],
+      "ci95_cluster_pct": [
+       -1.518,
+       0.148
+      ],
+      "ci90_cluster_pct": [
+       -1.279,
+       0.095
+      ],
+      "wins": 12,
+      "ties": 36,
+      "losses": 12,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -5366.816666666667,
+      "mean_pct": -4.441617398736023,
+      "ci95_pct": [
+       -6.822,
+       -2.294
+      ],
+      "ci90_pct": [
+       -6.459,
+       -2.611
+      ],
+      "ci95_cluster_pct": [
+       -9.525,
+       -0.74
+      ],
+      "ci90_cluster_pct": [
+       -8.682,
+       -1.118
+      ],
+      "wins": 32,
+      "ties": 25,
+      "losses": 3,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/Pmix - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -5366.816666666667,
+      "mean_pct": -4.441617398736023,
+      "ci95_pct": [
+       -6.822,
+       -2.294
+      ],
+      "ci90_pct": [
+       -6.459,
+       -2.611
+      ],
+      "ci95_cluster_pct": [
+       -9.525,
+       -0.74
+      ],
+      "ci90_cluster_pct": [
+       -8.682,
+       -1.118
+      ],
+      "wins": 32,
+      "ties": 25,
+      "losses": 3,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score, no rules - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -10897.016666666666,
+      "mean_pct": -9.018452059597665,
+      "ci95_pct": [
+       -13.227,
+       -5.164
+      ],
+      "ci90_pct": [
+       -12.576,
+       -5.755
+      ],
+      "ci95_cluster_pct": [
+       -22.226,
+       -1.106
+      ],
+      "ci90_cluster_pct": [
+       -20.353,
+       -1.402
+      ],
+      "wins": 32,
+      "ties": 25,
+      "losses": 3,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "random/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -6021.366666666667,
+      "mean_pct": -4.983327848135138,
+      "ci95_pct": [
+       -7.238,
+       -2.867
+      ],
+      "ci90_pct": [
+       -6.79,
+       -3.198
+      ],
+      "ci95_cluster_pct": [
+       -11.002,
+       -0.404
+      ],
+      "ci90_cluster_pct": [
+       -10.012,
+       -0.824
+      ],
+      "wins": 32,
+      "ties": 25,
+      "losses": 3,
+      "unit": "% of mean ECMP drops"
+     }
+    }
+   }
+  },
+  "1.0": {
+   "ecmp_mean_drops": 218621.41666666666,
+   "ecmp_loss_pct": 35.50732591684775,
+   "variants": {
+    "ecmp": {
+     "cells": 60,
+     "mean_drops": 218621.41666666666,
+     "total_pct_vs_ecmp": 0.0,
+     "reroutes": 0.0,
+     "reordered_pct": 0.0,
+     "p99_ms": 15.066666666666666
+    },
+    "guarded_score": {
+     "cells": 60,
+     "mean_drops": 209265.45,
+     "total_pct_vs_ecmp": -4.279528881167094,
+     "reroutes": 33.85,
+     "reordered_pct": 0.22280407829997106,
+     "p99_ms": 14.0
+    },
+    "score_pmix": {
+     "cells": 60,
+     "mean_drops": 209265.45,
+     "total_pct_vs_ecmp": -4.279528881167094,
+     "reroutes": 33.85,
+     "reordered_pct": 0.22280407829997106,
+     "p99_ms": 14.0
+    },
+    "guarded_gnn": {
+     "cells": 60,
+     "mean_drops": 209667.47777777776,
+     "total_pct_vs_ecmp": -4.0956366605843675,
+     "reroutes": 55.29999999999999,
+     "reordered_pct": 0.26835494318470776,
+     "p99_ms": 13.900000000000002
+    },
+    "m0p_p10": {
+     "cells": 60,
+     "mean_drops": 209667.47777777776,
+     "total_pct_vs_ecmp": -4.0956366605843675,
+     "reroutes": 55.29999999999999,
+     "reordered_pct": 0.26835494318470776,
+     "p99_ms": 13.900000000000002
+    },
+    "m1_pmix": {
+     "cells": 60,
+     "mean_drops": 209382.22777777776,
+     "total_pct_vs_ecmp": -4.226113356028582,
+     "reroutes": 43.46111111111111,
+     "reordered_pct": 0.29871605402886214,
+     "p99_ms": 14.0
+    },
+    "score_no_rules": {
+     "cells": 60,
+     "mean_drops": 197276.41666666666,
+     "total_pct_vs_ecmp": -9.763453336570793,
+     "reroutes": 2491.8166666666666,
+     "reordered_pct": 18.76826438010003,
+     "p99_ms": 15.133333333333335
+    },
+    "random": {
+     "cells": 60,
+     "mean_drops": 208591.66666666666,
+     "total_pct_vs_ecmp": -4.5877252800408,
+     "reroutes": 120.15,
+     "reordered_pct": 0.6665997075615625,
+     "p99_ms": 14.433333333333334
+    },
+    "m1_p10": {
+     "cells": 60,
+     "mean_drops": 209955.0,
+     "total_pct_vs_ecmp": -3.9641206240468185,
+     "reroutes": 48.738888888888894,
+     "reordered_pct": 0.3199968773537616,
+     "p99_ms": 13.9
+    },
+    "m0_pmix": {
+     "cells": 60,
+     "mean_drops": 209978.62777777776,
+     "total_pct_vs_ecmp": -3.9533130013820195,
+     "reroutes": 52.1111111111111,
+     "reordered_pct": 0.2660315040343716,
+     "p99_ms": 14.049999999999999
+    },
+    "m0p_pmix": {
+     "cells": 60,
+     "mean_drops": 209978.62777777776,
+     "total_pct_vs_ecmp": -3.9533130013820195,
+     "reroutes": 52.1111111111111,
+     "reordered_pct": 0.2660315040343716,
+     "p99_ms": 14.049999999999999
+    }
+   },
+   "diffs": {
+    "PRIMARY M1/Pmix - score/Pmix": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 116.77777777777379,
+      "mean_pct": 0.05341552513852088,
+      "ci95_pct": [
+       -0.581,
+       0.659
+      ],
+      "ci90_pct": [
+       -0.469,
+       0.56
+      ],
+      "ci95_cluster_pct": [
+       -0.878,
+       0.997
+      ],
+      "ci90_cluster_pct": [
+       -0.706,
+       0.849
+      ],
+      "wins": 17,
+      "ties": 24,
+      "losses": 19,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0'/P1.0 (mixed-training effect, same environment)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -285.2500000000033,
+      "mean_pct": -0.13047669544421883,
+      "ci95_pct": [
+       -0.467,
+       0.185
+      ],
+      "ci90_pct": [
+       -0.412,
+       0.131
+      ],
+      "ci95_cluster_pct": [
+       -0.699,
+       0.304
+      ],
+      "ci90_cluster_pct": [
+       -0.577,
+       0.241
+      ],
+      "wins": 17,
+      "ties": 25,
+      "losses": 18,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0'/P1.0 - score/0.851 (same-environment replicate)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 402.0277777777771,
+      "mean_pct": 0.1838922205827397,
+      "ci95_pct": [
+       -0.545,
+       0.934
+      ],
+      "ci90_pct": [
+       -0.408,
+       0.813
+      ],
+      "ci95_cluster_pct": [
+       -0.947,
+       1.527
+      ],
+      "ci90_cluster_pct": [
+       -0.749,
+       1.323
+      ],
+      "wins": 15,
+      "ties": 24,
+      "losses": 21,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0/P1.0 - score/0.851 (original checkpoints)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 402.0277777777771,
+      "mean_pct": 0.1838922205827397,
+      "ci95_pct": [
+       -0.545,
+       0.934
+      ],
+      "ci90_pct": [
+       -0.408,
+       0.813
+      ],
+      "ci95_cluster_pct": [
+       -0.947,
+       1.527
+      ],
+      "ci90_cluster_pct": [
+       -0.749,
+       1.323
+      ],
+      "wins": 15,
+      "ties": 24,
+      "losses": 21,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0/P1.0": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": -285.2500000000033,
+      "mean_pct": -0.13047669544421883,
+      "ci95_pct": [
+       -0.467,
+       0.185
+      ],
+      "ci90_pct": [
+       -0.412,
+       0.131
+      ],
+      "ci95_cluster_pct": [
+       -0.699,
+       0.304
+      ],
+      "ci90_cluster_pct": [
+       -0.577,
+       0.241
+      ],
+      "wins": 17,
+      "ties": 25,
+      "losses": 18,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/Pmix - score/0.851 (threshold effect, score)": {
+     "section": "a",
+     "result": {
+      "n": 60,
+      "mean": 0.0,
+      "mean_pct": 0.0,
+      "ci95_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_pct": [
+       0.0,
+       0.0
+      ],
+      "ci95_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "ci90_cluster_pct": [
+       0.0,
+       0.0
+      ],
+      "wins": 0,
+      "ties": 60,
+      "losses": 0,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/P1.0 - M0'/P1.0 (model effect at P1.0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 287.52222222222616,
+      "mean_pct": 0.1315160365375424,
+      "ci95_pct": [
+       -0.274,
+       0.543
+      ],
+      "ci90_pct": [
+       -0.205,
+       0.474
+      ],
+      "ci95_cluster_pct": [
+       -0.39,
+       0.716
+      ],
+      "ci90_cluster_pct": [
+       -0.309,
+       0.612
+      ],
+      "wins": 15,
+      "ties": 24,
+      "losses": 21,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M0'/Pmix (model effect at Pmix)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -596.4000000000034,
+      "mean_pct": -0.27280035464656144,
+      "ci95_pct": [
+       -0.623,
+       0.053
+      ],
+      "ci90_pct": [
+       -0.575,
+       -0.008
+      ],
+      "ci95_cluster_pct": [
+       -0.929,
+       0.169
+      ],
+      "ci90_cluster_pct": [
+       -0.809,
+       0.128
+      ],
+      "wins": 21,
+      "ties": 24,
+      "losses": 15,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M1/Pmix - M1/P1.0 (threshold effect, M1)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": -572.7722222222294,
+      "mean_pct": -0.2619927319817612,
+      "ci95_pct": [
+       -0.551,
+       -0.047
+      ],
+      "ci90_pct": [
+       -0.481,
+       -0.075
+      ],
+      "ci95_cluster_pct": [
+       -0.691,
+       0.03
+      ],
+      "ci90_cluster_pct": [
+       -0.609,
+       0.019
+      ],
+      "wins": 15,
+      "ties": 30,
+      "losses": 15,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0'/Pmix - M0'/P1.0 (threshold effect, M0')": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 311.1500000000002,
+      "mean_pct": 0.14232365920234266,
+      "ci95_pct": [
+       -0.295,
+       0.538
+      ],
+      "ci90_pct": [
+       -0.206,
+       0.49
+      ],
+      "ci95_cluster_pct": [
+       -0.29,
+       0.668
+      ],
+      "ci90_cluster_pct": [
+       -0.207,
+       0.565
+      ],
+      "wins": 12,
+      "ties": 28,
+      "losses": 20,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "M0/Pmix - M0/P1.0 (threshold effect, M0)": {
+     "section": "a2",
+     "result": {
+      "n": 60,
+      "mean": 311.1500000000002,
+      "mean_pct": 0.14232365920234266,
+      "ci95_pct": [
+       -0.295,
+       0.538
+      ],
+      "ci90_pct": [
+       -0.206,
+       0.49
+      ],
+      "ci95_cluster_pct": [
+       -0.29,
+       0.668
+      ],
+      "ci90_cluster_pct": [
+       -0.207,
+       0.565
+      ],
+      "wins": 12,
+      "ties": 28,
+      "losses": 20,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -9355.966666666667,
+      "mean_pct": -4.279528881167102,
+      "ci95_pct": [
+       -5.872,
+       -2.783
+      ],
+      "ci90_pct": [
+       -5.643,
+       -2.983
+      ],
+      "ci95_cluster_pct": [
+       -6.73,
+       -1.927
+      ],
+      "ci90_cluster_pct": [
+       -6.396,
+       -2.265
+      ],
+      "wins": 43,
+      "ties": 10,
+      "losses": 7,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score/Pmix - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -9355.966666666667,
+      "mean_pct": -4.279528881167102,
+      "ci95_pct": [
+       -5.872,
+       -2.783
+      ],
+      "ci90_pct": [
+       -5.643,
+       -2.983
+      ],
+      "ci95_cluster_pct": [
+       -6.73,
+       -1.927
+      ],
+      "ci90_cluster_pct": [
+       -6.396,
+       -2.265
+      ],
+      "wins": 43,
+      "ties": 10,
+      "losses": 7,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "score, no rules - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -21345.0,
+      "mean_pct": -9.763453336570791,
+      "ci95_pct": [
+       -12.78,
+       -6.97
+      ],
+      "ci90_pct": [
+       -12.178,
+       -7.392
+      ],
+      "ci95_cluster_pct": [
+       -19.077,
+       -3.247
+      ],
+      "ci90_cluster_pct": [
+       -17.466,
+       -3.785
+      ],
+      "wins": 49,
+      "ties": 7,
+      "losses": 4,
+      "unit": "% of mean ECMP drops"
+     }
+    },
+    "random/0.851 - ECMP": {
+     "section": "b",
+     "result": {
+      "n": 60,
+      "mean": -10029.75,
+      "mean_pct": -4.587725280040801,
+      "ci95_pct": [
+       -6.081,
+       -3.216
+      ],
+      "ci90_pct": [
+       -5.795,
+       -3.428
+      ],
+      "ci95_cluster_pct": [
+       -7.532,
+       -2.09
+      ],
+      "ci90_cluster_pct": [
+       -6.939,
+       -2.36
+      ],
+      "wins": 44,
+      "ties": 10,
+      "losses": 6,
+      "unit": "% of mean ECMP drops"
+     }
+    }
+   }
+  }
+ },
+ "routing_all_loads": {
+  "PRIMARY M1/Pmix - score/Pmix": {
+   "section": "a",
+   "result": {
+    "n": 60,
+    "mean": 527.4111111111101,
+    "mean_pct": 0.13303101686527619,
+    "ci95_pct": [
+     -0.372,
+     0.589
+    ],
+    "ci90_pct": [
+     -0.271,
+     0.524
+    ],
+    "ci95_cluster_pct": [
+     -0.662,
+     1.011
+    ],
+    "ci90_cluster_pct": [
+     -0.551,
+     0.876
+    ],
+    "wins": 13,
+    "ties": 24,
+    "losses": 23,
+    "unit": "% of mean ECMP drops"
+   }
+  },
+  "M1/Pmix - M0'/P1.0 (mixed-training effect, same environment)": {
+   "section": "a",
+   "result": {
+    "n": 60,
+    "mean": -640.9388888888939,
+    "mean_pct": -0.16166658293899125,
+    "ci95_pct": [
+     -0.475,
+     0.097
+    ],
+    "ci90_pct": [
+     -0.407,
+     0.057
+    ],
+    "ci95_cluster_pct": [
+     -0.63,
+     0.125
+    ],
+    "ci90_cluster_pct": [
+     -0.529,
+     0.095
+    ],
+    "wins": 17,
+    "ties": 25,
+    "losses": 18,
+    "unit": "% of mean ECMP drops"
+   }
+  },
+  "M0'/P1.0 - score/0.851 (same-environment replicate)": {
+   "section": "a",
+   "result": {
+    "n": 60,
+    "mean": 1168.3500000000038,
+    "mean_pct": 0.29469759980426735,
+    "ci95_pct": [
+     -0.306,
+     0.919
+    ],
+    "ci90_pct": [
+     -0.185,
+     0.806
+    ],
+    "ci95_cluster_pct": [
+     -0.662,
+     1.52
+    ],
+    "ci90_cluster_pct": [
+     -0.529,
+     1.293
+    ],
+    "wins": 12,
+    "ties": 24,
+    "losses": 24,
+    "unit": "% of mean ECMP drops"
+   }
+  },
+  "M0/P1.0 - score/0.851 (original checkpoints)": {
+   "section": "a",
+   "result": {
+    "n": 60,
+    "mean": 1168.3500000000038,
+    "mean_pct": 0.29469759980426735,
+    "ci95_pct": [
+     -0.306,
+     0.919
+    ],
+    "ci90_pct": [
+     -0.185,
+     0.806
+    ],
+    "ci95_cluster_pct": [
+     -0.662,
+     1.52
+    ],
+    "ci90_cluster_pct": [
+     -0.529,
+     1.293
+    ],
+    "wins": 12,
+    "ties": 24,
+    "losses": 24,
+    "unit": "% of mean ECMP drops"
+   }
+  },
+  "M1/Pmix - M0/P1.0": {
+   "section": "a",
+   "result": {
+    "n": 60,
+    "mean": -640.9388888888939,
+    "mean_pct": -0.16166658293899125,
+    "ci95_pct": [
+     -0.475,
+     0.097
+    ],
+    "ci90_pct": [
+     -0.407,
+     0.057
+    ],
+    "ci95_cluster_pct": [
+     -0.63,
+     0.125
+    ],
+    "ci90_cluster_pct": [
+     -0.529,
+     0.095
+    ],
+    "wins": 17,
+    "ties": 25,
+    "losses": 18,
+    "unit": "% of mean ECMP drops"
+   }
+  },
+  "score/Pmix - score/0.851 (threshold effect, score)": {
+   "section": "a",
+   "result": {
+    "n": 60,
+    "mean": 0.0,
+    "mean_pct": 0.0,
+    "ci95_pct": [
+     0.0,
+     0.0
+    ],
+    "ci90_pct": [
+     0.0,
+     0.0
+    ],
+    "ci95_cluster_pct": [
+     0.0,
+     0.0
+    ],
+    "ci90_cluster_pct": [
+     0.0,
+     0.0
+    ],
+    "wins": 0,
+    "ties": 60,
+    "losses": 0,
+    "unit": "% of mean ECMP drops"
+   }
+  },
+  "M1/P1.0 - M0'/P1.0 (model effect at P1.0)": {
+   "section": "a2",
+   "result": {
+    "n": 60,
+    "mean": -137.94444444444417,
+    "mean_pct": -0.034794279697103324,
+    "ci95_pct": [
+     -0.398,
+     0.311
+    ],
+    "ci90_pct": [
+     -0.34,
+     0.248
+    ],
+    "ci95_cluster_pct": [
+     -0.538,
+     0.329
+    ],
+    "ci90_cluster_pct": [
+     -0.452,
+     0.261
+    ],
+    "wins": 19,
+    "ties": 24,
+    "losses": 17,
+    "unit": "% of mean ECMP drops"
+   }
+  },
+  "M1/Pmix - M0'/Pmix (model effect at Pmix)": {
+   "section": "a2",
+   "result": {
+    "n": 60,
+    "mean": -590.2055555555492,
+    "mean_pct": -0.14886991108260705,
+    "ci95_pct": [
+     -0.421,
+     0.114
+    ],
+    "ci90_pct": [
+     -0.376,
+     0.072
+    ],
+    "ci95_cluster_pct": [
+     -0.562,
+     0.13
+    ],
+    "ci90_cluster_pct": [
+     -0.465,
+     0.105
+    ],
+    "wins": 19,
+    "ties": 24,
+    "losses": 17,
+    "unit": "% of mean ECMP drops"
+   }
+  },
+  "M1/Pmix - M1/P1.0 (threshold effect, M1)": {
+   "section": "a2",
+   "result": {
+    "n": 60,
+    "mean": -502.99444444444975,
+    "mean_pct": -0.12687230324188792,
+    "ci95_pct": [
+     -0.334,
+     0.074
+    ],
+    "ci90_pct": [
+     -0.298,
+     0.044
+    ],
+    "ci95_cluster_pct": [
+     -0.394,
+     0.091
+    ],
+    "ci90_cluster_pct": [
+     -0.344,
+     0.053
+    ],
+    "wins": 17,
+    "ties": 28,
+    "losses": 15,
+    "unit": "% of mean ECMP drops"
+   }
+  },
+  "M0'/Pmix - M0'/P1.0 (threshold effect, M0')": {
+   "section": "a2",
+   "result": {
+    "n": 60,
+    "mean": -50.73333333334457,
+    "mean_pct": -0.012796671856384154,
+    "ci95_pct": [
+     -0.27,
+     0.234
+    ],
+    "ci90_pct": [
+     -0.232,
+     0.198
+    ],
+    "ci95_cluster_pct": [
+     -0.315,
+     0.244
+    ],
+    "ci90_cluster_pct": [
+     -0.251,
+     0.201
+    ],
+    "wins": 15,
+    "ties": 27,
+    "losses": 18,
+    "unit": "% of mean ECMP drops"
+   }
+  },
+  "M0/Pmix - M0/P1.0 (threshold effect, M0)": {
+   "section": "a2",
+   "result": {
+    "n": 60,
+    "mean": -50.73333333334457,
+    "mean_pct": -0.012796671856384154,
+    "ci95_pct": [
+     -0.27,
+     0.234
+    ],
+    "ci90_pct": [
+     -0.232,
+     0.198
+    ],
+    "ci95_cluster_pct": [
+     -0.315,
+     0.244
+    ],
+    "ci90_cluster_pct": [
+     -0.251,
+     0.201
+    ],
+    "wins": 15,
+    "ties": 27,
+    "losses": 18,
+    "unit": "% of mean ECMP drops"
+   }
+  },
+  "score/0.851 - ECMP": {
+   "section": "b",
+   "result": {
+    "n": 60,
+    "mean": -17119.783333333333,
+    "mean_pct": -4.318191515814966,
+    "ci95_pct": [
+     -6.096,
+     -2.701
+    ],
+    "ci90_pct": [
+     -5.728,
+     -2.968
+    ],
+    "ci95_cluster_pct": [
+     -7.922,
+     -1.514
+    ],
+    "ci90_cluster_pct": [
+     -7.26,
+     -1.835
+    ],
+    "wins": 45,
+    "ties": 10,
+    "losses": 5,
+    "unit": "% of mean ECMP drops"
+   }
+  },
+  "score/Pmix - ECMP": {
+   "section": "b",
+   "result": {
+    "n": 60,
+    "mean": -17119.783333333333,
+    "mean_pct": -4.318191515814966,
+    "ci95_pct": [
+     -6.096,
+     -2.701
+    ],
+    "ci90_pct": [
+     -5.728,
+     -2.968
+    ],
+    "ci95_cluster_pct": [
+     -7.922,
+     -1.514
+    ],
+    "ci90_cluster_pct": [
+     -7.26,
+     -1.835
+    ],
+    "wins": 45,
+    "ties": 10,
+    "losses": 5,
+    "unit": "% of mean ECMP drops"
+   }
+  },
+  "score, no rules - ECMP": {
+   "section": "b",
+   "result": {
+    "n": 60,
+    "mean": -36196.28333333333,
+    "mean_pct": -9.129933513218218,
+    "ci95_pct": [
+     -12.653,
+     -5.915
+    ],
+    "ci90_pct": [
+     -12.004,
+     -6.415
+    ],
+    "ci95_cluster_pct": [
+     -20.065,
+     -2.185
+    ],
+    "ci90_cluster_pct": [
+     -18.457,
+     -2.607
+    ],
+    "wins": 49,
+    "ties": 7,
+    "losses": 4,
+    "unit": "% of mean ECMP drops"
+   }
+  },
+  "random/0.851 - ECMP": {
+   "section": "b",
+   "result": {
+    "n": 60,
+    "mean": -18275.233333333334,
+    "mean_pct": -4.6096352969540435,
+    "ci95_pct": [
+     -6.24,
+     -3.052
+    ],
+    "ci90_pct": [
+     -5.982,
+     -3.304
+    ],
+    "ci95_cluster_pct": [
+     -8.906,
+     -1.35
+    ],
+    "ci90_cluster_pct": [
+     -8.106,
+     -1.767
+    ],
+    "wins": 46,
+    "ties": 10,
+    "losses": 4,
+    "unit": "% of mean ECMP drops"
+   }
+  }
+ },
+ "oracle": {
+  "0.2": {
+   "variants": {
+    "oracle_label": {
+     "cells": 60,
+     "families": [
+      "elephant_mice",
+      "hotspot",
+      "llm_training",
+      "mixed",
+      "stride",
+      "uniform"
+     ],
+     "mean_drops": 2257.1,
+     "ecmp_mean_drops_same_cells": 2206.85,
+     "total_pct_vs_ecmp": 2.277001155493119,
+     "reroutes": 10.916666666666666,
+     "reordered_pct": 0.03000353966515325
+    },
+    "oracle_score_pmix": {
+     "cells": 60,
+     "families": [
+      "elephant_mice",
+      "hotspot",
+      "llm_training",
+      "mixed",
+      "stride",
+      "uniform"
+     ],
+     "mean_drops": 2241.516666666667,
+     "ecmp_mean_drops_same_cells": 2206.85,
+     "total_pct_vs_ecmp": 1.5708664687979157,
+     "reroutes": 8.583333333333334,
+     "reordered_pct": 0.03112756757148403
+    }
+   },
+   "diffs": {
+    "oracle label - score/Pmix": {
+     "n": 60,
+     "mean": 15.716666666666667,
+     "mean_pct": 0.7121764808059754,
+     "ci95_pct": [
+      -1.107,
+      3.172
+     ],
+     "ci90_pct": [
+      -0.969,
+      2.597
+     ],
+     "ci95_cluster_pct": [
+      -2.13,
+      4.381
+     ],
+     "ci90_cluster_pct": [
+      -1.597,
+      3.734
+     ],
+     "wins": 2,
+     "ties": 56,
+     "losses": 2,
+     "unit": "% of mean ECMP drops"
+    },
+    "oracle score/Pmix - score/Pmix": {
+     "n": 60,
+     "mean": 0.13333333333333333,
+     "mean_pct": 0.006041794110761191,
+     "ci95_pct": [
+      -1.533,
+      1.498
+     ],
+     "ci90_pct": [
+      -1.065,
+      1.136
+     ],
+     "ci95_cluster_pct": [
+      -2.13,
+      2.036
+     ],
+     "ci90_cluster_pct": [
+      -1.597,
+      1.615
+     ],
+     "wins": 1,
+     "ties": 57,
+     "losses": 2,
+     "unit": "% of mean ECMP drops"
+    },
+    "oracle score/0.851 - score/0.851": null,
+    "oracle label - ECMP": {
+     "n": 60,
+     "mean": 50.25,
+     "mean_pct": 2.2770011554931235,
+     "ci95_pct": [
+      -6.304,
+      10.87
+     ],
+     "ci90_pct": [
+      -4.711,
+      9.287
+     ],
+     "ci95_cluster_pct": [
+      -12.077,
+      16.911
+     ],
+     "ci90_cluster_pct": [
+      -9.069,
+      14.893
+     ],
+     "wins": 4,
+     "ties": 51,
+     "losses": 5,
+     "unit": "% of mean ECMP drops"
+    },
+    "oracle score/Pmix - ECMP": {
+     "n": 60,
+     "mean": 34.666666666666664,
+     "mean_pct": 1.5708664687979095,
+     "ci95_pct": [
+      -6.78,
+      9.111
+     ],
+     "ci90_pct": [
+      -5.16,
+      7.882
+     ],
+     "ci95_cluster_pct": [
+      -12.077,
+      14.977
+     ],
+     "ci90_cluster_pct": [
+      -9.088,
+      12.845
+     ],
+     "wins": 3,
+     "ties": 52,
+     "losses": 5,
+     "unit": "% of mean ECMP drops"
+    },
+    "oracle score/0.851 - ECMP": null,
+    "oracle label - M1/Pmix": {
+     "n": 60,
+     "mean": 26.58888888888883,
+     "mean_pct": 1.2048344422542914,
+     "ci95_pct": [
+      -1.249,
+      4.841
+     ],
+     "ci90_pct": [
+      -0.954,
+      4.313
+     ],
+     "ci95_cluster_pct": [
+      -2.218,
+      6.628
+     ],
+     "ci90_cluster_pct": [
+      -1.707,
+      5.567
+     ],
+     "wins": 3,
+     "ties": 52,
+     "losses": 5,
+     "unit": "% of mean ECMP drops"
+    },
+    "oracle score/Pmix - M1/Pmix": {
+     "n": 60,
+     "mean": 11.0055555555555,
+     "mean_pct": 0.49869975555907736,
+     "ci95_pct": [
+      -1.308,
+      2.832
+     ],
+     "ci90_pct": [
+      -1.084,
+      2.37
+     ],
+     "ci95_cluster_pct": [
+      -2.234,
+      3.93
+     ],
+     "ci90_cluster_pct": [
+      -1.707,
+      3.315
+     ],
+     "wins": 3,
+     "ties": 52,
+     "losses": 5,
+     "unit": "% of mean ECMP drops"
+    }
+   }
+  },
+  "0.25": {
+   "variants": {
+    "oracle_label": {
+     "cells": 60,
+     "families": [
+      "elephant_mice",
+      "hotspot",
+      "llm_training",
+      "mixed",
+      "stride",
+      "uniform"
+     ],
+     "mean_drops": 7268.65,
+     "ecmp_mean_drops_same_cells": 7009.816666666667,
+     "total_pct_vs_ecmp": 3.6924408389187535,
+     "reroutes": 20.383333333333333,
+     "reordered_pct": 0.04503519695948085
+    },
+    "oracle_score_pmix": {
+     "cells": 60,
+     "families": [
+      "elephant_mice",
+      "hotspot",
+      "llm_training",
+      "mixed",
+      "stride",
+      "uniform"
+     ],
+     "mean_drops": 7268.85,
+     "ecmp_mean_drops_same_cells": 7009.816666666667,
+     "total_pct_vs_ecmp": 3.6952939805843688,
+     "reroutes": 15.0,
+     "reordered_pct": 0.02217244209000426
+    }
+   },
+   "diffs": {
+    "oracle label - score/Pmix": {
+     "n": 60,
+     "mean": 50.483333333333334,
+     "mean_pct": 0.7201805087627113,
+     "ci95_pct": [
+      -0.557,
+      2.123
+     ],
+     "ci90_pct": [
+      -0.374,
+      1.838
+     ],
+     "ci95_cluster_pct": [
+      -0.487,
+      2.528
+     ],
+     "ci90_cluster_pct": [
+      -0.276,
+      2.193
+     ],
+     "wins": 6,
+     "ties": 47,
+     "losses": 7,
+     "unit": "% of mean ECMP drops"
+    },
+    "oracle score/Pmix - score/Pmix": {
+     "n": 60,
+     "mean": 50.68333333333333,
+     "mean_pct": 0.7230336504283279,
+     "ci95_pct": [
+      -0.817,
+      2.451
+     ],
+     "ci90_pct": [
+      -0.579,
+      2.2
+     ],
+     "ci95_cluster_pct": [
+      -0.84,
+      3.183
+     ],
+     "ci90_cluster_pct": [
+      -0.584,
+      2.667
+     ],
+     "wins": 7,
+     "ties": 46,
+     "losses": 7,
+     "unit": "% of mean ECMP drops"
+    },
+    "oracle score/0.851 - score/0.851": null,
+    "oracle label - ECMP": {
+     "n": 60,
+     "mean": 258.8333333333333,
+     "mean_pct": 3.6924408389187544,
+     "ci95_pct": [
+      1.283,
+      6.434
+     ],
+     "ci90_pct": [
+      1.565,
+      5.895
+     ],
+     "ci95_cluster_pct": [
+      0.0,
+      9.192
+     ],
+     "ci90_cluster_pct": [
+      0.0,
+      8.183
+     ],
+     "wins": 4,
+     "ties": 42,
+     "losses": 14,
+     "unit": "% of mean ECMP drops"
+    },
+    "oracle score/Pmix - ECMP": {
+     "n": 60,
+     "mean": 259.03333333333336,
+     "mean_pct": 3.6952939805843714,
+     "ci95_pct": [
+      1.013,
+      6.713
+     ],
+     "ci90_pct": [
+      1.456,
+      6.06
+     ],
+     "ci95_cluster_pct": [
+      -0.068,
+      9.618
+     ],
+     "ci90_cluster_pct": [
+      0.0,
+      8.638
+     ],
+     "wins": 4,
+     "ties": 42,
+     "losses": 14,
+     "unit": "% of mean ECMP drops"
+    },
+    "oracle score/0.851 - ECMP": null,
+    "oracle label - M1/Pmix": {
+     "n": 60,
+     "mean": 44.466666666666576,
+     "mean_pct": 0.6343484969887454,
+     "ci95_pct": [
+      -0.548,
+      1.84
+     ],
+     "ci90_pct": [
+      -0.378,
+      1.649
+     ],
+     "ci95_cluster_pct": [
+      -0.722,
+      2.343
+     ],
+     "ci90_cluster_pct": [
+      -0.423,
+      2.042
+     ],
+     "wins": 5,
+     "ties": 44,
+     "losses": 11,
+     "unit": "% of mean ECMP drops"
+    },
+    "oracle score/Pmix - M1/Pmix": {
+     "n": 60,
+     "mean": 44.66666666666658,
+     "mean_pct": 0.6372016386543621,
+     "ci95_pct": [
+      -0.816,
+      2.291
+     ],
+     "ci90_pct": [
+      -0.613,
+      1.968
+     ],
+     "ci95_cluster_pct": [
+      -0.822,
+      2.92
+     ],
+     "ci90_cluster_pct": [
+      -0.595,
+      2.397
+     ],
+     "wins": 4,
+     "ties": 44,
+     "losses": 12,
+     "unit": "% of mean ECMP drops"
+    }
+   }
+  }
+ }
+}

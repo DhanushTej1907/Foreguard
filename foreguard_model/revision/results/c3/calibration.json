@@ -1,0 +1,179 @@
+{
+ "meta": {
+  "time": "2026-10-25T21:30:53",
+  "git_head": "40036fdeae5ef9bf33e6348db7139e114b72eb9a",
+  "python": "3.14.3",
+  "torch": "2.14.1+cpu",
+  "numpy": "2.5.3",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "torch_threads": 2,
+  "argv": [
+   "revision/scripts/c3_calibrate.py"
+  ],
+  "step": "calibrate"
+ },
+ "val_windows": {
+  "P1.0": 816,
+  "Pmix": 6528
+ },
+ "models": {
+  "M0": {
+   "0": {
+    "P1.0": {
+     "temperature": 0.840483681561579,
+     "threshold": 0.7875447464560628
+    },
+    "Pmix": {
+     "temperature": 0.5825323039783996,
+     "threshold": 0.9014048770175318
+    },
+    "natural": "P1.0",
+    "natural_matches_checkpoint": true,
+    "checkpoint": {
+     "temperature": 0.840483681561579,
+     "threshold": 0.7875447464560628
+    }
+   },
+   "1": {
+    "P1.0": {
+     "temperature": 0.8832709306362828,
+     "threshold": 0.8463178822768558
+    },
+    "Pmix": {
+     "temperature": 0.5827722481302006,
+     "threshold": 0.9233830884809844
+    },
+    "natural": "P1.0",
+    "natural_matches_checkpoint": true,
+    "checkpoint": {
+     "temperature": 0.8832709306362828,
+     "threshold": 0.8463178822768558
+    }
+   },
+   "2": {
+    "P1.0": {
+     "temperature": 0.9801083821366081,
+     "threshold": 0.7543980569720972
+    },
+    "Pmix": {
+     "temperature": 0.7573767340395202,
+     "threshold": 0.8546981847658037
+    },
+    "natural": "P1.0",
+    "natural_matches_checkpoint": true,
+    "checkpoint": {
+     "temperature": 0.9801083821366081,
+     "threshold": 0.7543980569720972
+    }
+   }
+  },
+  "M0p": {
+   "0": {
+    "P1.0": {
+     "temperature": 0.840483681561579,
+     "threshold": 0.7875447464560628
+    },
+    "Pmix": {
+     "temperature": 0.5825323039783996,
+     "threshold": 0.9014048770175318
+    },
+    "natural": "P1.0",
+    "natural_matches_checkpoint": true,
+    "checkpoint": {
+     "temperature": 0.840483681561579,
+     "threshold": 0.7875447464560628
+    }
+   },
+   "1": {
+    "P1.0": {
+     "temperature": 0.8832709306334801,
+     "threshold": 0.8463178822775599
+    },
+    "Pmix": {
+     "temperature": 0.5827722481302006,
+     "threshold": 0.9233830884809844
+    },
+    "natural": "P1.0",
+    "natural_matches_checkpoint": true,
+    "checkpoint": {
+     "temperature": 0.8832709306334801,
+     "threshold": 0.8463178822775599
+    }
+   },
+   "2": {
+    "P1.0": {
+     "temperature": 0.9801083821367427,
+     "threshold": 0.7543980569720686
+    },
+    "Pmix": {
+     "temperature": 0.7573767340395202,
+     "threshold": 0.8546981847658037
+    },
+    "natural": "P1.0",
+    "natural_matches_checkpoint": true,
+    "checkpoint": {
+     "temperature": 0.9801083821367427,
+     "threshold": 0.7543980569720686
+    }
+   }
+  },
+  "M1": {
+   "0": {
+    "P1.0": {
+     "temperature": 1.028767992349084,
+     "threshold": 0.6122428730759967
+    },
+    "Pmix": {
+     "temperature": 0.8980782025844938,
+     "threshold": 0.6910763656147068
+    },
+    "natural": "Pmix",
+    "natural_matches_checkpoint": true,
+    "checkpoint": {
+     "temperature": 0.8980782025844938,
+     "threshold": 0.6910763656147068
+    }
+   },
+   "1": {
+    "P1.0": {
+     "temperature": 1.2427993763578247,
+     "threshold": 0.7400725675082941
+    },
+    "Pmix": {
+     "temperature": 1.072668464244149,
+     "threshold": 0.7794975025382631
+    },
+    "natural": "Pmix",
+    "natural_matches_checkpoint": true,
+    "checkpoint": {
+     "temperature": 1.072668464244149,
+     "threshold": 0.7794975025382631
+    }
+   },
+   "2": {
+    "P1.0": {
+     "temperature": 1.0449634239769976,
+     "threshold": 0.7143244671981703
+    },
+    "Pmix": {
+     "temperature": 0.9031412434144286,
+     "threshold": 0.7495416972434601
+    },
+    "natural": "Pmix",
+    "natural_matches_checkpoint": true,
+    "checkpoint": {
+     "temperature": 0.9031412434144286,
+     "threshold": 0.7495416972434601
+    }
+   }
+  }
+ },
+ "score": {
+  "P1.0": 0.8510000109672546,
+  "Pmix": 0.8510000109672546,
+  "P1.0_used": 0.851,
+  "Pmix_used": 0.8510000109672546
+ },
+ "score_P10_matches_benchmark": true,
+ "ok": true
+}
