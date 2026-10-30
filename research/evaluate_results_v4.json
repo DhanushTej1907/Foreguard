@@ -1,0 +1,87 @@
+{
+  "checkpoint": "C:\\Sem-3\\CN\\CN_Project\\NeuralFabric\\checkpoints\\best_model_v3.pt",
+  "label_mode": "served_or_queued",
+  "alert_threshold": 0.7875447464560628,
+  "temperature": 0.840483681561579,
+  "forecast": {
+    "threshold": 0.7875447464560628,
+    "brier_is_probability": true,
+    "overall": {
+      "n": 26112,
+      "positives": 6094,
+      "positive_rate": 0.23337928921568626,
+      "precision": 0.9008707300736771,
+      "recall": 0.8828355759763702,
+      "f1": 0.8917619757997679,
+      "average_precision": 0.9453021774311525,
+      "roc_auc": 0.9750805830381144,
+      "brier": 0.050388235494097114
+    },
+    "onset": {
+      "n": 20021,
+      "positives": 692,
+      "positive_rate": 0.034563708106488185,
+      "precision": 0.32748538011695905,
+      "recall": 0.08092485549132948,
+      "f1": 0.12977983777520277,
+      "average_precision": 0.1848718143188326,
+      "roc_auc": 0.8437406266363668,
+      "brier": 0.04074889535975262
+    }
+  },
+  "comparison": {
+    "No Rerouting": {
+      "avg_latency": 291.15260416666666,
+      "max_latency": 3000.5,
+      "avg_utilization": 0.3786482291666667,
+      "total_drops": 375712,
+      "total_offered": 923462,
+      "host_link_drops": 175669,
+      "fabric_link_drops": 200043,
+      "unroutable_drops": 0,
+      "drop_split_ok": true,
+      "total_delivered": 540414,
+      "outstanding_packets": 7336,
+      "avg_throughput": 2702.07,
+      "delivered_mean_latency_us": 9111.351667425344,
+      "delivered_p99_latency_us": 23000.0,
+      "packet_conservation": true
+    },
+    "Reactive": {
+      "avg_latency": 347.98895833333336,
+      "max_latency": 3000.5,
+      "avg_utilization": 0.4460002083333334,
+      "total_drops": 339006,
+      "total_offered": 923462,
+      "host_link_drops": 197141,
+      "fabric_link_drops": 141865,
+      "unroutable_drops": 0,
+      "drop_split_ok": true,
+      "total_delivered": 578703,
+      "outstanding_packets": 5753,
+      "avg_throughput": 2893.515,
+      "delivered_mean_latency_us": 9853.790286208987,
+      "delivered_p99_latency_us": 25000.0,
+      "packet_conservation": true,
+      "reroutes": 901
+    },
+    "Proactive (GNN)": {
+      "avg_latency": 343.23010416666665,
+      "max_latency": 3000.5,
+      "avg_utilization": 0.4424284375,
+      "total_drops": 331954,
+      "total_offered": 923462,
+      "host_link_drops": 201812,
+      "fabric_link_drops": 130142,
+      "unroutable_drops": 0,
+      "drop_split_ok": true,
+      "total_delivered": 582971,
+      "outstanding_packets": 8537,
+      "avg_throughput": 2914.855,
+      "delivered_mean_latency_us": 9780.375010077687,
+      "delivered_p99_latency_us": 24000.0,
+      "packet_conservation": true,
+      "reroutes": 977
+    }
+  }
+}
