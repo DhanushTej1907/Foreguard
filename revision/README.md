@@ -1,4 +1,4 @@
-# NeuralFabric – revision experiments
+# ForeGuard (NeuralFabric) – revision experiments
 
 Code, raw results and figures behind every number that was added to the paper in response to the
 review. Everything runs on top of the unchanged NeuralFabric project (simulator, models, checkpoints
@@ -29,10 +29,12 @@ exactly (`verify_modelfree.py`, `results/verify_model.jsonl`). Timing results de
 
 ## Where each part of the paper comes from
 
+Section, table and figure numbers refer to the submitted ForeGuard paper.
+
 | Paper | Script | Result file(s) |
 |---|---|---|
 | V-A calibration: ECE, reliability diagram (Fig. 3), Platt scaling | `forecast_analysis.py`, `platt_params.py`, `fig_reliability.py` | `forecast_analysis.json`, `platt_params.json` |
-| V-A/V-B test-scenario overlap (leakage) and per-scenario AP / sign test | `leakage_check.py`, `forecast_analysis.py` | `leakage_check.json`, `forecast_analysis.json` |
+| V-A/V-B test-scenario overlap (leakage) and per-scenario AP / sign test (Table A1) | `leakage_check.py`, `forecast_analysis.py` | `leakage_check.json`, `forecast_analysis.json` |
 | V-C/V-D per-family results, TOST equivalence, family-clustered bootstrap on the stored benchmark (Tables VI, VII) | `analyze_existing.py`, `equiv.py` | `existing_analysis.json`, `equiv.json` |
 | V-D fresh benchmark on unseen traffic seeds 4000-4009 | `run_exps.py replicate`, `equiv.py` | `replicate.jsonl`, `equiv.json` |
 | V-E leave-one-rule-out ablation (Fig. 6) | `run_exps.py ablation`, `fig_new.py` | `ablation.jsonl` |
@@ -43,20 +45,21 @@ exactly (`verify_modelfree.py`, `results/verify_model.jsonl`). Timing results de
 | V-G closed-loop transport, FCT and slowdown (Table IX) | `run_exps.py closedloop` | `closedloop.jsonl` |
 | V-H controller and inference time, coarser forecast interval | `run_exps.py timing`, `timing_original.py`, `run_exps.py interval` | `timing.jsonl`, `timing_original.json`, `interval.jsonl` |
 | All of the above, aggregated with paired-bootstrap CIs | `summarize_all.py` | `summary.json` |
-| Round 2: add-one-in rule ablation (V-E) | `rev2_exps.py addone`, `rev2_analyze.py` | `rev2_addone.jsonl`, `rev2_summary.json` |
+| Round 2: add-one-in rule ablation (V-E, Table A2) | `rev2_exps.py addone`, `rev2_analyze.py` | `rev2_addone.jsonl`, `rev2_summary.json` |
 | Round 2: score without rules in Tables V and IX and the reordering study | `rev2_exps.py noguard`, `rev2_analyze.py` | `rev2_noguard.jsonl`, `rev2_summary.json` |
-| Round 2: random / static / oracle risk signals (V-F, "Control signals") | `rev2_exps.py controls`, `rev2_analyze.py` | `rev2_controls.jsonl`, `rev2_summary.json` |
+| Round 2: random / static / oracle risk signals (V-F, "Control signals", Table A4) | `rev2_exps.py controls`, `rev2_analyze.py` | `rev2_controls.jsonl`, `rev2_summary.json` |
 | Round 2: FCT with unfinished flows censored at 600 ticks (V-G) | `rev2_analyze.py` | `rev2_summary.json` (`table9`) |
-| Round 3/4: offered-load sweep, load factors 0.1–1.0 (V-F, Table A5) | `rev3_load.py`, `rev3_analyze.py` | `rev3_load.jsonl`, `rev3_load_summary.json` |
-| Round 4: noisy / rate-blind / telemetry rates, signal-free guard, controls with reordering (Tables A3, A4) | `rev4_c1.py`, `rev4_c2.py`, `rev4_c1_analyze.py` | `rev4_c1.jsonl`, `rev4_c1_summary.json` |
-| Round 4: closed loop with reordering penalty (Table A6) | `rev4_c4.py`, `rev4_c4_analyze.py` | `rev4_c4.jsonl`, `rev4_c4_summary.json` |
+| Round 3/4: offered-load sweep, load factors 0.1–1.0 (V-F, Table A6) | `rev3_load.py`, `rev3_analyze.py` | `rev3_load.jsonl`, `rev3_load_summary.json` |
+| Round 4: noisy / rate-blind / telemetry rates, signal-free guard, controls with reordering (Tables A4, A5) | `rev4_c1.py`, `rev4_c2.py`, `rev4_c1_analyze.py` | `rev4_c1.jsonl`, `rev4_c1_summary.json` |
+| Round 4: closed loop with reordering penalty (Table A10) | `rev4_c4.py`, `rev4_c4_analyze.py` | `rev4_c4.jsonl`, `rev4_c4_summary.json` |
 | Round 4: FlowBender-style baseline (V-I, Table V) | `rev4_fb.py`, `rev4_fb_analyze.py` | `rev4_fb.jsonl`, `rev4_fb_summary.json` |
-| Round 5: terms of the capacity check (V-E, Table A7): configs A, B, C′, D, E, no check × score / random signal; counterfactual term attribution from audit-enabled A runs | `rev5_capterms.py`, `rev5_capterms_analyze.py`, `rev5_stats.py`, `rev5_external_check.py` | `rev5_capterms.jsonl` (720 outcome runs, audit off), `rev5_capterms_audit.jsonl` (120 A runs, audit on), `rev5_capterms_validation.jsonl` (60 ECMP, gate G0), `rev5_capterms_meta.json`, `rev5_capterms_summary.json` |
-| Round 5: terms of the capacity check, first build (independent of the `rev5_capterms` build above; all 780 runs match it exactly) | `rev5_cap.py`, `rev5_cap_analyze.py` | `rev5_cap.jsonl` (720 Table A7 runs + 60 ECMP), `rev5_cap_summary.json`, `rev5_cap_diag.json` |
+| Round 5: terms of the capacity check (V-E, Table A3): configs A, B, C′, D, E, no check × score / random signal; counterfactual term attribution from audit-enabled A runs | `rev5_capterms.py`, `rev5_capterms_analyze.py`, `rev5_stats.py`, `rev5_external_check.py` | `rev5_capterms.jsonl` (720 outcome runs, audit off), `rev5_capterms_audit.jsonl` (120 A runs, audit on), `rev5_capterms_validation.jsonl` (60 ECMP, gate G0), `rev5_capterms_meta.json`, `rev5_capterms_summary.json` |
+| Round 5: terms of the capacity check, first build (independent of the `rev5_capterms` build above; all 780 runs match it exactly) | `rev5_cap.py`, `rev5_cap_analyze.py` | `rev5_cap.jsonl` (720 Table A3 runs + 60 ECMP), `rev5_cap_summary.json`, `rev5_cap_diag.json` |
 | Round 5: FlowBender-style baseline vs score without rules and the guarded schemes, paired CIs on drops, throughput and delay (V-D, V-I; existing runs, no new simulation) | `rev5_fb_compare.py` | `rev5_fb_compare.json` |
-| Concern 3: mixed-load retraining of the forecaster (M0 / M0′ load 1.0 vs M1 all 8 loads), open-loop forecast AP per load, instrumented load sweep with P1.0 / Pmix protocols, passive oracle at loads 0.2 / 0.25 (protocol fixed in `results/c3/PROTOCOL.md`) | `c3_common.py`, `c3_gate.py`, `c3_data.py`, `c3_train.py`, `c3_calibrate.py`, `c3_forecast.py`, `c3_load.py`, `c3_analyze.py` | `results/c3/`: `REPORT.md`, `gate.json`, `data.json`, `train_load1.json`, `train_mixed.json`, `calibration.json`, `forecast.json`, `load.jsonl`, `oracle.jsonl`, `summary.json`, `tables.md`, `runtime.json`; checkpoints `checkpoints/c3/` |
-| Concern 4 (4th review): closed-loop FCT under reordering models between no penalty and the full penalty (window W = 0, 1, 2, 4, 8, 16 ticks, RACK-like RTT/4 window, dupACK threshold 3; every Table A6 strategy + FlowBender-style; crossover vs guarded score; protocol fixed in `results/c4/PROTOCOL.md`) | `c4_sweep.py`, `c4_analyze.py` (rules in `nf_exp.ClosedLoopEngine`: `reorder_window`, `dupack_threshold`) | `results/c4/`: `REPORT.md`, `runs.jsonl` (2,160 runs), `gate.json`, `summary.json`, `tables.md`, `runtime.json` |
-| Concern 4 follow-up: family-clustered 95% CIs (6 families, then 5 seeds within each drawn family; 2,000 draws, seed 42) next to the cell CIs for every closed-loop FCT contrast of Tables A6 and A10, per-family mean-FCT breakdown and leave-one-family-out contrasts (existing `c4/runs.jsonl`, no new simulation; the cell path reproduces `c4/summary.json`, `rev4_c4_summary.json` and `rev4_fb_summary.json` exactly) | `c4_clustered.py` | `results/c4/`: `REPORT_clustered.md`, `clustered.json`, `tables_clustered.md` |
+| Concern 3: mixed-load retraining of the forecaster (M0 / M0′ load 1.0 vs M1 all 8 loads), open-loop forecast AP per load, instrumented load sweep with P1.0 / Pmix protocols, passive oracle at loads 0.2 / 0.25 (V-F, Tables A8, A9; protocol fixed in `results/c3/PROTOCOL.md`) | `c3_common.py`, `c3_gate.py`, `c3_data.py`, `c3_train.py`, `c3_calibrate.py`, `c3_forecast.py`, `c3_load.py`, `c3_analyze.py` | `results/c3/`: `REPORT.md`, `gate.json`, `data.json`, `train_load1.json`, `train_mixed.json`, `calibration.json`, `forecast.json`, `load.jsonl`, `oracle.jsonl`, `summary.json`, `tables.md`, `runtime.json`; checkpoints `checkpoints/c3/` |
+| Concern 4 (4th review): closed-loop FCT under reordering models between no penalty and the full penalty (window W = 0, 1, 2, 4, 8, 16 ticks, RACK-like RTT/4 window, dupACK threshold 3; every Table A10 strategy + FlowBender-style; V-G, Table A12; crossover vs guarded score; protocol fixed in `results/c4/PROTOCOL.md`) | `c4_sweep.py`, `c4_analyze.py` (rules in `nf_exp.ClosedLoopEngine`: `reorder_window`, `dupack_threshold`) | `results/c4/`: `REPORT.md`, `runs.jsonl` (2,160 runs), `gate.json`, `summary.json`, `tables.md`, `runtime.json` |
+| Concern 4 follow-up: family-clustered 95% CIs (6 families, then 5 seeds within each drawn family; 2,000 draws, seed 42) next to the cell CIs for every closed-loop FCT contrast of Tables A10 and A12, per-family mean-FCT breakdown and leave-one-family-out contrasts (existing `c4/runs.jsonl`, no new simulation; the cell path reproduces `c4/summary.json`, `rev4_c4_summary.json` and `rev4_fb_summary.json` exactly) | `c4_clustered.py` | `results/c4/`: `REPORT_clustered.md`, `clustered.json`, `tables_clustered.md` |
+| Round 6: the Table V benchmark rerun with 4,000- and 8,000-packet host-link buffers (V-D, Table A14) | `rev6_hostbuf.py` | `rev6_hostbuf.jsonl`, `rev6_hostbuf_summary.json`, `rev6_hostbuf_tables.md` |
 
 Round 5 runs in this order: `rev5_capterms.py validation` and `rev5_capterms.py campaign --gate-only`, then
 `rev5_capterms_analyze.py gate` (must pass: the ECMP runs and the 180 runs that repeat saved results must equal

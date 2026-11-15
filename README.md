@@ -1,8 +1,10 @@
-# NeuralFabric
+# ForeGuard (formerly NeuralFabric)
 
 **Capacity-guarded predictive routing on a synthetic datacenter fabric**
 
 NeuralFabric is a reproducible computer-networks research prototype. It combines a GCN-LSTM congestion forecaster with a deterministic rerouting controller that admits route changes only when predicted risk improves and the alternative path passes explicit capacity and stability checks.
+
+> This repository accompanies the paper **ForeGuard: A Controlled Evaluation of Forecast-Driven and Model-Free Capacity-Guarded Rerouting in Datacenter Fabrics**. NeuralFabric is the project's earlier name and still appears in code and file names; it is not related to the `neuralfabric` package on PyPI. The exact version used in the paper is tagged `v1.0-revision` and archived on Zenodo: https://doi.org/10.5281/zenodo.24248337 (all versions: https://doi.org/10.5281/zenodo.24248336).
 
 ## Repository layout
 
@@ -10,7 +12,7 @@ NeuralFabric is a reproducible computer-networks research prototype. It combines
 |---|---|
 | project root (`simulation/`, `model/`, `routing/`, `dashboard/`, `research/`, ...) | The original NeuralFabric project: simulator, GCN-LSTM forecaster, guarded rerouting controller, dashboard, stored benchmark |
 | `revision/` | Every experiment added during the paper's review rounds: scripts, raw results, analysis summaries and figures. See `revision/README.md` for which script backs which section and table of the paper |
-| `paper/NeuralFabric_final_revised.docx` | The final revised IEEE paper |
+| `paper/NeuralFabric_final_revised.docx` | An earlier revision of the paper (the submitted version is titled ForeGuard) |
 | `paper/changelogs/` | Edit-by-edit changelogs of the review rounds |
 
 The numbers in the final paper come from `revision/results/`; the "Recorded research result"
