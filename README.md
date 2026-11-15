@@ -4,7 +4,7 @@
 
 NeuralFabric is a reproducible computer-networks research prototype. It combines a GCN-LSTM congestion forecaster with a deterministic rerouting controller that admits route changes only when predicted risk improves and the alternative path passes explicit capacity and stability checks.
 
-> This repository accompanies the paper **ForeGuard: A Controlled Evaluation of Forecast-Driven and Model-Free Capacity-Guarded Rerouting in Datacenter Fabrics**. NeuralFabric is the project's earlier name and still appears in code and file names; it is not related to the `neuralfabric` package on PyPI. The exact version used in the paper is tagged `v1.0-revision` and archived on Zenodo: https://doi.org/10.5281/zenodo.24248337 (all versions: https://doi.org/10.5281/zenodo.24248336).
+> This repository accompanies the paper **ForeGuard: A Controlled Evaluation of Forecast-Driven and Model-Free Capacity-Guarded Rerouting in Datacenter Fabrics**. NeuralFabric is the project's earlier name and still appears in code and file names; it is not related to the `neuralfabric` package on PyPI. The exact version used in the paper is tagged `v1.1-revision` and archived on Zenodo: https://doi.org/10.5281/zenodo.24249491 (all versions: https://doi.org/10.5281/zenodo.24248336). The earlier `v1.0-revision` (https://doi.org/10.5281/zenodo.24248337) lacks the raw results for Tables A7, A11 and A13.
 
 ## Repository layout
 
