@@ -1,0 +1,14 @@
+{
+  "title": "ForeGuard: code, checkpoints and results for the forecast-guarded rerouting study",
+  "upload_type": "software",
+  "description": "Simulator, training and evaluation code, trained checkpoints and raw results for the paper 'ForeGuard' (forecast-driven, capacity-guarded rerouting in a k=4 Fat-Tree), including the host-buffer rerun of the Table V benchmark (Table A14).",
+  "creators": [
+    {"name": "Seervi, Divyank", "affiliation": "Vellore Institute of Technology, Vellore, India"},
+    {"name": "Krish", "affiliation": "Vellore Institute of Technology, Vellore, India"},
+    {"name": "Choppa, Madhu Dhanush Teja", "affiliation": "Vellore Institute of Technology, Vellore, India"},
+    {"name": "Agarwal, Srishti", "affiliation": "Vellore Institute of Technology, Vellore, India"},
+    {"name": "Khekare, Ganesh", "affiliation": "Vellore Institute of Technology, Vellore, India"}
+  ],
+  "license": "MIT",
+  "access_right": "open"
+}
